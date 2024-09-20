@@ -1,0 +1,7 @@
+services:
+  omarket:
+    image: ${DOCKER_REGISTRY-}omarket
+    container_name: OMarket
+    build:
+      context: .
+      dockerfile: OMarket/Dockerfile

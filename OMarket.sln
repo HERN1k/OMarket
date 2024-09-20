@@ -1,0 +1,66 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35222.181
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket", "OMarket\OMarket.csproj", "{A3770E71-1694-425D-9ACE-6C3F2E841E12}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{1C280406-6A4B-4AB1-BF5D-13BED9703784}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{647D9372-E40C-4C9E-B2CB-6D5AD40BD3C7}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket.Application", "OMarket.Application\OMarket.Application.csproj", "{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket.Domain", "OMarket.Domain\OMarket.Domain.csproj", "{CF868CB8-034C-4F35-ADE2-47BE3F98F606}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket.Infrastructure", "OMarket.Infrastructure\OMarket.Infrastructure.csproj", "{8A0F337A-7F04-4432-A69B-82AEC493AA41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket.Helpers", "OMarket.Helpers\OMarket.Helpers.csproj", "{D0F58530-ECD5-4504-AC57-8F2BC7C85311}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OMarket.Tests", "OMarket.Tests\OMarket.Tests.csproj", "{EB90EF3E-F93F-4259-98B0-55921A1962AC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A3770E71-1694-425D-9ACE-6C3F2E841E12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3770E71-1694-425D-9ACE-6C3F2E841E12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3770E71-1694-425D-9ACE-6C3F2E841E12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3770E71-1694-425D-9ACE-6C3F2E841E12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C280406-6A4B-4AB1-BF5D-13BED9703784}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C280406-6A4B-4AB1-BF5D-13BED9703784}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C280406-6A4B-4AB1-BF5D-13BED9703784}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C280406-6A4B-4AB1-BF5D-13BED9703784}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF868CB8-034C-4F35-ADE2-47BE3F98F606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF868CB8-034C-4F35-ADE2-47BE3F98F606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF868CB8-034C-4F35-ADE2-47BE3F98F606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF868CB8-034C-4F35-ADE2-47BE3F98F606}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A0F337A-7F04-4432-A69B-82AEC493AA41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A0F337A-7F04-4432-A69B-82AEC493AA41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A0F337A-7F04-4432-A69B-82AEC493AA41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A0F337A-7F04-4432-A69B-82AEC493AA41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0F58530-ECD5-4504-AC57-8F2BC7C85311}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0F58530-ECD5-4504-AC57-8F2BC7C85311}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0F58530-ECD5-4504-AC57-8F2BC7C85311}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0F58530-ECD5-4504-AC57-8F2BC7C85311}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB90EF3E-F93F-4259-98B0-55921A1962AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB90EF3E-F93F-4259-98B0-55921A1962AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB90EF3E-F93F-4259-98B0-55921A1962AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB90EF3E-F93F-4259-98B0-55921A1962AC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {024AC8BC-AE1C-4BE9-9585-84D64D03BD67}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,68 @@
+{
+  "profiles": {
+    "http": {
+        "commandName": "Project",
+        "launchBrowser": false,
+        "launchUrl": "swagger",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+            "REDIS_CONFIGURATION": "localhost:6379",
+            "REDIS_INSTANCE_NAME": "omarket"
+        },
+        "dotnetRunMessages": true,
+        "applicationUrl": "http://192.168.0.100:7558"
+    },
+    "https": {
+        "commandName": "Project",
+        "launchBrowser": false,
+        "launchUrl": "swagger",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+            "REDIS_CONFIGURATION": "localhost:6379",
+            "REDIS_INSTANCE_NAME": "omarket"
+        },
+        "dotnetRunMessages": true,
+        "applicationUrl": "https://192.168.0.100:7557;http://192.168.0.100:7558"
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+        "environmentVariables": {
+            "ASPNETCORE_ENVIRONMENT": "Development",
+            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+            "REDIS_CONFIGURATION": "localhost:6379",
+            "REDIS_INSTANCE_NAME": "omarket"
+        }
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+        "environmentVariables": {
+            "ASPNETCORE_HTTPS_PORTS": "7558",
+            "ASPNETCORE_HTTP_PORTS": "7557",
+            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+            "REDIS_CONFIGURATION": "localhost:6379",
+            "REDIS_INSTANCE_NAME": "omarket"
+        },
+      "publishAllPorts": true,
+      "useSSL": true
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:21503",
+      "sslPort": 44336
+    }
+  }
+}
