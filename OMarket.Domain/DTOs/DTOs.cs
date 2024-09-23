@@ -295,4 +295,72 @@ namespace OMarket.Domain.DTOs
             return Id.GetHashCode();
         }
     }
+
+    public class ProductWithDbInfoDto : IEquatable<ProductWithDbInfoDto>
+    {
+        public Guid Id { get; set; }
+
+        public ProductDto? Product { get; set; }
+
+        public string TypeId { get; set; } = null!;
+
+        public int PageNumber { get; set; }
+
+        public int MaxNumber { get; set; }
+
+        public bool Equals(ProductWithDbInfoDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ProductWithDbInfoDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class CartItemDto : IEquatable<CartItemDto>
+    {
+        public Guid Id { get; set; }
+
+        public ProductDto? Product { get; set; }
+
+        public int Quantity { get; set; }
+
+        public bool Equals(CartItemDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is CartItemDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
 }

@@ -12,6 +12,7 @@ using NLog.Web;
 
 using OMarket.Application.Middlewares;
 using OMarket.Application.Services.Bot;
+using OMarket.Application.Services.Cart;
 using OMarket.Application.Services.Distributor;
 using OMarket.Application.Services.KeyboardMarkup;
 using OMarket.Application.Services.Processor;
@@ -21,6 +22,7 @@ using OMarket.Application.Services.TgUpdate;
 using OMarket.Application.Services.Translator;
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.Interfaces.Application.Services.Bot;
+using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.Distributor;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
@@ -108,6 +110,8 @@ namespace OMarket.Configurators
             _applicationBuilder.Services.AddEndpointsApiExplorer();
 
             _applicationBuilder.Services.AddSwaggerGen();
+
+            _applicationBuilder.Services.AddMemoryCache();
 
             _applicationBuilder.Services.AddMemoryCache();
 
@@ -222,6 +226,8 @@ namespace OMarket.Configurators
             _applicationBuilder.Services.AddScoped<IReplyMarkupService, ReplyMarkupService>();
             _applicationBuilder.Services.AddScoped<IInlineMarkupService, InlineMarkupService>();
 
+            _applicationBuilder.Services.AddScoped<ICartService, CartService>();
+
             _applicationBuilder.Services.AddScoped<ToCustomerMapper>();
             _applicationBuilder.Services.AddScoped<ToCustomerDtoMapper>();
 
@@ -295,6 +301,8 @@ namespace OMarket.Configurators
             });
 
             _application.MapControllers();
+
+            _application.UseStaticFiles();
         }
 
         private void ConfigureCustomMiddlewares()

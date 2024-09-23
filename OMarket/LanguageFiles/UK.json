@@ -1,5 +1,4 @@
-﻿{
-    // Exceptions
+﻿{ // Exceptions
     "exception_dev": "Ця функція в розробці 🤩",
     "exception_main": "Упс! Щось пішло не так 🙊",
     "exception_main_please_try_again": "Упс! Щось пішло не так 🙊. Спробуйте будь ласка ще раз ⬇️",
@@ -13,8 +12,8 @@
     "generic_good_day": "Вітаю вас! Чим я можу бути корисним у цей чудовий день? 😊",
     "generic_good_evening": "Доброго вечора! Як я можу допомогти вам сьогодні? 😊",
     "generic_good_night": "Доброї ночі! Чим я можу бути корисним у цю чудову ніч? 😊 (Зверніть увагу, що замовлення можна зробити з 10:00 до 21:00)",
-    "generic_main_manu_title": "🔸   <b>Головне меню</b>",
-    "generic_menu_null_item": "Чомусь порожньо 🫣",
+    "generic_main_manu_title": "<b>Головне меню</b>",
+    "generic_menu_null_item": "Чомусь тут порожньо 🫣",
     "generic_menu_selected_category": "<b>Категорія:</b>",
 
     // Menu items
@@ -69,10 +68,13 @@
 
     // Product View
     "product_view_cart_button": "🛒 Кошик",
-    "product_view_previous_button": "⬅️",
-    "product_view_next_button": "➡️",
-    "product_view_to_cart_button": "✅",
+    "product_view_button_disable": "•",
+    "product_view_previous_button": "←",
+    "product_view_next_button": "→",
+    "product_view_quantity_selection_button": "➕ Додати",
+    "product_view_accept_button": "✔️ Додати до кошику",
     "product_view_plus_button": "➕",
     "product_view_minus_button": "➖",
+    "product_view_button_is_disable_button": "Кнопка неактивна",
     "product_view_quantity_button": "Кількість:"
 }

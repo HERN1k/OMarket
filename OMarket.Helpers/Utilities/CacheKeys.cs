@@ -8,6 +8,8 @@
 
         public const string ProductId = "ProductId";
 
+        public const string ProductItemFromDbId = "ProductId";
+
         public const string KeyboardMarkupSelectStoreAddress = "KeyboardMarkupSelectStoreAddressId";
 
         public const string KeyboardMarkupMenuProductTypes = "KeyboardMarkupMenuProductTypes";

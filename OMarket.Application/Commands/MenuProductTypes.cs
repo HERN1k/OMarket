@@ -49,7 +49,7 @@ namespace OMarket.Application.Commands
 
             if (request.Customer.CityId == null || request.Customer.StoreAddressId == null)
             {
-                await _response.EditLastMessage(_i18n.T("main_menu_command_select_your_address"), token, _inlineMarkup.SelectStoreAddress("updatestoreaddress"));
+                await _response.SendMessageAnswer(_i18n.T("main_menu_command_select_your_address"), token, _inlineMarkup.SelectStoreAddress("updatestoreaddress"));
 
                 return;
             }

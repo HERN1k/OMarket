@@ -1,4 +1,5 @@
-﻿using OMarket.Domain.Enums;
+﻿using OMarket.Domain.DTOs;
+using OMarket.Domain.Enums;
 
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -16,6 +17,6 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
 
         (InlineKeyboardMarkup Markup, string CategoryType) MenuProductUnderTypes(string type, LanguageCode? code = null);
 
-        InlineKeyboardMarkup ProductView(int quantity, LanguageCode? code = null);
+        InlineKeyboardMarkup ProductView(ProductWithDbInfoDto dto, int quantity, LanguageCode? code = null);
     }
 }

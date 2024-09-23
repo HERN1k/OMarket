@@ -112,6 +112,23 @@ namespace OMarket.Application.Services.SendResponse
                 cancellationToken: token);
         }
 
+        public async Task SendCallbackAnswerAlert(string text, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (_updateManager.Update.CallbackQuery is null)
+            {
+                throw new TelegramException();
+            }
+
+            await _client.AnswerCallbackQueryAsync(
+                callbackQueryId: _updateManager.Update.CallbackQuery.Id,
+                text: text ?? "🤩",
+                showAlert: false,
+                cacheTime: 0,
+                cancellationToken: token);
+        }
+
         public async Task<Message> EditLastMessage(string text, CancellationToken token, InlineKeyboardMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html)
         {
             token.ThrowIfCancellationRequested();
@@ -244,6 +261,8 @@ namespace OMarket.Application.Services.SendResponse
                 throw new TelegramException();
             }
 
+            await _client.SendChatActionAsync(chatId, ChatAction.UploadPhoto, cancellationToken: token);
+
             return await _client.SendPhotoAsync(
                 chatId: chatId,
                 photo: new InputFileUrl(photoUri),
@@ -251,14 +270,6 @@ namespace OMarket.Application.Services.SendResponse
                 replyMarkup: buttons,
                 parseMode: parseMode,
                 cancellationToken: token);
-
-            //return await _client.SendPhotoAsync(
-            //    chatId: chatId,
-            //    photo: new InputFileUrl(photoUri),
-            //    caption: text,
-            //    replyMarkup: buttons,
-            //    parseMode: parseMode,
-            //    cancellationToken: token);
         }
 
         public async Task RemoveLastMessage(CancellationToken token)

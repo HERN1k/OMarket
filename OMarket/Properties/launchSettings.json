@@ -9,7 +9,8 @@
             "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket"
+            "REDIS_INSTANCE_NAME": "omarket",
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         },
         "dotnetRunMessages": true,
         "applicationUrl": "http://192.168.0.100:7558"
@@ -23,7 +24,8 @@
             "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket"
+            "REDIS_INSTANCE_NAME": "omarket",
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         },
         "dotnetRunMessages": true,
         "applicationUrl": "https://192.168.0.100:7557;http://192.168.0.100:7558"
@@ -37,7 +39,8 @@
             "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket"
+            "REDIS_INSTANCE_NAME": "omarket",
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         }
     },
     "Container (Dockerfile)": {
@@ -50,7 +53,8 @@
             "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket"
+            "REDIS_INSTANCE_NAME": "omarket",
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         },
       "publishAllPorts": true,
       "useSSL": true

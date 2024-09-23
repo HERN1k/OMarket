@@ -1,12 +1,14 @@
 ﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
+using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
+using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -50,12 +52,35 @@ namespace OMarket.Application.Commands
 
             if (request.Customer.CityId == null || request.Customer.StoreAddressId == null)
             {
-                await _response.EditLastMessage(_i18n.T("main_menu_command_select_your_address"), token, _inlineMarkup.SelectStoreAddress("updatestoreaddress"));
+                await _response.SendMessageAnswer(_i18n.T("main_menu_command_select_your_address"), token, _inlineMarkup.SelectStoreAddress("updatestoreaddress"));
 
                 return;
             }
 
-            (InlineKeyboardMarkup buttons, string categoryType) = _inlineMarkup.MenuProductUnderTypes(request.Query);
+            string[] queryStrings = request.Query.Split('_', 2);
+
+            if (queryStrings.Length < 1)
+            {
+                throw new TelegramException();
+            }
+
+            (InlineKeyboardMarkup buttons, string categoryType) = _inlineMarkup.MenuProductUnderTypes(queryStrings[0]);
+
+            if (StringHelper.IsBackCommand(_updateManager.Update, out string command))
+            {
+                if (StringHelper.IsDelCommand(command))
+                {
+                    await _response.RemoveLastMessage(token);
+
+                    await _response.SendMessageAnswer($"{_i18n.T("generic_menu_selected_category")} {categoryType}", token, buttons);
+
+                    return;
+                }
+
+                await _response.EditLastMessage($"{_i18n.T("generic_menu_selected_category")} {categoryType}", token, buttons);
+
+                return;
+            }
 
             await _response.EditLastMessage($"{_i18n.T("generic_menu_selected_category")} {categoryType}", token, buttons);
         }

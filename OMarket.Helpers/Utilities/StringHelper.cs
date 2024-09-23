@@ -8,21 +8,51 @@ namespace OMarket.Helpers.Utilities
 {
     public static class StringHelper
     {
-        public static bool IsBackCommand(Update update)
+        public static bool IsBackCommand(Update update, out string command)
         {
-            string command = GetMessageFromUpdate(update);
+            string commandTemp = GetMessageFromUpdate(update);
 
-            if (!command.StartsWith('/'))
+            if (!commandTemp.StartsWith('/'))
             {
                 throw new TelegramException();
             }
 
+            string[] lines = commandTemp.Split('_');
+
+            if (lines.Length == 1)
+            {
+                command = string.Empty;
+
+                return false;
+            }
+            else if (lines.Length == 2)
+            {
+                command = lines[^1];
+
+                return command.ToUpper()
+                    .RegexIsMatch(RegexPatterns.Back);
+            }
+            else if (lines.Length > 2)
+            {
+                command = $"{lines[^2]}_{lines[^1]}";
+
+                return command.ToUpper()
+                    .RegexIsMatch(RegexPatterns.Back);
+            }
+
+            command = string.Empty;
+
+            return false;
+        }
+
+        public static bool IsDelCommand(string command)
+        {
             string[] lines = command.Split('_', 2);
 
             if (lines.Length > 1)
             {
                 return lines[1].ToUpper()
-                    .RegexIsMatch(RegexPatterns.Back);
+                    .RegexIsMatch(RegexPatterns.Del);
             }
 
             return false;

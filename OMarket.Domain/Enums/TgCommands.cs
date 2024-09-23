@@ -11,7 +11,9 @@
         MENUPRODUCTTYPES = 64,
         MENUPRODUCTUNDERTYPE = 128,
         UPDATESTOREADDRESS = 256,
-        MENUPRODUCTSLIST = 512
+        MENUPRODUCTSLIST = 512,
+        QUANTITYSELECTIONPRODUCT = 1024,
+        ADDPRODUCTTOCART = 2048,
     }
 
     public static class TgCommandExtensions

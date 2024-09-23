@@ -44,31 +44,21 @@ namespace OMarket.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public async Task<List<ProductDto>> GetProductWithPaginationAsync(int pageNumber, string underType, CancellationToken token)
+        public async Task<ProductDto> GetProductByIdAsync(Guid id, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
-            if (pageNumber <= 0)
-            {
-                throw new TelegramException();
-            }
+            ProductDto? product;
 
-            if (!Guid.TryParse(underType, out Guid guid) || !_staticCollections.GuidToStringUnderTypesDictionary.ContainsKey(underType))
-            {
-                throw new TelegramException();
-            }
-
-            List<ProductDto>? products;
-
-            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductId}{underType}-{_pageSize}-{pageNumber}", token);
+            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductItemFromDbId}{id}", token);
 
             if (!string.IsNullOrEmpty(productsString))
             {
                 token.ThrowIfCancellationRequested();
 
-                products = JsonSerializer.Deserialize<List<ProductDto>>(productsString);
+                product = JsonSerializer.Deserialize<ProductDto>(productsString);
 
-                return products ?? throw new TelegramException();
+                return product ?? throw new TelegramException();
             }
 
             try
@@ -77,7 +67,82 @@ namespace OMarket.Infrastructure.Repositories
 
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
-                var result = await context.Products
+                product = await context.Products
+                    .Select(product => new ProductDto()
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        PhotoUri = product.PhotoUri,
+                        TypeId = product.TypeId,
+                        UnderTypeId = product.UnderTypeId,
+                        BrandId = product.BrandId,
+                        Price = product.Price,
+                        Dimensions = product.Dimensions,
+                        Description = product.Description
+                    })
+                    .SingleOrDefaultAsync(p => p.Id == id)
+                        ?? throw new TelegramException();
+
+                productsString = JsonSerializer.Serialize<ProductDto>(product);
+
+                if (string.IsNullOrEmpty(productsString))
+                {
+                    throw new TelegramException();
+                }
+
+                await _cache.SetStringAsync($"{CacheKeys.ProductItemFromDbId}{id}", productsString, token);
+
+                return product;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (TelegramException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<ProductWithDbInfoDto?> GetProductWithPaginationAsync(int pageNumber, string underType, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (pageNumber <= 0)
+            {
+                throw new TelegramException();
+            }
+
+            ProductWithDbInfoDto? product;
+
+            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductId}{underType}-{_pageSize}-{pageNumber}", token);
+
+            if (!string.IsNullOrEmpty(productsString))
+            {
+                token.ThrowIfCancellationRequested();
+
+                product = JsonSerializer.Deserialize<ProductWithDbInfoDto>(productsString);
+
+                return product ?? throw new TelegramException();
+            }
+
+            if (!Guid.TryParse(underType, out Guid guid) || !_staticCollections.GuidToStringUnderTypesDictionary.ContainsKey(underType))
+            {
+                throw new TelegramException();
+            }
+
+            try
+            {
+                token.ThrowIfCancellationRequested();
+
+                await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+                var products = await context.Products
                     .AsNoTracking()
                     .Where(product => product.UnderTypeId == guid)
                     .OrderBy(product => product.Price)
@@ -96,7 +161,28 @@ namespace OMarket.Infrastructure.Repositories
                         Description = product.Description
                     }).ToListAsync(token);
 
-                productsString = JsonSerializer.Serialize<List<ProductDto>>(result);
+                int maxPageNumber = await context.Products
+                    .AsNoTracking()
+                    .Where(product => product.UnderTypeId == guid)
+                    .CountAsync();
+
+                product = products
+                    .Select(product => new ProductWithDbInfoDto()
+                    {
+                        Id = product.Id,
+                        Product = product,
+                        TypeId = product.TypeId.ToString(),
+                        PageNumber = pageNumber,
+                        MaxNumber = maxPageNumber
+                    }).ToArray()
+                    .ElementAtOrDefault(0);
+
+                if (product is null)
+                {
+                    return null;
+                }
+
+                productsString = JsonSerializer.Serialize<ProductWithDbInfoDto>(product);
 
                 if (string.IsNullOrEmpty(productsString))
                 {
@@ -105,7 +191,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 await _cache.SetStringAsync($"{CacheKeys.ProductId}{underType}-{_pageSize}-{pageNumber}", productsString, token);
 
-                return result;
+                return product;
             }
             catch (OperationCanceledException)
             {
@@ -121,7 +207,5 @@ namespace OMarket.Infrastructure.Repositories
                 throw;
             }
         }
-
-
     }
 }
