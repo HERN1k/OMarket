@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-using OMarket.Domain.Exceptions.Telegram;
+﻿using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Helpers.Extensions;
 
 using Telegram.Bot.Types;
@@ -10,18 +8,6 @@ namespace OMarket.Helpers.Utilities
 {
     public static class StringHelper
     {
-        public static bool RegexIsMatch(string input, string pattern)
-        {
-            ArgumentException.ThrowIfNullOrWhiteSpace(pattern, nameof(pattern));
-
-            if (string.IsNullOrEmpty(input) || string.IsNullOrWhiteSpace(input))
-            {
-                return false;
-            }
-
-            return Regex.IsMatch(input, pattern);
-        }
-
         public static bool IsBackCommand(Update update)
         {
             string command = GetMessageFromUpdate(update);
@@ -58,7 +44,7 @@ namespace OMarket.Helpers.Utilities
                 return string.Empty;
             }
 
-            string result = lines[1].ToUpper();
+            string result = lines[1];
 
             return result;
         }
@@ -77,24 +63,6 @@ namespace OMarket.Helpers.Utilities
             {
                 throw new TelegramException();
             }
-        }
-
-        public static string GetCityNameFromQuery(string query)
-        {
-            return query switch
-            {
-                "SMILA" => "м. Сміла",
-                _ => throw new TelegramException()
-            };
-        }
-
-        public static string GetQueryFromCityName(string city)
-        {
-            return city switch
-            {
-                "м. Сміла" => "SMILA",
-                _ => throw new TelegramException()
-            };
         }
     }
 }

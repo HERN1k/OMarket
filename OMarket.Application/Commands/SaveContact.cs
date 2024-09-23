@@ -25,7 +25,6 @@ namespace OMarket.Application.Commands
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
         private readonly ICustomersRepository _customersRepository;
-        private readonly ICityRepository _cityRepository;
         private readonly II18nService _i18n;
         private readonly IMapper _mapper;
         private readonly IDataProcessorService _dataProcessor;
@@ -36,7 +35,6 @@ namespace OMarket.Application.Commands
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 ICustomersRepository customersRepository,
-                ICityRepository cityRepository,
                 II18nService i18n,
                 IMapper mapper,
                 IDataProcessorService dataProcessor,
@@ -47,7 +45,6 @@ namespace OMarket.Application.Commands
             _updateManager = updateManager;
             _response = response;
             _customersRepository = customersRepository;
-            _cityRepository = cityRepository;
             _i18n = i18n;
             _mapper = mapper;
             _dataProcessor = dataProcessor;
@@ -100,15 +97,13 @@ namespace OMarket.Application.Commands
 
                 await _response.SendMessageAnswer(_i18n.T("save_contact_command_phone_number_is_saved"), token, _replyMarkup.Empty);
 
-                List<CityDto> cities = await _cityRepository.GetAllCitiesAsync(token);
-
                 string text = $"""
-                    {_i18n.T("save_contact_command_select_your_city_1")}
+                    {_i18n.T("save_contact_command_select_your_address_1")}
 
-                    {_i18n.T("save_contact_command_select_your_city_2")}
+                    {_i18n.T("save_contact_command_select_your_address_2")}
                     """;
 
-                await _response.SendMessageAnswer(text, token, _inlineMarkup.SelectCity(cities));
+                await _response.SendMessageAnswer(text, token, _inlineMarkup.SelectStoreAddress("savestoreaddress"));
             }
             catch (Exception)
             {

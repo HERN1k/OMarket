@@ -12,6 +12,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.SendResponse
 
         Task SendCallbackAnswer(CancellationToken token);
 
+        Task SendCallbackAnswerAlert(CancellationToken token);
+
         Task<Message> EditLastMessage(string text, CancellationToken token, InlineKeyboardMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html);
 
         Task<Message> EditMessageMarkup(InlineKeyboardMarkup buttons, CancellationToken token);

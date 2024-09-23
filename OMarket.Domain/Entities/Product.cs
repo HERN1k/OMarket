@@ -16,6 +16,8 @@ namespace OMarket.Domain.Entities
 
         public Guid BrandId { get; set; }
 
+        public decimal Price { get; set; }
+
         public string? Dimensions { get; set; }
 
         public string? Description { get; set; }

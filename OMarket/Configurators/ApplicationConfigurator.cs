@@ -215,6 +215,9 @@ namespace OMarket.Configurators
 
             _applicationBuilder.Services.AddScoped<ICityRepository, CityRepository>();
             _applicationBuilder.Services.AddScoped<ICustomersRepository, CustomersRepository>();
+            _applicationBuilder.Services.AddScoped<IProductsRepository, ProductsRepository>();
+
+            _applicationBuilder.Services.AddSingleton<IApplicationRepository, ApplicationRepository>();
 
             _applicationBuilder.Services.AddScoped<IReplyMarkupService, ReplyMarkupService>();
             _applicationBuilder.Services.AddScoped<IInlineMarkupService, InlineMarkupService>();

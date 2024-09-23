@@ -1,5 +1,4 @@
-﻿using OMarket.Domain.DTOs;
-using OMarket.Domain.Enums;
+﻿using OMarket.Domain.Enums;
 
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -9,10 +8,14 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
     {
         InlineKeyboardMarkup Empty { get; }
 
-        InlineKeyboardMarkup SelectCity(List<CityDto> cities, LanguageCode? code = null);
+        InlineKeyboardMarkup SelectStoreAddress(string command, LanguageCode? code = null);
 
         Task<InlineKeyboardMarkup> MainMenu(CancellationToken token, LanguageCode? code = null);
 
-        InlineKeyboardMarkup CatalogMenu(LanguageCode? code = null);
+        InlineKeyboardMarkup MenuProductTypes(LanguageCode? code = null);
+
+        (InlineKeyboardMarkup Markup, string CategoryType) MenuProductUnderTypes(string type, LanguageCode? code = null);
+
+        InlineKeyboardMarkup ProductView(int quantity, LanguageCode? code = null);
     }
 }

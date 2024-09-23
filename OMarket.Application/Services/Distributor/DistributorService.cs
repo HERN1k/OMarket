@@ -45,7 +45,7 @@ namespace OMarket.Application.Services.Distributor
         {
             token.ThrowIfCancellationRequested();
 
-            if (_staticCollections.CommandsMap == null || _staticCollections.CommandsMap.Count == 0)
+            if (_staticCollections.CommandsDictionary == null || _staticCollections.CommandsDictionary.Count == 0)
             {
                 _logger.LogCritical("Static Collection 'CommandMap' is null or empty!");
                 throw new TelegramException();
@@ -53,7 +53,7 @@ namespace OMarket.Application.Services.Distributor
 
             if (_updateManager.Update.Message?.Contact != null && _updateManager.Update.Type == UpdateType.Message)
             {
-                if (!_staticCollections.CommandsMap.TryGetValue(TgCommands.SAVECONTACT, out var commandType))
+                if (!_staticCollections.CommandsDictionary.TryGetValue(TgCommands.SAVECONTACT, out var commandType))
                 {
                     throw new TelegramException();
                 }
@@ -87,7 +87,7 @@ namespace OMarket.Application.Services.Distributor
                     }
                     else if (_updateManager.Update.Type == UpdateType.CallbackQuery)
                     {
-                        await _response.SendCallbackAnswer(token);
+                        await _response.SendCallbackAnswerAlert(token);
 
                         return;
                     }
@@ -109,7 +109,7 @@ namespace OMarket.Application.Services.Distributor
                     throw new TelegramException();
                 }
 
-                if (!_staticCollections.CommandsMap.TryGetValue(messageCommand, out var commandType))
+                if (!_staticCollections.CommandsDictionary.TryGetValue(messageCommand, out var commandType))
                 {
                     throw new TelegramException();
                 }

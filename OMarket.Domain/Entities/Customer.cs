@@ -18,9 +18,13 @@ namespace OMarket.Domain.Entities
 
         public bool IsBot { get; set; }
 
+        public Guid? StoreAddressId { get; set; }
+
         public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
         public virtual City? City { get; set; }
+
+        public virtual StoreAddress? StoreAddress { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
     }

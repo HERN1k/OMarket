@@ -8,6 +8,10 @@ namespace OMarket.Domain.Entities
 
         public string BrandName { get; set; } = string.Empty;
 
+#nullable disable
+
+        public virtual ICollection<ProductUnderType> ProductUnderTypes { get; set; } = new List<ProductUnderType>();
+
         public virtual ICollection<Product> Products { get; set; } = new List<Product>();
     }
 }

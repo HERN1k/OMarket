@@ -23,6 +23,11 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasForeignKey(e => e.CityId)
                     .OnDelete(DeleteBehavior.NoAction);
 
+                entity.HasOne(e => e.StoreAddress)
+                    .WithMany(e => e.Customers)
+                    .HasForeignKey(e => e.StoreAddressId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
                 // Setting property 
 
                 entity.Property(e => e.Id)
@@ -55,6 +60,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.Property(e => e.IsBot)
                     .HasColumnType("boolean")
                     .IsRequired();
+
+                entity.Property(e => e.StoreAddressId)
+                    .HasColumnType("uuid");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp with time zone")
@@ -455,9 +463,20 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.UnderTypeName);
 
+                entity.HasIndex(e => e.ProductTypeId);
+
+                entity.HasOne(e => e.ProductType)
+                    .WithMany(e => e.ProductUnderTypes)
+                    .HasForeignKey(e => e.ProductTypeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
                 // Setting property 
 
                 entity.Property(e => e.Id)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.ProductTypeId)
                     .HasColumnType("uuid")
                     .IsRequired();
 
@@ -525,8 +544,16 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
+                entity.Property(e => e.UnderTypeId)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
                 entity.Property(e => e.BrandId)
                     .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.Price)
+                    .HasColumnType("decimal(10, 2)")
                     .IsRequired();
 
                 entity.Property(e => e.Dimensions)
@@ -607,6 +634,8 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.Status);
 
+                entity.HasIndex(e => e.ProductUnderTypeId);
+
                 entity.HasOne(e => e.Product)
                     .WithMany(e => e.DataStoreProducts)
                     .HasForeignKey(e => e.ProductId)
@@ -615,6 +644,11 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.Store)
                     .WithMany(e => e.DataStoreProducts)
                     .HasForeignKey(e => e.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.ProductUnderType)
+                    .WithMany(e => e.DataStoreProducts)
+                    .HasForeignKey(e => e.ProductUnderTypeId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
@@ -631,8 +665,8 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
-                entity.Property(e => e.Price)
-                    .HasColumnType("decimal(10, 2)")
+                entity.Property(e => e.ProductUnderTypeId)
+                    .HasColumnType("uuid")
                     .IsRequired();
 
                 entity.Property(e => e.Status)

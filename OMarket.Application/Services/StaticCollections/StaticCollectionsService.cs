@@ -1,30 +1,67 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.ObjectModel;
 using System.Reflection;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.Attributes.TgCommand;
+using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
+using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 
 namespace OMarket.Application.Services.StaticCollections
 {
     public class StaticCollectionsService : IStaticCollectionsService
     {
-        public FrozenDictionary<TgCommands, Type> CommandsMap { get; init; }
+        public FrozenDictionary<TgCommands, Type> CommandsDictionary { get; init; }
+
+        public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; init; }
+
+        public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; init; }
+
+        public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; init; }
+
+        public FrozenDictionary<string, string> StringToGuidProductsTypesDictionary { get; init; }
+
+        public FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; init; }
+
+        public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; init; }
+
+        private readonly IApplicationRepository _appRepository;
 
         private readonly ILogger<StaticCollectionsService> _logger;
 
-        public StaticCollectionsService(ILogger<StaticCollectionsService> logger)
+        public StaticCollectionsService(
+                IApplicationRepository appRepository,
+                ILogger<StaticCollectionsService> logger
+            )
         {
+            _appRepository = appRepository;
             _logger = logger;
 
-            _logger.LogInformation("Starting initialization of command types...");
+            _logger.LogInformation("Starting initialization static collections...");
 
-            CommandsMap = MapCommands();
+            CommandsDictionary = MapCommands();
 
-            _logger.LogInformation("Command types have been successfully initialized.");
+            AllProductsTypesDictionary = MapAllProductsTypes();
+
+            CitiesWithStoreAddressesDictionary = _appRepository.GetAllCitiesWithStoreAddresses();
+
+            (FrozenDictionary<string, string> GuidToStringTypes, FrozenDictionary<string, string> StringToGuidTypes) =
+                _appRepository.GetProductsTypesWithoutInclusions();
+
+            GuidToStringProductsTypesDictionary = GuidToStringTypes;
+            StringToGuidProductsTypesDictionary = StringToGuidTypes;
+
+            (FrozenDictionary<string, string> GuidToStringUnderTypes, FrozenDictionary<string, string> StringToGuidUnderTypes) =
+                _appRepository.GetProductsUnderTypes();
+            GuidToStringUnderTypesDictionary = GuidToStringUnderTypes;
+            StringToGuidUnderTypesDictionary = StringToGuidUnderTypes;
+
+            _logger.LogInformation("Static collections have been successfully initialized.");
         }
 
         private FrozenDictionary<TgCommands, Type> MapCommands()
@@ -50,6 +87,40 @@ namespace OMarket.Application.Services.StaticCollections
             }
 
             return commandMap.ToFrozenDictionary();
+        }
+
+        private FrozenDictionary<string, ReadOnlyCollection<string>> MapAllProductsTypes()
+        {
+            List<ProductTypeDto> types = _appRepository.GetProductTypesWithInclusions();
+
+            Dictionary<string, ReadOnlyCollection<string>> typesDictionary = new();
+
+            foreach (var type in types)
+            {
+                typesDictionary.Add(type.TypeName, type.ProductUnderTypes
+                    .Select(e => e.UnderTypeName)
+                    .ToArray()
+                    .AsReadOnly());
+
+                //typesDictionary.Add(type.TypeName switch
+                //{
+                //    "Пиво" => "BEER",
+                //    "Сидр" => "CIDER",
+                //    "Вино" => "WINE",
+                //    "Міцні напої" => "STRONGDRINKS",
+                //    "Снеки і закуски" => "SNACKS",
+                //    "Енергетики" => "ENERGY",
+                //    "Слабоалкогольні напої" => "LOWALCOHOL",
+                //    "Безалкогольні напої" => "NONALCOHOLIC",
+                //    "Мінеральна та питна вода" => "MINERALWATER",
+                //    _ => throw new ArgumentNullException(nameof(types))
+                //}, type.ProductUnderTypes
+                //    .Select(e => e.UnderTypeName)
+                //    .ToList()
+                //    .AsReadOnly());
+            }
+
+            return typesDictionary.ToFrozenDictionary();
         }
     }
 }

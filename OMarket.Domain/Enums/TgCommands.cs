@@ -6,9 +6,12 @@
         DEV = 2,
         START = 4,
         SAVECONTACT = 8,
-        SAVECITY = 16,
+        SAVESTOREADDRESS = 16,
         MAINMENU = 32,
-        CATALOGMENU = 64
+        MENUPRODUCTTYPES = 64,
+        MENUPRODUCTUNDERTYPE = 128,
+        UPDATESTOREADDRESS = 256,
+        MENUPRODUCTSLIST = 512
     }
 
     public static class TgCommandExtensions

@@ -15,14 +15,104 @@ namespace OMarket.Domain.DTOs
             LanguageCode LanguageCode
         );
 
-    public class CityDto
+    public class CityDto : IEquatable<CityDto>
     {
         public Guid Id { get; set; }
 
         public string CityName { get; set; } = string.Empty;
+
+        public bool Equals(CityDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is CityDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 
-    public class CustomerDto
+    public class StoreAddressDto : IEquatable<StoreAddressDto>
+    {
+        public Guid Id { get; set; }
+
+        public string Address { get; set; } = string.Empty;
+
+        public decimal Latitude { get; set; }
+
+        public decimal Longitude { get; set; }
+
+
+        public bool Equals(StoreAddressDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is StoreAddressDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class StoreAddressWithCityDto : IEquatable<StoreAddressWithCityDto>
+    {
+        public Guid Id { get; set; }
+
+        public string Address { get; set; } = string.Empty;
+
+        public string City { get; set; } = string.Empty;
+
+        public bool Equals(StoreAddressWithCityDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is StoreAddressWithCityDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class CustomerDto : IEquatable<CustomerDto>
     {
         public long Id { get; set; }
 
@@ -38,6 +128,171 @@ namespace OMarket.Domain.DTOs
 
         public bool IsBot { get; set; }
 
+        public Guid? StoreAddressId { get; set; }
+
         public DateTime? CreatedAt { get; set; }
+
+        public bool Equals(CustomerDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is CustomerDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ProductTypeDto : IEquatable<ProductTypeDto>
+    {
+        public Guid Id { get; set; }
+
+        public string TypeName { get; set; } = string.Empty;
+
+        public List<ProductUnderTypeDto> ProductUnderTypes { get; set; } = new();
+
+        public bool Equals(ProductTypeDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ProductTypeDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ProductUnderTypeDto : IEquatable<ProductUnderTypeDto>
+    {
+        public Guid Id { get; set; }
+
+        public string UnderTypeName { get; set; } = string.Empty;
+
+        public Guid ProductTypeId { get; set; }
+
+        public List<ProductBrandDto> ProductBrands { get; set; } = new();
+
+        public bool Equals(ProductUnderTypeDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ProductUnderTypeDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ProductBrandDto : IEquatable<ProductBrandDto>
+    {
+        public Guid Id { get; set; }
+
+        public string BrandName { get; set; } = string.Empty;
+
+        public bool Equals(ProductBrandDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ProductBrandDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ProductDto : IEquatable<ProductDto>
+    {
+        public Guid Id { get; init; }
+
+        public string Name { get; set; } = string.Empty;
+
+        public string PhotoUri { get; set; } = string.Empty;
+
+        public Guid TypeId { get; set; }
+
+        public Guid UnderTypeId { get; set; }
+
+        public Guid BrandId { get; set; }
+
+        public decimal Price { get; set; }
+
+        public string? Dimensions { get; set; }
+
+        public string? Description { get; set; }
+
+        public bool Equals(ProductDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ProductDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
     }
 }

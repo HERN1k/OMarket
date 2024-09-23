@@ -3,35 +3,38 @@
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
+using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
+using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
-using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace OMarket.Application.Commands
 {
-    [TgCommand(TgCommands.SAVECITY)]
-    public class SaveCity : ITgCommand
+    [TgCommand(TgCommands.SAVESTOREADDRESS)]
+    public class SaveStoreAddress : ITgCommand
     {
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
         private readonly ICustomersRepository _customersRepository;
+        private readonly IStaticCollectionsService _staticCollections;
         private readonly II18nService _i18n;
         private readonly IMapper _mapper;
         private readonly IDataProcessorService _dataProcessor;
         private readonly IInlineMarkupService _inlineMarkup;
 
-        public SaveCity(
+        public SaveStoreAddress(
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 ICustomersRepository customersRepository,
+                IStaticCollectionsService staticCollections,
                 II18nService i18n,
                 IMapper mapper,
                 IDataProcessorService dataProcessor,
@@ -41,6 +44,7 @@ namespace OMarket.Application.Commands
             _updateManager = updateManager;
             _response = response;
             _customersRepository = customersRepository;
+            _staticCollections = staticCollections;
             _i18n = i18n;
             _mapper = mapper;
             _dataProcessor = dataProcessor;
@@ -67,23 +71,23 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                string city = StringHelper.GetCityNameFromQuery(request.Query);
+                if (!_staticCollections.CitiesWithStoreAddressesDictionary.TryGetValue(request.Query, out var storeAddress))
+                {
+                    throw new TelegramException();
+                }
 
-                await _customersRepository.SaveCityAsync(
+                await _customersRepository.SaveStoreAddressAsync(
                     id: request.Customer.Id,
-                    city: city,
+                    city: storeAddress.City,
+                    address: storeAddress.Address,
                     token: token);
 
-                string text = $"""
-                    {_i18n.T("save_city_command_city_is_saved_1")}
-
-                    {_i18n.T("save_city_command_city_is_saved_2")}
-                    """;
+                await _response.EditLastMessage(_i18n.T("save_store_address_command_address_is_saved_1"), token, _inlineMarkup.Empty);
 
                 InlineKeyboardMarkup buttons = await _inlineMarkup
                     .MainMenu(token);
 
-                await _response.EditLastMessage(text, token, buttons);
+                await _response.SendMessageAnswer(_i18n.T("save_store_address_command_address_is_saved_2"), token, buttons);
             }
             catch (Exception)
             {

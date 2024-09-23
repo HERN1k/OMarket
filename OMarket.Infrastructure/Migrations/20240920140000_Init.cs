@@ -86,18 +86,6 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductUnderTypes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UnderTypeName = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductUnderTypes", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "StoreAddresses",
                 columns: table => new
                 {
@@ -173,37 +161,20 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "ProductUnderTypes",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
-                    PhotoUri = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false),
-                    TypeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    UnderTypeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    BrandId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Dimensions = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true),
-                    Description = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                    UnderTypeName = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
+                    ProductTypeId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_ProductUnderTypes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Products_ProductBrands_BrandId",
-                        column: x => x.BrandId,
-                        principalTable: "ProductBrands",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Products_ProductTypes_TypeId",
-                        column: x => x.TypeId,
+                        name: "FK_ProductUnderTypes_ProductTypes_ProductTypeId",
+                        column: x => x.ProductTypeId,
                         principalTable: "ProductTypes",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Products_ProductUnderTypes_UnderTypeId",
-                        column: x => x.UnderTypeId,
-                        principalTable: "ProductUnderTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -249,30 +220,63 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DataStoreProducts",
+                name: "ProductBrandProductUnderType",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StoreId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
-                    Status = table.Column<bool>(type: "boolean", nullable: false)
+                    ProductBrandsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductUnderTypesId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DataStoreProducts", x => x.Id);
+                    table.PrimaryKey("PK_ProductBrandProductUnderType", x => new { x.ProductBrandsId, x.ProductUnderTypesId });
                     table.ForeignKey(
-                        name: "FK_DataStoreProducts_Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
+                        name: "FK_ProductBrandProductUnderType_ProductBrands_ProductBrandsId",
+                        column: x => x.ProductBrandsId,
+                        principalTable: "ProductBrands",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DataStoreProducts_Stores_StoreId",
-                        column: x => x.StoreId,
-                        principalTable: "Stores",
+                        name: "FK_ProductBrandProductUnderType_ProductUnderTypes_ProductUnder~",
+                        column: x => x.ProductUnderTypesId,
+                        principalTable: "ProductUnderTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
+                    PhotoUri = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false),
+                    TypeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UnderTypeId = table.Column<Guid>(type: "uuid", nullable: false),
+                    BrandId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Dimensions = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true),
+                    Description = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_ProductBrands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "ProductBrands",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Products_ProductTypes_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "ProductTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Products_ProductUnderTypes_UnderTypeId",
+                        column: x => x.UnderTypeId,
+                        principalTable: "ProductUnderTypes",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -307,6 +311,33 @@ namespace OMarket.Infrastructure.Migrations
                         principalTable: "Stores",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DataStoreProducts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
+                    StoreId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    Status = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DataStoreProducts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DataStoreProducts_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_DataStoreProducts_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -453,6 +484,11 @@ namespace OMarket.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProductBrandProductUnderType_ProductUnderTypesId",
+                table: "ProductBrandProductUnderType",
+                column: "ProductUnderTypesId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ProductBrands_BrandName",
                 table: "ProductBrands",
                 column: "BrandName");
@@ -505,6 +541,11 @@ namespace OMarket.Infrastructure.Migrations
                 table: "ProductUnderTypes",
                 column: "Id",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductUnderTypes_ProductTypeId",
+                table: "ProductUnderTypes",
+                column: "ProductTypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductUnderTypes_UnderTypeName",
@@ -568,6 +609,9 @@ namespace OMarket.Infrastructure.Migrations
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
+                name: "ProductBrandProductUnderType");
+
+            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
@@ -586,9 +630,6 @@ namespace OMarket.Infrastructure.Migrations
                 name: "ProductBrands");
 
             migrationBuilder.DropTable(
-                name: "ProductTypes");
-
-            migrationBuilder.DropTable(
                 name: "ProductUnderTypes");
 
             migrationBuilder.DropTable(
@@ -602,6 +643,9 @@ namespace OMarket.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "StoreTelegramChats");
+
+            migrationBuilder.DropTable(
+                name: "ProductTypes");
 
             migrationBuilder.DropTable(
                 name: "AdminsCredentials");

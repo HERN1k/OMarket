@@ -12,12 +12,14 @@ namespace OMarket.Domain.Entities
 
         public Guid StoreId { get; set; }
 
-        public decimal Price { get; set; }
+        public Guid ProductUnderTypeId { get; set; }
 
         public bool Status { get; set; }
 
         public virtual Product Product { get; set; }
 
         public virtual Store Store { get; set; }
+
+        public ProductUnderType ProductUnderType { get; set; }
     }
 }

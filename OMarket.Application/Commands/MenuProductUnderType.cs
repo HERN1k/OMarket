@@ -7,15 +7,14 @@ using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
-using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace OMarket.Application.Commands
 {
-    [TgCommand(TgCommands.MAINMENU)]
-    public class MainMenu : ITgCommand
+    [TgCommand(TgCommands.MENUPRODUCTUNDERTYPE)]
+    public class MenuProductUnderType : ITgCommand
     {
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
@@ -23,7 +22,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
 
-        public MainMenu(
+        public MenuProductUnderType(
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 IDataProcessorService dataProcessor,
@@ -56,16 +55,9 @@ namespace OMarket.Application.Commands
                 return;
             }
 
-            InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
+            (InlineKeyboardMarkup buttons, string categoryType) = _inlineMarkup.MenuProductUnderTypes(request.Query);
 
-            if (StringHelper.IsBackCommand(_updateManager.Update))
-            {
-                await _response.EditLastMessage(_i18n.T("generic_main_manu_title"), token, buttons);
-
-                return;
-            }
-
-            await _response.SendMessageAnswer(_i18n.T("generic_main_manu_title"), token, buttons);
+            await _response.EditLastMessage($"{_i18n.T("generic_menu_selected_category")} {categoryType}", token, buttons);
         }
     }
 }

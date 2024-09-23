@@ -12,7 +12,7 @@ namespace OMarket.Infrastructure.Extensions
 {
     public class MigrationExtensions
     {
-        public static async void ApplyMigrations(IApplicationBuilder app)
+        public static void ApplyMigrations(IApplicationBuilder app)
         {
             using IServiceScope scope = app.ApplicationServices.CreateScope();
 
@@ -45,8 +45,6 @@ namespace OMarket.Infrastructure.Extensions
             HashSet<Store> storesSet = new();
 
             HashSet<ProductType> productTypesSet = new();
-
-            HashSet<ProductUnderType> productUnderTypesSet = new();
 
             HashSet<ProductBrand> productBrandsSet = new();
             #endregion
@@ -158,30 +156,65 @@ namespace OMarket.Infrastructure.Extensions
                 }
                 #endregion
 
-                #region Mapping product types entities
-                foreach (string item in initialData.TypesProducts)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item, nameof(item));
-
-                    productTypesSet.Add(new ProductType() { TypeName = item });
-                }
-                #endregion
-
-                #region Mapping products under types entities
-                foreach (string item in initialData.ProductUnderTypes)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item, nameof(item));
-
-                    productUnderTypesSet.Add(new ProductUnderType() { UnderTypeName = item });
-                }
-                #endregion
-
-                #region Mapping products brands entities
+                #region Mapping product brands entities
                 foreach (string item in initialData.BrandsProducts)
                 {
-                    ArgumentException.ThrowIfNullOrEmpty(item, nameof(item));
+                    productBrandsSet.Add(new ProductBrand()
+                    {
+                        BrandName = item
+                    });
+                }
+                #endregion
 
-                    productBrandsSet.Add(new ProductBrand() { BrandName = item });
+                #region Mapping product types entities
+                foreach (string type in initialData.TypesProducts)
+                {
+                    ArgumentException.ThrowIfNullOrEmpty(type, nameof(type));
+
+                    ProductType productType = new()
+                    {
+                        TypeName = type
+                    };
+
+                    List<ProductUnderType> productUnderTypes = new();
+
+                    if (!initialData.ProductUnderTypes.TryGetValue(type, out var value))
+                    {
+                        throw new ArgumentNullException(nameof(type));
+                    }
+
+                    foreach (string item in value)
+                    {
+                        List<ProductBrand> productBrands = new();
+
+                        if (initialData.ProductUnderTypesBrands.TryGetValue(item, out var brands))
+                        {
+                            if (brands.Count > 0)
+                            {
+                                foreach (string brandItem in brands)
+                                {
+                                    ProductBrand? productBrand = productBrandsSet
+                                        .SingleOrDefault(e => e.BrandName == brandItem);
+
+                                    if (productBrand is not null)
+                                    {
+                                        productBrands.Add(productBrand);
+                                    }
+                                }
+                            }
+                        }
+
+                        productUnderTypes.Add(new ProductUnderType()
+                        {
+                            UnderTypeName = item,
+                            ProductType = productType,
+                            ProductBrands = productBrands
+                        });
+                    }
+
+                    productType.ProductUnderTypes = productUnderTypes;
+
+                    productTypesSet.Add(productType);
                 }
                 #endregion
             }
@@ -196,19 +229,17 @@ namespace OMarket.Infrastructure.Extensions
                 #region Save entities collection
                 if (initialData.Initialize)
                 {
-                    await context.Cities.AddRangeAsync(citySet);
-                    await context.StoreAddresses.AddRangeAsync(storeAddressesSet);
-                    await context.AdminsPermissions.AddRangeAsync(adminsPermissionsSet);
-                    await context.AdminsCredentials.AddRangeAsync(adminsCredentialsSet);
-                    await context.Admins.AddRangeAsync(adminsDictionary.Values);
-                    await context.OrderStatuses.AddRangeAsync(orderStatusesSet);
-                    await context.StoreTelegramChats.AddRangeAsync(storeTelegramChatsDictionary.Values);
-                    await context.Stores.AddRangeAsync(storesSet);
-                    await context.ProductTypes.AddRangeAsync(productTypesSet);
-                    await context.ProductUnderTypes.AddRangeAsync(productUnderTypesSet);
-                    await context.ProductBrands.AddRangeAsync(productBrandsSet);
+                    context.Cities.AddRange(citySet);
+                    context.StoreAddresses.AddRange(storeAddressesSet);
+                    context.AdminsPermissions.AddRange(adminsPermissionsSet);
+                    context.AdminsCredentials.AddRange(adminsCredentialsSet);
+                    context.Admins.AddRange(adminsDictionary.Values);
+                    context.OrderStatuses.AddRange(orderStatusesSet);
+                    context.StoreTelegramChats.AddRange(storeTelegramChatsDictionary.Values);
+                    context.Stores.AddRange(storesSet);
+                    context.ProductTypes.AddRange(productTypesSet);
 
-                    await context.SaveChangesAsync();
+                    context.SaveChanges();
                 }
                 #endregion
             }

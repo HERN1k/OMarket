@@ -28,11 +28,11 @@ namespace OMarket.Infrastructure.Repositories
         private readonly IMapper _mapper;
 
         public CustomersRepository(
-            IDbContextFactory<AppDBContext> contextFactory,
-            ILogger<CustomersRepository> logger,
-            IDistributedCache cache,
-            IMapper mapper
-          )
+                IDbContextFactory<AppDBContext> contextFactory,
+                ILogger<CustomersRepository> logger,
+                IDistributedCache cache,
+                IMapper mapper
+            )
         {
             _contextFactory = contextFactory;
             _logger = logger;
@@ -42,8 +42,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<CustomerDto> GetCustomerFromIdAsync(long id, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
-
             if (id <= 0 || id > long.MaxValue)
             {
                 throw new TelegramException();
@@ -74,6 +72,7 @@ namespace OMarket.Infrastructure.Repositories
                         PhoneNumber = customerEntity.PhoneNumber,
                         CityId = customerEntity.CityId,
                         IsBot = customerEntity.IsBot,
+                        StoreAddressId = customerEntity.StoreAddressId,
                         CreatedAt = customerEntity.CreatedAt
                     };
 
@@ -145,6 +144,7 @@ namespace OMarket.Infrastructure.Repositories
                         PhoneNumber = customerEntity.PhoneNumber,
                         CityId = customerEntity.CityId,
                         IsBot = customerEntity.IsBot,
+                        StoreAddressId = customerEntity.StoreAddressId,
                         CreatedAt = customerEntity.CreatedAt
                     };
 
@@ -186,8 +186,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<bool> AnyCustomerByIdAsync(long id, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
-
             if (id <= 0 || id > long.MaxValue)
             {
                 throw new TelegramException();
@@ -223,12 +221,12 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<CustomerDto> AddNewCustomerAsync(Update update, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
-
             Customer customer = _mapper.Map<Customer>(update);
 
             try
             {
+                token.ThrowIfCancellationRequested();
+
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
                 await context.Customers.AddAsync(customer, cancellationToken: token);
@@ -244,6 +242,7 @@ namespace OMarket.Infrastructure.Repositories
                     PhoneNumber = customer.PhoneNumber,
                     CityId = customer.CityId,
                     IsBot = customer.IsBot,
+                    StoreAddressId = customer.StoreAddressId,
                     CreatedAt = customer.CreatedAt
                 };
 
@@ -271,8 +270,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task SaveContactsAsync(long id, string phoneNumber, CancellationToken token, string? firstName = null, string? lastName = null)
         {
-            token.ThrowIfCancellationRequested();
-
             if (id <= 0 || id > long.MaxValue)
             {
                 throw new TelegramException();
@@ -285,6 +282,8 @@ namespace OMarket.Infrastructure.Repositories
 
             try
             {
+                token.ThrowIfCancellationRequested();
+
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
                 Customer customer = await context.Customers
@@ -314,6 +313,7 @@ namespace OMarket.Infrastructure.Repositories
                     PhoneNumber = customer.PhoneNumber,
                     CityId = customer.CityId,
                     IsBot = customer.IsBot,
+                    StoreAddressId = customer.StoreAddressId,
                     CreatedAt = customer.CreatedAt
                 };
 
@@ -341,16 +341,14 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
-        public async Task SaveCityAsync(long id, string city, CancellationToken token)
+        public async Task SaveStoreAddressAsync(long id, string city, string address, CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
-
             if (id <= 0 || id > long.MaxValue)
             {
                 throw new TelegramException();
             }
 
-            if (string.IsNullOrEmpty(city))
+            if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(address))
             {
                 throw new TelegramException();
             }
@@ -369,7 +367,12 @@ namespace OMarket.Infrastructure.Repositories
                     .SingleOrDefaultAsync(e => e.CityName == city, cancellationToken: token)
                         ?? throw new TelegramException();
 
+                StoreAddress addressEntity = await context.StoreAddresses
+                    .SingleOrDefaultAsync(e => e.Address == address, cancellationToken: token)
+                        ?? throw new TelegramException();
+
                 customer.City = cityEntity;
+                customer.StoreAddress = addressEntity;
 
                 await context.SaveChangesAsync(token);
 
@@ -382,6 +385,7 @@ namespace OMarket.Infrastructure.Repositories
                     PhoneNumber = customer.PhoneNumber,
                     CityId = customer.CityId,
                     IsBot = customer.IsBot,
+                    StoreAddressId = customer.StoreAddressId,
                     CreatedAt = customer.CreatedAt
                 });
 
