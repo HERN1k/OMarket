@@ -6,6 +6,8 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
     {
         Task<ProductDto> GetProductByIdAsync(Guid id, CancellationToken token);
 
-        Task<ProductWithDbInfoDto?> GetProductWithPaginationAsync(int pageNumber, string underType, CancellationToken token);
+        Task<ProductWithDbInfoDto?> GetProductWithPaginationAsync(int pageNumber, string underType, Guid storeId, CancellationToken token);
+
+        Task<List<ProductDto>> GetProductsByNameAsync(string name, Guid productTypeId, Guid storeId, CancellationToken token);
     }
 }

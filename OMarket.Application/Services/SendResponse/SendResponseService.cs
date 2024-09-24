@@ -313,5 +313,49 @@ namespace OMarket.Application.Services.SendResponse
                 messageId: messageId,
                 cancellationToken: token);
         }
+
+        public async Task RemoveMessageById(int messageId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (messageId <= 0)
+            {
+                throw new TelegramException();
+            }
+
+            long chatId;
+            if (_updateManager.Update.Type == UpdateType.Message)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.Message.Chat.Id;
+            }
+            else if (_updateManager.Update.Type == UpdateType.CallbackQuery)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.CallbackQuery is null ||
+                    _updateManager.Update.CallbackQuery.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.CallbackQuery.Message.Chat.Id;
+            }
+            else
+            {
+                throw new TelegramException();
+            }
+
+            await _client.DeleteMessageAsync(
+                chatId: chatId,
+                messageId: messageId,
+                cancellationToken: token);
+        }
     }
 }

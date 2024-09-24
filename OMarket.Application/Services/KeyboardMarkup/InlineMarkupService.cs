@@ -99,7 +99,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
             else
             {
                 buttons.Add([
-                    InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_cart_button", code), "/dev")]);
+                    InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_cart_button", code), "/4096")]);
             }
 
             buttons.AddRange(
@@ -110,7 +110,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_product_search_by_name", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_product_search_by_name", code), "/16384"),
                 ],
                 [
                     InlineKeyboardButton
@@ -246,26 +246,52 @@ namespace OMarket.Application.Services.KeyboardMarkup
 
             if (quantity <= 0)
             {
-                buttons.Add([
-                    dto.PageNumber == 1
-                        ? InlineKeyboardButton.WithCallbackData(
-                            _i18n.T("product_view_button_disable", code),
-                            _i18n.T("product_view_button_is_disable_button", code))
-                        : InlineKeyboardButton.WithCallbackData(
-                            _i18n.T("product_view_previous_button", code),
-                            $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber - 1}"),
+                if (dto.Product.Status)
+                {
+                    buttons.Add([
+                        dto.PageNumber == 1
+                            ? InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_button_disable", code),
+                                _i18n.T("product_view_button_is_disable_button", code))
+                            : InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_previous_button", code),
+                                $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber - 1}"),
 
-                    InlineKeyboardButton.WithCallbackData(
-                        _i18n.T("product_view_quantity_selection_button", code),
-                        $"/1024_{dto.Product.UnderTypeId}_{dto.PageNumber}_1"),
+                        InlineKeyboardButton.WithCallbackData(
+                            _i18n.T("product_view_quantity_selection_button", code),
+                            $"/1024_{dto.Product.UnderTypeId}_{dto.PageNumber}_1"),
 
-                    dto.PageNumber == dto.MaxNumber
-                        ? InlineKeyboardButton.WithCallbackData(
+                        dto.PageNumber == dto.MaxNumber
+                            ? InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_button_disable", code),
+                                _i18n.T("product_view_button_is_disable_button", code))
+                            : InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_next_button", code),
+                                $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber + 1}")]);
+                }
+                else
+                {
+                    buttons.Add([
+                        dto.PageNumber == 1
+                            ? InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_button_disable", code),
+                                _i18n.T("product_view_button_is_disable_button", code))
+                            : InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_previous_button", code),
+                                $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber - 1}"),
+
+                        InlineKeyboardButton.WithCallbackData(
                             _i18n.T("product_view_button_disable", code),
-                            _i18n.T("product_view_button_is_disable_button", code))
-                        : InlineKeyboardButton.WithCallbackData(
-                            _i18n.T("product_view_next_button", code),
-                            $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber + 1}")]);
+                            _i18n.T("product_view_button_is_disable_button", code)),
+
+                        dto.PageNumber == dto.MaxNumber
+                            ? InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_button_disable", code),
+                                _i18n.T("product_view_button_is_disable_button", code))
+                            : InlineKeyboardButton.WithCallbackData(
+                                _i18n.T("product_view_next_button", code),
+                                $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber + 1}")]);
+                }
 
                 buttons.Add([
                     InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), $"/128_{dto.TypeId}_back_del"),
@@ -302,6 +328,93 @@ namespace OMarket.Application.Services.KeyboardMarkup
             }
 
             return new(buttons);
+        }
+
+        public InlineKeyboardMarkup Cart(LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([
+                    InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("cart_command_confirm_the_order"),
+                        "/dev")]);
+
+            buttons.Add([
+                    InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("cart_command_edit_cart_button"),
+                        "/8192")]);
+
+            buttons.Add([
+                    InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), $"/mainmenu_back")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup EditCart(List<CartItemDto> cart, LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            int index = 0;
+            foreach (var item in cart)
+            {
+                index++;
+
+                buttons.Add([
+                    InlineKeyboardButton.WithCallbackData($"№ {index}", $"№ {index}"),
+                    InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_minus_button", code),
+                        $"/8192_{item.Id}_{item.Quantity - 1}"),
+                    InlineKeyboardButton.WithCallbackData($"{item.Quantity} шт.", $"{item.Quantity} шт."),
+                    InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_plus_button",code),
+                        $"/8192_{item.Id}_{item.Quantity + 1}"),]);
+            }
+
+            buttons.Add([
+                    InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), "/4096")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup CartIsEmpty(LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([ InlineKeyboardButton
+                    .WithCallbackData(_i18n.T("main_menu_command_product_catalog_button", code), "/menuproducttypes")]);
+
+            buttons.Add([ InlineKeyboardButton
+                .WithCallbackData(_i18n.T("menu_item_to_main_menu", code), "/mainmenu_back")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup SelectProductTypeForCustomerSearchChoice(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.KeyboardMarkupSelectProductTypeForCustomerSearchChoice, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton> items = new();
+
+            foreach (var item in _staticCollections.GuidToStringProductsTypesDictionary)
+            {
+                items.Add(InlineKeyboardButton.WithCallbackData(item.Value, $"/32768_{item.Key}"));
+            }
+
+            List<InlineKeyboardButton[]> buttons = new(items
+                .OrderBy(button => button.Text.Length)
+                .Select(button => new[] { button }));
+
+            buttons.Add([
+                InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.KeyboardMarkupSelectProductTypeForCustomerSearchChoice, result, _memoryCacheOptions);
+
+            return result;
         }
     }
 }

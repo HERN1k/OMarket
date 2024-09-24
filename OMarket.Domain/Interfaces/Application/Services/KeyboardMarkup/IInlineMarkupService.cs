@@ -18,5 +18,13 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
         (InlineKeyboardMarkup Markup, string CategoryType) MenuProductUnderTypes(string type, LanguageCode? code = null);
 
         InlineKeyboardMarkup ProductView(ProductWithDbInfoDto dto, int quantity, LanguageCode? code = null);
+
+        InlineKeyboardMarkup Cart(LanguageCode? code = null);
+
+        InlineKeyboardMarkup EditCart(List<CartItemDto> cart, LanguageCode? code = null);
+
+        InlineKeyboardMarkup CartIsEmpty(LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectProductTypeForCustomerSearchChoice(LanguageCode? code = null);
     }
 }

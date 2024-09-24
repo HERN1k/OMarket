@@ -26,6 +26,8 @@ namespace OMarket.Domain.Entities
 
         public virtual StoreTelegramChat StoreTelegramChat { get; set; }
 
+        public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
+
         public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
         public virtual ICollection<DataStoreProduct> DataStoreProducts { get; set; } = new List<DataStoreProduct>();

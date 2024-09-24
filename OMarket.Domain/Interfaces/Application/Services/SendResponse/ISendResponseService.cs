@@ -25,5 +25,7 @@ namespace OMarket.Domain.Interfaces.Application.Services.SendResponse
         Task<Message> SendPhotoWithTextAndButtons(string text, Uri photoUri, IReplyMarkup buttons, CancellationToken token, ParseMode? parseMode = ParseMode.Html);
 
         Task RemoveLastMessage(CancellationToken token);
+
+        Task RemoveMessageById(int messageId, CancellationToken token);
     }
 }

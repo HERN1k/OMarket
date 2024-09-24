@@ -109,12 +109,16 @@ namespace OMarket.Application.Commands
                     _ => _i18n.T("generic_good_day")
                 };
 
-                await _response.SendMessageAnswer(greeting, token);
-
                 InlineKeyboardMarkup buttons = await _inlineMarkup
                     .MainMenu(token);
 
-                await _response.SendMessageAnswer(_i18n.T("generic_main_manu_title"), token, buttons);
+                string text = $"""
+                    {greeting}
+
+                    {_i18n.T("generic_main_manu_title")}
+                    """;
+
+                await _response.SendMessageAnswer(text, token, buttons);
             }
         }
     }

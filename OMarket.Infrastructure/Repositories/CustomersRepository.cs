@@ -70,9 +70,8 @@ namespace OMarket.Infrastructure.Repositories
                         FirstName = customerEntity.FirstName,
                         LastName = customerEntity.LastName,
                         PhoneNumber = customerEntity.PhoneNumber,
-                        CityId = customerEntity.CityId,
                         IsBot = customerEntity.IsBot,
-                        StoreAddressId = customerEntity.StoreAddressId,
+                        StoreId = customerEntity.StoreId,
                         CreatedAt = customerEntity.CreatedAt
                     };
 
@@ -142,9 +141,8 @@ namespace OMarket.Infrastructure.Repositories
                         FirstName = customerEntity.FirstName,
                         LastName = customerEntity.LastName,
                         PhoneNumber = customerEntity.PhoneNumber,
-                        CityId = customerEntity.CityId,
                         IsBot = customerEntity.IsBot,
-                        StoreAddressId = customerEntity.StoreAddressId,
+                        StoreId = customerEntity.StoreId,
                         CreatedAt = customerEntity.CreatedAt
                     };
 
@@ -240,9 +238,8 @@ namespace OMarket.Infrastructure.Repositories
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
                     PhoneNumber = customer.PhoneNumber,
-                    CityId = customer.CityId,
                     IsBot = customer.IsBot,
-                    StoreAddressId = customer.StoreAddressId,
+                    StoreId = customer.StoreId,
                     CreatedAt = customer.CreatedAt
                 };
 
@@ -311,9 +308,8 @@ namespace OMarket.Infrastructure.Repositories
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
                     PhoneNumber = customer.PhoneNumber,
-                    CityId = customer.CityId,
                     IsBot = customer.IsBot,
-                    StoreAddressId = customer.StoreAddressId,
+                    StoreId = customer.StoreId,
                     CreatedAt = customer.CreatedAt
                 };
 
@@ -363,16 +359,35 @@ namespace OMarket.Infrastructure.Repositories
                     .SingleOrDefaultAsync(e => e.Id == id, cancellationToken: token)
                         ?? throw new TelegramException("exception_first_use_command_start");
 
-                City cityEntity = await context.Cities
-                    .SingleOrDefaultAsync(e => e.CityName == city, cancellationToken: token)
-                        ?? throw new TelegramException();
+                Guid cityId = await context.Cities
+                    .AsNoTracking()
+                    .Where(e => e.CityName == city)
+                    .Select(e => e.Id)
+                    .SingleOrDefaultAsync(token);
 
-                StoreAddress addressEntity = await context.StoreAddresses
-                    .SingleOrDefaultAsync(e => e.Address == address, cancellationToken: token)
-                        ?? throw new TelegramException();
+                Guid addressId = await context.StoreAddresses
+                    .AsNoTracking()
+                    .Where(e => e.Address == address)
+                    .Select(e => e.Id)
+                    .SingleOrDefaultAsync(token);
 
-                customer.City = cityEntity;
-                customer.StoreAddress = addressEntity;
+                if (cityId == Guid.Empty || addressId == Guid.Empty)
+                {
+                    throw new TelegramException();
+                }
+
+                Guid storeId = await context.Stores
+                    .AsNoTracking()
+                    .Where(e => e.CityId == cityId && e.AddressId == addressId)
+                    .Select(e => e.Id)
+                    .SingleOrDefaultAsync(token);
+
+                if (storeId == Guid.Empty)
+                {
+                    throw new TelegramException();
+                }
+
+                customer.StoreId = storeId;
 
                 await context.SaveChangesAsync(token);
 
@@ -383,9 +398,8 @@ namespace OMarket.Infrastructure.Repositories
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
                     PhoneNumber = customer.PhoneNumber,
-                    CityId = customer.CityId,
                     IsBot = customer.IsBot,
-                    StoreAddressId = customer.StoreAddressId,
+                    StoreId = customer.StoreId,
                     CreatedAt = customer.CreatedAt
                 });
 

@@ -12,7 +12,7 @@ using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
 namespace OMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20240920140000_Init")]
+    [Migration("20240924163131_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -124,9 +124,6 @@ namespace OMarket.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid?>("CityId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -148,6 +145,9 @@ namespace OMarket.Infrastructure.Migrations
                         .HasColumnType("varchar(16)")
                         .HasAnnotation("MinLength", 10);
 
+                    b.Property<Guid?>("StoreId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Username")
                         .HasMaxLength(32)
                         .HasColumnType("varchar(32)")
@@ -155,10 +155,10 @@ namespace OMarket.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
-
                     b.HasIndex("Id")
                         .IsUnique();
+
+                    b.HasIndex("StoreId");
 
                     b.ToTable("Customers", (string)null);
                 });
@@ -169,10 +169,10 @@ namespace OMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(10, 2)");
-
                     b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductUnderTypeId")
                         .HasColumnType("uuid");
 
                     b.Property<bool>("Status")
@@ -187,6 +187,8 @@ namespace OMarket.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductUnderTypeId");
 
                     b.HasIndex("Status");
 
@@ -311,6 +313,9 @@ namespace OMarket.Infrastructure.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("varchar(128)")
                         .HasAnnotation("MinLength", 1);
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(10, 2)");
 
                     b.Property<Guid>("TypeId")
                         .HasColumnType("uuid");
@@ -529,12 +534,12 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Customer", b =>
                 {
-                    b.HasOne("OMarket.Domain.Entities.City", "City")
+                    b.HasOne("OMarket.Domain.Entities.Store", "Store")
                         .WithMany("Customers")
-                        .HasForeignKey("CityId")
+                        .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("City");
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.DataStoreProduct", b =>
@@ -545,6 +550,12 @@ namespace OMarket.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OMarket.Domain.Entities.ProductUnderType", "ProductUnderType")
+                        .WithMany("DataStoreProducts")
+                        .HasForeignKey("ProductUnderTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("OMarket.Domain.Entities.Store", "Store")
                         .WithMany("DataStoreProducts")
                         .HasForeignKey("StoreId")
@@ -552,6 +563,8 @@ namespace OMarket.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("ProductUnderType");
 
                     b.Navigation("Store");
                 });
@@ -707,8 +720,6 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.City", b =>
                 {
-                    b.Navigation("Customers");
-
                     b.Navigation("Stores");
                 });
 
@@ -748,11 +759,15 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.ProductUnderType", b =>
                 {
+                    b.Navigation("DataStoreProducts");
+
                     b.Navigation("Products");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.Store", b =>
                 {
+                    b.Navigation("Customers");
+
                     b.Navigation("DataStoreProducts");
 
                     b.Navigation("Orders");

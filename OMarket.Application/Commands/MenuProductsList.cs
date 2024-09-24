@@ -48,7 +48,7 @@ namespace OMarket.Application.Commands
 
             RequestInfo request = await _dataProcessor.MapRequestData(token);
 
-            if (request.Customer.CityId == null || request.Customer.StoreAddressId == null)
+            if (request.Customer.StoreId == null)
             {
                 await _response.SendMessageAnswer(
                     text: _i18n.T("main_menu_command_select_your_address"),
@@ -70,8 +70,13 @@ namespace OMarket.Application.Commands
                 throw new TelegramException();
             }
 
+            if (request.Customer.StoreId == Guid.Empty)
+            {
+                throw new TelegramException();
+            }
+
             ProductWithDbInfoDto? dto = await _productsRepository
-                .GetProductWithPaginationAsync(pageNumber, queryLines[0], token);
+                .GetProductWithPaginationAsync(pageNumber, queryLines[0], (Guid)request.Customer.StoreId, token);
 
             if (dto is null || dto.Product is null)
             {
@@ -87,13 +92,27 @@ namespace OMarket.Application.Commands
 
             InlineKeyboardMarkup buttons = _inlineMarkup.ProductView(dto, 0);
 
-            string text = $"""
-                <b>{dto.Product.Name}</b>, <i>{dto.Product.Dimensions}</i>
+            string text;
+            if (dto.Product.Status)
+            {
+                text = $"""
+                    <b>{dto.Product.Name}</b>, <i>{dto.Product.Dimensions}</i>
 
-                💵 {dto.Product.Price} грн.
+                    💵 {dto.Product.Price} грн.
 
-                <i>{dto.Product.Description}</i> 
-                """;
+                    <i>{dto.Product.Description}</i> 
+                    """;
+            }
+            else
+            {
+                text = $"""
+                    <b>{dto.Product.Name}</b>, <i>{dto.Product.Dimensions}</i>
+
+                    <b>{_i18n.T("product_view_product_is_not_available")}</b>
+
+                    <i>{dto.Product.Description}</i> 
+                    """;
+            }
 
             var appUri = Environment.GetEnvironmentVariable("HTTPS_APPLICATION_URL");
 

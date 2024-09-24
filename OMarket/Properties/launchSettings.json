@@ -13,7 +13,7 @@
             "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         },
         "dotnetRunMessages": true,
-        "applicationUrl": "http://192.168.0.100:7558"
+        "applicationUrl": "http://192.168.0.101:7558"
     },
     "https": {
         "commandName": "Project",
@@ -28,7 +28,7 @@
             "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/"
         },
         "dotnetRunMessages": true,
-        "applicationUrl": "https://192.168.0.100:7557;http://192.168.0.100:7558"
+        "applicationUrl": "https://192.168.0.101:7557;http://192.168.0.101:7558"
     },
     "IIS Express": {
       "commandName": "IISExpress",

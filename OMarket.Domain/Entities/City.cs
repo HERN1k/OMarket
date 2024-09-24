@@ -8,8 +8,6 @@ namespace OMarket.Domain.Entities
 
         public string CityName { get; set; } = string.Empty;
 
-        public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
-
         public virtual ICollection<Store> Stores { get; set; } = new HashSet<Store>();
     }
 }

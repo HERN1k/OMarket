@@ -124,11 +124,9 @@ namespace OMarket.Domain.DTOs
 
         public string? PhoneNumber { get; set; }
 
-        public Guid? CityId { get; set; }
-
         public bool IsBot { get; set; }
 
-        public Guid? StoreAddressId { get; set; }
+        public Guid? StoreId { get; set; }
 
         public DateTime? CreatedAt { get; set; }
 
@@ -271,6 +269,8 @@ namespace OMarket.Domain.DTOs
         public string? Dimensions { get; set; }
 
         public string? Description { get; set; }
+
+        public bool Status { get; set; }
 
         public bool Equals(ProductDto? other)
         {

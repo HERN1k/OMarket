@@ -18,14 +18,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasIndex(e => e.Id)
                     .IsUnique();
 
-                entity.HasOne(e => e.City)
+                entity.HasOne(e => e.Store)
                     .WithMany(e => e.Customers)
-                    .HasForeignKey(e => e.CityId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                entity.HasOne(e => e.StoreAddress)
-                    .WithMany(e => e.Customers)
-                    .HasForeignKey(e => e.StoreAddressId)
+                    .HasForeignKey(e => e.StoreId)
                     .OnDelete(DeleteBehavior.NoAction);
 
                 // Setting property 
@@ -54,15 +49,12 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasMinLength(10)
                     .HasMaxLength(16);
 
-                entity.Property(e => e.CityId)
+                entity.Property(e => e.StoreId)
                     .HasColumnType("uuid");
 
                 entity.Property(e => e.IsBot)
                     .HasColumnType("boolean")
                     .IsRequired();
-
-                entity.Property(e => e.StoreAddressId)
-                    .HasColumnType("uuid");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp with time zone")
@@ -227,6 +219,8 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.CityId);
 
+                entity.HasIndex(e => e.AddressId);
+
                 entity.HasOne(e => e.City)
                     .WithMany(e => e.Stores)
                     .HasForeignKey(e => e.CityId)
@@ -246,7 +240,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .WithOne(e => e.Store)
                     .HasForeignKey<Store>(e => e.StoreTelegramChatId)
                     .OnDelete(DeleteBehavior.Restrict);
-
 
                 // Setting property 
 

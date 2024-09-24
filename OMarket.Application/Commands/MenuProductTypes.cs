@@ -47,7 +47,7 @@ namespace OMarket.Application.Commands
 
             RequestInfo request = await _dataProcessor.MapRequestData(token);
 
-            if (request.Customer.CityId == null || request.Customer.StoreAddressId == null)
+            if (request.Customer.StoreId == null)
             {
                 await _response.SendMessageAnswer(_i18n.T("main_menu_command_select_your_address"), token, _inlineMarkup.SelectStoreAddress("updatestoreaddress"));
 

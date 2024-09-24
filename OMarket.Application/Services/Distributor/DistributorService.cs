@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.Enums;
@@ -8,6 +9,7 @@ using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
+using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -24,6 +26,8 @@ namespace OMarket.Application.Services.Distributor
 
         private readonly IStaticCollectionsService _staticCollections;
 
+        private readonly IDistributedCache _distributedCache;
+
         private readonly ILogger<DistributorService> _logger;
 
         public DistributorService(
@@ -31,6 +35,7 @@ namespace OMarket.Application.Services.Distributor
                 ISendResponseService response,
                 IServiceProvider serviceProvider,
                 IStaticCollectionsService staticCollections,
+                IDistributedCache distributedCache,
                 ILogger<DistributorService> logger
             )
         {
@@ -38,6 +43,7 @@ namespace OMarket.Application.Services.Distributor
             _response = response;
             _serviceProvider = serviceProvider;
             _staticCollections = staticCollections;
+            _distributedCache = distributedCache;
             _logger = logger;
         }
 
@@ -54,6 +60,45 @@ namespace OMarket.Application.Services.Distributor
             if (_updateManager.Update.Message?.Contact != null && _updateManager.Update.Type == UpdateType.Message)
             {
                 if (!_staticCollections.CommandsDictionary.TryGetValue(TgCommands.SAVECONTACT, out var commandType))
+                {
+                    throw new TelegramException();
+                }
+
+                token.ThrowIfCancellationRequested();
+
+                if (typeof(ITgCommand).IsAssignableFrom(commandType))
+                {
+                    token.ThrowIfCancellationRequested();
+
+                    ITgCommand command = (ITgCommand)_serviceProvider.GetRequiredService(commandType);
+
+                    await command.InvokeAsync(token);
+                }
+                else
+                {
+                    throw new TelegramException();
+                }
+            }
+            else if (_updateManager.Update.Message?.Text != "/start" &&
+                    _updateManager.Update.Message?.Text != "/mainmenu" &&
+                    _updateManager.Update.Type == UpdateType.Message &&
+                    _updateManager.Update.Message?.Type == MessageType.Text)
+            {
+                if (_updateManager.Update.Message is null ||
+                    _updateManager.Update.Message.From is null)
+                {
+                    throw new TelegramException();
+                }
+
+                string? customerSearchChoiceString = await _distributedCache
+                    .GetStringAsync($"{CacheKeys.CustomerSearchChoiceId}{_updateManager.Update.Message.From.Id}", token);
+
+                if (string.IsNullOrEmpty(customerSearchChoiceString))
+                {
+                    throw new TelegramException();
+                }
+
+                if (!_staticCollections.CommandsDictionary.TryGetValue(TgCommands.ENDSEARCH, out var commandType))
                 {
                     throw new TelegramException();
                 }

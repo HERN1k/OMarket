@@ -109,7 +109,7 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
-        public async Task<ProductWithDbInfoDto?> GetProductWithPaginationAsync(int pageNumber, string underType, CancellationToken token)
+        public async Task<ProductWithDbInfoDto?> GetProductWithPaginationAsync(int pageNumber, string underType, Guid storeId, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
@@ -120,7 +120,7 @@ namespace OMarket.Infrastructure.Repositories
 
             ProductWithDbInfoDto? product;
 
-            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductId}{underType}-{_pageSize}-{pageNumber}", token);
+            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductId}{storeId}-{underType}-{_pageSize}-{pageNumber}", token);
 
             if (!string.IsNullOrEmpty(productsString))
             {
@@ -142,29 +142,35 @@ namespace OMarket.Infrastructure.Repositories
 
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
-                var products = await context.Products
-                    .AsNoTracking()
-                    .Where(product => product.UnderTypeId == guid)
-                    .OrderBy(product => product.Price)
+                var products = await (
+                    from productTemp in context.Products
+                    join dataStoreProduct in context.DataStoreProducts
+                    on new { ProductId = productTemp.Id, StoreId = storeId } equals new { dataStoreProduct.ProductId, dataStoreProduct.StoreId }
+                    into storeGroup
+                    from storeProduct in storeGroup.DefaultIfEmpty()
+                    where productTemp.UnderTypeId == guid
+                    orderby productTemp.Price
+                    select new ProductDto
+                    {
+                        Id = productTemp.Id,
+                        Name = productTemp.Name,
+                        PhotoUri = productTemp.PhotoUri,
+                        TypeId = productTemp.TypeId,
+                        UnderTypeId = productTemp.UnderTypeId,
+                        BrandId = productTemp.BrandId,
+                        Price = productTemp.Price,
+                        Dimensions = productTemp.Dimensions,
+                        Description = productTemp.Description,
+                        Status = storeProduct != null && storeProduct.Status
+                    })
                     .Skip((pageNumber - 1) * _pageSize)
                     .Take(_pageSize)
-                    .Select(product => new ProductDto()
-                    {
-                        Id = product.Id,
-                        Name = product.Name,
-                        PhotoUri = product.PhotoUri,
-                        TypeId = product.TypeId,
-                        UnderTypeId = product.UnderTypeId,
-                        BrandId = product.BrandId,
-                        Price = product.Price,
-                        Dimensions = product.Dimensions,
-                        Description = product.Description
-                    }).ToListAsync(token);
+                    .ToListAsync(token);
 
                 int maxPageNumber = await context.Products
                     .AsNoTracking()
                     .Where(product => product.UnderTypeId == guid)
-                    .CountAsync();
+                    .CountAsync(token);
 
                 product = products
                     .Select(product => new ProductWithDbInfoDto()
@@ -189,9 +195,91 @@ namespace OMarket.Infrastructure.Repositories
                     throw new TelegramException();
                 }
 
-                await _cache.SetStringAsync($"{CacheKeys.ProductId}{underType}-{_pageSize}-{pageNumber}", productsString, token);
+                await _cache.SetStringAsync($"{CacheKeys.ProductId}{storeId}-{underType}-{_pageSize}-{pageNumber}", productsString, token);
 
                 return product;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (TelegramException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public async Task<List<ProductDto>> GetProductsByNameAsync(string name, Guid productTypeId, Guid storeId, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new TelegramException();
+            }
+
+            if (productTypeId == Guid.Empty || storeId == Guid.Empty)
+            {
+                throw new TelegramException();
+            }
+
+            List<ProductDto>? products;
+            string cacheKey = $"{CacheKeys.SearchProductsByNameId}{productTypeId}{storeId}{name}";
+
+            string? productsString = await _cache.GetStringAsync(cacheKey, token);
+
+            if (!string.IsNullOrEmpty(productsString))
+            {
+                token.ThrowIfCancellationRequested();
+
+                products = JsonSerializer.Deserialize<List<ProductDto>>(productsString);
+
+                return products ?? throw new TelegramException();
+            }
+
+            try
+            {
+                token.ThrowIfCancellationRequested();
+
+                await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+                products = await (
+                    from productTemp in context.Products
+                    join dataStoreProduct in context.DataStoreProducts
+                    on new { ProductId = productTemp.Id, StoreId = storeId } equals new { dataStoreProduct.ProductId, dataStoreProduct.StoreId }
+                    into storeGroup
+                    from storeProduct in storeGroup.DefaultIfEmpty()
+                    where productTemp.Name.Contains(name)
+                    orderby productTemp.Price
+                    select new ProductDto
+                    {
+                        Id = productTemp.Id,
+                        Name = productTemp.Name,
+                        PhotoUri = productTemp.PhotoUri,
+                        TypeId = productTemp.TypeId,
+                        UnderTypeId = productTemp.UnderTypeId,
+                        BrandId = productTemp.BrandId,
+                        Price = productTemp.Price,
+                        Dimensions = productTemp.Dimensions,
+                        Description = productTemp.Description,
+                        Status = storeProduct != null && storeProduct.Status
+                    })
+                    .Take(5)
+                    .ToListAsync(token);
+
+                productsString = JsonSerializer.Serialize<List<ProductDto>>(products);
+
+                if (string.IsNullOrEmpty(productsString))
+                {
+                    throw new TelegramException();
+                }
+
+                await _cache.SetStringAsync(cacheKey, productsString, token);
+
+                return products;
             }
             catch (OperationCanceledException)
             {

@@ -15,5 +15,11 @@
         public const string KeyboardMarkupMenuProductTypes = "KeyboardMarkupMenuProductTypes";
 
         public const string KeyboardMarkupMenuProductUnderTypes = "KeyboardMarkupMenuProductUnderTypes";
+
+        public const string KeyboardMarkupSelectProductTypeForCustomerSearchChoice = "KeyboardMarkupSelectProductTypeForCustomerSearchChoice";
+
+        public const string CustomerSearchChoiceId = "CustomerSearchChoiceId";
+
+        public const string SearchProductsByNameId = "SearchProductsByNameId";
     }
 }

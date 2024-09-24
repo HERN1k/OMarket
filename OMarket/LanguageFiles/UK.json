@@ -76,5 +76,27 @@
     "product_view_plus_button": "➕",
     "product_view_minus_button": "➖",
     "product_view_button_is_disable_button": "Кнопка неактивна",
-    "product_view_quantity_button": "Кількість:"
+    "product_view_quantity_button": "Кількість:",
+    "product_view_product_status_is_false_button": "☑️",
+    "product_view_product_is_not_available": "На жаль, товар відсутній у вашому магазині 🥺",
+
+    // Cart
+    "cart_command_title": "🛒 Кошик",
+    "cart_command_your_cart_is_empty": "У вашому кошику порожньо 🥺",
+    "cart_command_successfully_added_to_cart": "Товар успішно доданий до кошику 🎉",
+    "cart_command_quantity": "Кількість товарів",
+    "cart_command_for_amount": "на сумму",
+    "cart_command_edit_cart_button": "➕ Редагувати",
+    "cart_command_confirm_the_order": "✔️ Підтвердити замовлення",
+
+    // Edit cart
+    "edit_cart_command_editing_the_cart": "⚙️ Редагування кошику",
+
+    // Product search by name
+    "product_search_by_name_command_select_category_search": "Виберіть категорію товарів для пошуку:",
+    "product_search_by_name_command_write_name_of_product": "Напишіть будь ласка назву продукту який ви шукаєте 😊",
+
+    // End search
+    "end_search_command_search_yielded_no_results": "Нажаль пошук не дав результатів 🙊",
+    "end_search_command_try_again": "Не засмучуйтеся, ви можете спробувати ще раз або вийти в головне меню 😊"
 }

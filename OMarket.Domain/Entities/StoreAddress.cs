@@ -15,7 +15,5 @@ namespace OMarket.Domain.Entities
         public decimal Longitude { get; set; }
 
         public virtual Store Store { get; set; }
-
-        public virtual ICollection<Customer> Customers { get; set; }
     }
 }

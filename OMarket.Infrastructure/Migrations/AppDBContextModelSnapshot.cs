@@ -121,9 +121,6 @@ namespace OMarket.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid?>("CityId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -145,7 +142,7 @@ namespace OMarket.Infrastructure.Migrations
                         .HasColumnType("varchar(16)")
                         .HasAnnotation("MinLength", 10);
 
-                    b.Property<Guid?>("StoreAddressId")
+                    b.Property<Guid?>("StoreId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Username")
@@ -155,12 +152,10 @@ namespace OMarket.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CityId");
-
                     b.HasIndex("Id")
                         .IsUnique();
 
-                    b.HasIndex("StoreAddressId");
+                    b.HasIndex("StoreId");
 
                     b.ToTable("Customers", (string)null);
                 });
@@ -536,19 +531,12 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Customer", b =>
                 {
-                    b.HasOne("OMarket.Domain.Entities.City", "City")
+                    b.HasOne("OMarket.Domain.Entities.Store", "Store")
                         .WithMany("Customers")
-                        .HasForeignKey("CityId")
+                        .HasForeignKey("StoreId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("OMarket.Domain.Entities.StoreAddress", "StoreAddress")
-                        .WithMany("Customers")
-                        .HasForeignKey("StoreAddressId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("City");
-
-                    b.Navigation("StoreAddress");
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.DataStoreProduct", b =>
@@ -729,8 +717,6 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.City", b =>
                 {
-                    b.Navigation("Customers");
-
                     b.Navigation("Stores");
                 });
 
@@ -777,6 +763,8 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Store", b =>
                 {
+                    b.Navigation("Customers");
+
                     b.Navigation("DataStoreProducts");
 
                     b.Navigation("Orders");
@@ -784,8 +772,6 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.StoreAddress", b =>
                 {
-                    b.Navigation("Customers");
-
                     b.Navigation("Store");
                 });
 

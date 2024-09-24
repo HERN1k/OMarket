@@ -14,6 +14,11 @@
         MENUPRODUCTSLIST = 512,
         QUANTITYSELECTIONPRODUCT = 1024,
         ADDPRODUCTTOCART = 2048,
+        CART = 4096,
+        EDITCART = 8192,
+        PRODUCTSEARCHBYNAME = 16_384,
+        STARTSEARCH = 32_768,
+        ENDSEARCH = 65_536
     }
 
     public static class TgCommandExtensions
