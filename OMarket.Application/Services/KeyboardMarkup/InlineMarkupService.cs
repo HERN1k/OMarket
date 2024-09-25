@@ -52,6 +52,14 @@ namespace OMarket.Application.Services.KeyboardMarkup
             _mapper = mapper;
         }
 
+        public InlineKeyboardMarkup ToMainMenuBack(LanguageCode? code = null) =>
+            new(InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code), "/mainmenu_back"));
+
+        public InlineKeyboardMarkup ToMainMenuBackDel(LanguageCode? code = null) =>
+            new(InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code), "/mainmenu_back_del"));
+
         public InlineKeyboardMarkup SelectStoreAddress(string command, LanguageCode? code = null)
         {
             if (string.IsNullOrEmpty(command) || string.IsNullOrWhiteSpace(command))
@@ -118,7 +126,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_find_store_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_find_store_button", code), "/524288"),
                 ],
                 [
                     InlineKeyboardButton
@@ -133,10 +141,10 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_profile_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_profile_button", code), "/8388608"),
 
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_contacts_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_contacts_button", code), "/2097152"),
                 ],
             ]);
 
@@ -413,6 +421,134 @@ namespace OMarket.Application.Services.KeyboardMarkup
             result = new(buttons);
 
             _memoryCache.Set(CacheKeys.KeyboardMarkupSelectProductTypeForCustomerSearchChoice, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup EndSearchProducts(List<ProductDto> products, LanguageCode? code = null)
+        {
+            if (products.Count <= 0)
+            {
+                return Empty;
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            int index = 0;
+            foreach (var item in products)
+            {
+                if (!item.Status)
+                {
+                    continue;
+                }
+
+                index++;
+
+                buttons.Add([ InlineKeyboardButton
+                    .WithCallbackData($"№{index} {item.Name}, {item.Dimensions}", $"/131072_{item.Id}_1")]);
+            }
+
+            buttons.Add([ InlineKeyboardButton
+                .WithCallbackData(_i18n.T("menu_item_to_main_menu", code), "/mainmenu_back")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup ProductViewBySearch(ProductDto product, int quantity, LanguageCode? code = null)
+        {
+            if (product == null)
+            {
+                throw new TelegramException();
+            }
+
+            if (quantity <= 0)
+            {
+                throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            string quantityString = $"{_i18n.T("product_view_quantity_button", code)} {quantity}";
+
+            buttons.Add([
+                quantity > 1
+                ? InlineKeyboardButton.WithCallbackData(
+                    _i18n.T("product_view_minus_button", code),
+                    $"/131072_{product.Id}_{quantity - 1}")
+                : InlineKeyboardButton.WithCallbackData(
+                    _i18n.T("product_view_button_disable", code),
+                    _i18n.T("product_view_button_is_disable_button", code)),
+
+                InlineKeyboardButton.WithCallbackData(quantityString, quantityString),
+
+                InlineKeyboardButton.WithCallbackData(
+                    _i18n.T("product_view_plus_button", code),
+                    $"/131072_{product.Id}_{quantity + 1}")]);
+
+            buttons.Add([
+                InlineKeyboardButton.WithCallbackData(
+                    _i18n.T("product_view_accept_button", code),
+                    $"/262144_{product.Id}_{quantity}")]);
+
+            string price = $"💵 {product.Price} * {quantity} шт. = {quantity * product.Price} грн.";
+
+            buttons.Add([
+                InlineKeyboardButton.WithCallbackData(price, price)]);
+
+            buttons.Add([ InlineKeyboardButton
+                .WithCallbackData(_i18n.T("menu_item_to_main_menu", code), "/mainmenu_back_del")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressWithLocation(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressWithLocationId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> tempButtons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                tempButtons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/1048576_{item.Value.Latitude}_{item.Value.Longitude}"),
+                });
+            }
+
+            result = new(tempButtons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressWithLocationId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressWithContacts(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressWithContactsId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> tempButtons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                tempButtons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/4194304_{item.Value.StoreId}"),
+                });
+            }
+
+            result = new(tempButtons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressWithContactsId, result, _memoryCacheOptions);
 
             return result;
         }

@@ -18,6 +18,7 @@ using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace OMarket.Application.Commands
 {
@@ -119,7 +120,7 @@ namespace OMarket.Application.Commands
 
                 await _response.RemoveMessageById(messageId, token);
                 await _response.RemoveLastMessage(token);
-                Message message = await _response.SendMessageAnswer(text, token);
+                Message message = await _response.SendMessageAnswer(text, token, _inlineMarkup.ToMainMenuBack());
 
                 await _distributedCache.SetStringAsync(cacheKey, $"{queryLines[0]}={message.MessageId}", token);
 
@@ -142,13 +143,16 @@ namespace OMarket.Application.Commands
 
                 index++;
 
-                sb.AppendLine($"№{index} {item.Name}, {item.Dimensions}");
+                sb.AppendLine($"<b>№{index} {item.Name}</b><i>, {item.Dimensions}</i>");
                 sb.AppendLine();
             }
+            sb.AppendLine($"<i>{_i18n.T("end_search_command_click_product_number_below")}</i>");
+
+            InlineKeyboardMarkup buttons = _inlineMarkup.EndSearchProducts(products);
 
             await _response.RemoveMessageById(messageId, token);
             await _response.RemoveLastMessage(token);
-            await _response.SendMessageAnswer(sb.ToString(), token);
+            await _response.SendMessageAnswer(sb.ToString(), token, buttons);
         }
     }
 }

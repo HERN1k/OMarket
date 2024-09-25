@@ -51,7 +51,7 @@ namespace OMarket.Application.Services.Bot
             BotCommand[] commands = new BotCommand[]
             {
                 new() { Command = "start", Description = "Почнемо 🍻" },
-                new() { Command = "mainmenu", Description = "Меню" }
+                new() { Command = "mainmenu", Description = "Головне меню" }
             };
 
             await Client.SetMyCommandsAsync(commands, cancellationToken: cancellationToken);

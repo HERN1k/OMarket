@@ -15,5 +15,7 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
         (FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid) GetProductsUnderTypes();
 
         (FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid) GetProductsTypesWithoutInclusions();
+
+        FrozenSet<StoreDto> GetAllStores();
     }
 }

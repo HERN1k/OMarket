@@ -12,6 +12,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.StaticCollections
 
         FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; }
 
+        FrozenSet<StoreDto> StoresSet { get; }
+
         FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; }
 
         FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; }

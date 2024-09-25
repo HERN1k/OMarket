@@ -82,12 +82,15 @@ namespace OMarket.Application.Commands
                     address: storeAddress.Address,
                     token: token);
 
-                await _response.EditLastMessage(_i18n.T("save_store_address_command_address_is_saved_1"), token, _inlineMarkup.Empty);
+                InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
 
-                InlineKeyboardMarkup buttons = await _inlineMarkup
-                    .MainMenu(token);
+                string text = $"""
+                    {_i18n.T("save_store_address_command_address_is_saved_1")}
 
-                await _response.SendMessageAnswer(_i18n.T("save_store_address_command_address_is_saved_2"), token, buttons);
+                    {_i18n.T("save_store_address_command_address_is_saved_2")}
+                    """;
+
+                await _response.EditLastMessage(text, token, buttons);
             }
             catch (Exception)
             {

@@ -18,7 +18,14 @@
         EDITCART = 8192,
         PRODUCTSEARCHBYNAME = 16_384,
         STARTSEARCH = 32_768,
-        ENDSEARCH = 65_536
+        ENDSEARCH = 65_536,
+        VIEWSEARCHPRODUCT = 131_072,
+        SEARCHPRODUCTADDCART = 262_144,
+        STORELOCATION = 524_288,
+        SENDSTORELOCATION = 1_048_576,
+        STORECONTACTS = 2_097_152,
+        SENDSTORECONTACTS = 4_194_304,
+        PROFILE = 8_388_608
     }
 
     public static class TgCommandExtensions

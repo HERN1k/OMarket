@@ -2,6 +2,8 @@
 
 using AutoMapper;
 
+using Microsoft.Extensions.Caching.Distributed;
+
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -30,6 +32,7 @@ namespace OMarket.Application.Commands
         private readonly IDataProcessorService _dataProcessor;
         private readonly IReplyMarkupService _replyMarkup;
         private readonly IInlineMarkupService _inlineMarkup;
+        private readonly IDistributedCache _distributedCache;
 
         public SaveContact(
                 IUpdateManager updateManager,
@@ -39,7 +42,8 @@ namespace OMarket.Application.Commands
                 IMapper mapper,
                 IDataProcessorService dataProcessor,
                 IReplyMarkupService replyMarkup,
-                IInlineMarkupService inlineMarkup
+                IInlineMarkupService inlineMarkup,
+                IDistributedCache distributedCache
             )
         {
             _updateManager = updateManager;
@@ -50,6 +54,7 @@ namespace OMarket.Application.Commands
             _dataProcessor = dataProcessor;
             _replyMarkup = replyMarkup;
             _inlineMarkup = inlineMarkup;
+            _distributedCache = distributedCache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -84,9 +89,25 @@ namespace OMarket.Application.Commands
                 if (!formattedPhoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
                 {
                     await RemoveCustomerAndSendExceptionMessage(token);
-
                     return;
                 }
+
+                string? lastMessageIdString = await _distributedCache
+                    .GetStringAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}", token);
+
+                if (string.IsNullOrEmpty(lastMessageIdString))
+                {
+                    await RemoveCustomerAndSendExceptionMessage(token);
+                    return;
+                }
+
+                if (!int.TryParse(lastMessageIdString, out int lastMessageId))
+                {
+                    await RemoveCustomerAndSendExceptionMessage(token);
+                    return;
+                }
+
+                await _distributedCache.RemoveAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}", token);
 
                 await _customersRepository.SaveContactsAsync(
                     id: request.Customer.Id,
@@ -95,9 +116,17 @@ namespace OMarket.Application.Commands
                     lastName: contact.LastName,
                     token: token);
 
-                await _response.SendMessageAnswer(_i18n.T("save_contact_command_phone_number_is_saved"), token, _replyMarkup.Empty);
+                await _response.RemoveMessageById(lastMessageId, token);
+
+                Message clearReplyMarkup = await _response.SendMessageAnswer(".", token, _replyMarkup.Empty);
+
+                await _response.RemoveMessageById(clearReplyMarkup.MessageId, token);
+
+                await _response.RemoveLastMessage(token);
 
                 string text = $"""
+                    {_i18n.T("save_contact_command_phone_number_is_saved")}
+
                     {_i18n.T("save_contact_command_select_your_address_1")}
 
                     {_i18n.T("save_contact_command_select_your_address_2")}
@@ -105,8 +134,10 @@ namespace OMarket.Application.Commands
 
                 await _response.SendMessageAnswer(text, token, _inlineMarkup.SelectStoreAddress("savestoreaddress"));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
+
                 await RemoveCustomerAndSendExceptionMessage(token);
 
                 return;

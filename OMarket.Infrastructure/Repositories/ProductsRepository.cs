@@ -68,6 +68,7 @@ namespace OMarket.Infrastructure.Repositories
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
                 product = await context.Products
+                    .Where(product => product.Id == id)
                     .Select(product => new ProductDto()
                     {
                         Id = product.Id,
@@ -80,7 +81,7 @@ namespace OMarket.Infrastructure.Repositories
                         Dimensions = product.Dimensions,
                         Description = product.Description
                     })
-                    .SingleOrDefaultAsync(p => p.Id == id)
+                    .SingleOrDefaultAsync(token)
                         ?? throw new TelegramException();
 
                 productsString = JsonSerializer.Serialize<ProductDto>(product);

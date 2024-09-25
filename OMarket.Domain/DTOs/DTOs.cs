@@ -88,6 +88,12 @@ namespace OMarket.Domain.DTOs
 
         public string City { get; set; } = string.Empty;
 
+        public decimal Latitude { get; set; }
+
+        public decimal Longitude { get; set; }
+
+        public Guid StoreId { get; set; }
+
         public bool Equals(StoreAddressWithCityDto? other)
         {
             if (other == null)
@@ -351,6 +357,44 @@ namespace OMarket.Domain.DTOs
         public override bool Equals(object? obj)
         {
             if (obj is CartItemDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class StoreDto : IEquatable<StoreDto>
+    {
+        public Guid Id { get; set; }
+
+        public Guid AddressId { get; set; }
+
+        public Guid CityId { get; set; }
+
+        public Guid AdminId { get; set; }
+
+        public Guid StoreTelegramChatId { get; set; }
+
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        public bool Equals(StoreDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is StoreDto otherDto)
             {
                 return Equals(otherDto);
             }

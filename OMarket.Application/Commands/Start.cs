@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 
+using Microsoft.Extensions.Caching.Distributed;
+
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -11,6 +13,7 @@ using OMarket.Domain.Interfaces.Domain.TgCommand;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
 
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -26,6 +29,7 @@ namespace OMarket.Application.Commands
         private readonly IMapper _mapper;
         private readonly IReplyMarkupService _replyMarkup;
         private readonly IInlineMarkupService _inlineMarkup;
+        private readonly IDistributedCache _distributedCache;
 
         public Start(
                 ISendResponseService response,
@@ -34,7 +38,8 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IMapper mapper,
                 IReplyMarkupService replyMarkup,
-                IInlineMarkupService inlineMarkup
+                IInlineMarkupService inlineMarkup,
+                IDistributedCache distributedCache
             )
         {
             _response = response;
@@ -44,6 +49,7 @@ namespace OMarket.Application.Commands
             _mapper = mapper;
             _replyMarkup = replyMarkup;
             _inlineMarkup = inlineMarkup;
+            _distributedCache = distributedCache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -69,31 +75,33 @@ namespace OMarket.Application.Commands
                 customer = await _repository.GetCustomerFromIdAsync(customer.Id, token);
             }
 
+            await _response.RemoveLastMessage(token);
+
             if (string.IsNullOrEmpty(customer.PhoneNumber))
             {
                 token.ThrowIfCancellationRequested();
 
                 string greeting = $"""
-                {_i18n.T("start_command_greeting_phrase_1")
-                    + (customer.FirstName != null ? " " + customer.FirstName : string.Empty)}!
+                    <b>{_i18n.T("start_command_greeting_phrase_1")
+                        + (customer.FirstName != null ? " " + customer.FirstName : string.Empty)}!</b>
 
-                {_i18n.T("start_command_greeting_phrase_2")}
+                    {_i18n.T("start_command_greeting_phrase_2")}
 
-                {_i18n.T("start_command_greeting_phrase_3")}
-                {_i18n.T("start_command_greeting_phrase_4")}
-                {_i18n.T("start_command_greeting_phrase_5")}
-                {_i18n.T("start_command_greeting_phrase_6")}
-                """;
+                    <b>{_i18n.T("start_command_greeting_phrase_3")}
+                    {_i18n.T("start_command_greeting_phrase_4")}
+                    {_i18n.T("start_command_greeting_phrase_5")}
+                    {_i18n.T("start_command_greeting_phrase_6")}
+                    {_i18n.T("start_command_greeting_phrase_7")}
+                    {_i18n.T("start_command_greeting_phrase_8")}</b>
 
-                await _response.SendMessageAnswer(greeting, token);
+                    <i>{_i18n.T("start_command_share_your_phone_number_1")}
+                    
+                    {_i18n.T("start_command_share_your_phone_number_2")}</i>
+                    """;
 
-                greeting = $"""
-                {_i18n.T("start_command_share_your_phone_number_1")}
+                Message message = await _response.SendMessageAnswer(greeting, token, _replyMarkup.SendPhoneNumber());
 
-                {_i18n.T("start_command_share_your_phone_number_2")}
-                """;
-
-                await _response.SendMessageAnswer(greeting, token, _replyMarkup.SendPhoneNumber());
+                await _distributedCache.SetStringAsync($"{CacheKeys.CustomerFirstMessageId}{customer.Id}", message.MessageId.ToString(), token);
             }
             else
             {

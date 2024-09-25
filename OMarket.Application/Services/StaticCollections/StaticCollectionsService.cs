@@ -20,6 +20,8 @@ namespace OMarket.Application.Services.StaticCollections
 
         public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; init; }
 
+        public FrozenSet<StoreDto> StoresSet { get; init; }
+
         public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; init; }
 
         public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; init; }
@@ -47,6 +49,8 @@ namespace OMarket.Application.Services.StaticCollections
             CommandsDictionary = MapCommands();
 
             AllProductsTypesDictionary = MapAllProductsTypes();
+
+            StoresSet = _appRepository.GetAllStores();
 
             CitiesWithStoreAddressesDictionary = _appRepository.GetAllCitiesWithStoreAddresses();
 
@@ -101,23 +105,6 @@ namespace OMarket.Application.Services.StaticCollections
                     .Select(e => e.UnderTypeName)
                     .ToArray()
                     .AsReadOnly());
-
-                //typesDictionary.Add(type.TypeName switch
-                //{
-                //    "Пиво" => "BEER",
-                //    "Сидр" => "CIDER",
-                //    "Вино" => "WINE",
-                //    "Міцні напої" => "STRONGDRINKS",
-                //    "Снеки і закуски" => "SNACKS",
-                //    "Енергетики" => "ENERGY",
-                //    "Слабоалкогольні напої" => "LOWALCOHOL",
-                //    "Безалкогольні напої" => "NONALCOHOLIC",
-                //    "Мінеральна та питна вода" => "MINERALWATER",
-                //    _ => throw new ArgumentNullException(nameof(types))
-                //}, type.ProductUnderTypes
-                //    .Select(e => e.UnderTypeName)
-                //    .ToList()
-                //    .AsReadOnly());
             }
 
             return typesDictionary.ToFrozenDictionary();

@@ -9,6 +9,10 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
     {
         InlineKeyboardMarkup Empty { get; }
 
+        InlineKeyboardMarkup ToMainMenuBack(LanguageCode? code = null);
+
+        InlineKeyboardMarkup ToMainMenuBackDel(LanguageCode? code = null);
+
         InlineKeyboardMarkup SelectStoreAddress(string command, LanguageCode? code = null);
 
         Task<InlineKeyboardMarkup> MainMenu(CancellationToken token, LanguageCode? code = null);
@@ -26,5 +30,13 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
         InlineKeyboardMarkup CartIsEmpty(LanguageCode? code = null);
 
         InlineKeyboardMarkup SelectProductTypeForCustomerSearchChoice(LanguageCode? code = null);
+
+        InlineKeyboardMarkup EndSearchProducts(List<ProductDto> products, LanguageCode? code = null);
+
+        InlineKeyboardMarkup ProductViewBySearch(ProductDto product, int quantity, LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressWithLocation(LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressWithContacts(LanguageCode? code = null);
     }
 }

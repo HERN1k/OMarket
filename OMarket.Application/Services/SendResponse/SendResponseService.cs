@@ -357,5 +357,45 @@ namespace OMarket.Application.Services.SendResponse
                 messageId: messageId,
                 cancellationToken: token);
         }
+
+        public async Task SendLocation(double latitude, double longitude, CancellationToken token, InlineKeyboardMarkup? buttons = null)
+        {
+            token.ThrowIfCancellationRequested();
+
+            long chatId;
+            if (_updateManager.Update.Type == UpdateType.Message)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.Message.Chat.Id;
+            }
+            else if (_updateManager.Update.Type == UpdateType.CallbackQuery)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.CallbackQuery is null ||
+                    _updateManager.Update.CallbackQuery.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.CallbackQuery.Message.Chat.Id;
+            }
+            else
+            {
+                throw new TelegramException();
+            }
+
+            await _client.SendLocationAsync(
+                chatId: chatId,
+                latitude: latitude,
+                longitude: longitude,
+                replyMarkup: buttons);
+        }
     }
 }

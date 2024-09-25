@@ -27,5 +27,7 @@ namespace OMarket.Domain.Interfaces.Application.Services.SendResponse
         Task RemoveLastMessage(CancellationToken token);
 
         Task RemoveMessageById(int messageId, CancellationToken token);
+
+        Task SendLocation(double latitude, double longitude, CancellationToken token, InlineKeyboardMarkup? buttons = null);
     }
 }

@@ -31,18 +31,20 @@
 
     // Start command
     "start_command_greeting_phrase_1": "👋 Привіт",
-    "start_command_greeting_phrase_2": "Я бот магазину <b>ОМаркет</b> який допоможе Вам:",
+    "start_command_greeting_phrase_2": "Я бот мережі магазинів <b>ОМаркет</b> в Черкаській області який допоможе Вам:",
     "start_command_greeting_phrase_3": "📌 Зробити замовлення",
-    "start_command_greeting_phrase_4": "📌 Залишити відгук",
+    "start_command_greeting_phrase_4": "📌 Переглянути каталог товарів",
     "start_command_greeting_phrase_5": "📌 Подивитися історію замовлень",
-    "start_command_greeting_phrase_6": "📌 Знайти магазин на карті",
-    "start_command_share_your_phone_number_1": "Будь ласка, поділіться своїм номером телефону, натиснувши кнопку ⬇️",
+    "start_command_greeting_phrase_6": "📌 Залишити відгук",
+    "start_command_greeting_phrase_7": "📌 Знайти магазин на карті",
+    "start_command_greeting_phrase_8": "📌 Замовити консультацію",
+    "start_command_share_your_phone_number_1": "Будь ласка, поділіться своїм номером телефону, натиснувши кнопку нижче.",
     "start_command_share_your_phone_number_2": "Це допоможе вам отримати доступ до всіх можливостей бота!",
     "start_command_send_phone_number_button": "Надіслати номер телефону 📱",
 
     // Save contact
     "save_contact_command_phone_number_is_saved": "Дякую, ваш номер телефону збережено! 🎉",
-    "save_contact_command_select_your_address_1": "Виберіть будь ласка адресу вашого магазину ⬇️",
+    "save_contact_command_select_your_address_1": "Виберіть будь ласка адресу вашого магазину нижче.",
     "save_contact_command_select_your_address_2": "Ви завжди зможете змінити свій вибір у налаштуваннях профілю 😊",
 
     // Save store address
@@ -50,7 +52,7 @@
     "save_store_address_command_address_is_saved_2": "Тепер ви можите використовувати бот на повну!",
 
     // Main menu
-    "main_menu_command_select_your_address": "Спочатку виберіть будь ласка адресу вашого магазину ⬇️",
+    "main_menu_command_select_your_address": "Спочатку виберіть будь ласка адресу вашого магазину нижче.",
     "main_menu_command_make_order_button": "📦 Зробити замовлення",
     "main_menu_command_cart_button": "🛒 Кошик",
     "main_menu_command_product_catalog_button": "📒 Каталог товарів",
@@ -97,6 +99,23 @@
     "product_search_by_name_command_write_name_of_product": "Напишіть будь ласка назву продукту який ви шукаєте 😊",
 
     // End search
-    "end_search_command_search_yielded_no_results": "Нажаль пошук не дав результатів 🙊",
-    "end_search_command_try_again": "Не засмучуйтеся, ви можете спробувати ще раз або вийти в головне меню 😊"
+    "end_search_command_search_yielded_no_results": "Нажаль пошук не дав результатів.",
+    "end_search_command_try_again": "Ви можете спробувати ще раз або вийти в головне меню 😊",
+    "end_search_command_click_product_number_below": "Натисніть на номер продукту нижче, щоб переглянути його 😊",
+
+    // Store location
+    "store_location_command_select_address_to_display_geolocation": "Виберіть адресу магазину, для якого потрібно відобразити геолокацію 😊",
+
+    // Store contacts
+    "store_contacts_command_select_address_to_display_contacts": "Виберіть адресу магазину, для якого потрібно відобразити контакти 😊",
+    "store_contacts_command_store_city": "Місто:",
+    "store_contacts_command_store_address": "Адреса:",
+    "store_contacts_command_phone_number": "Номер телефону:",
+
+    // Profile 
+    "profile_command_username": "Username:",
+    "profile_command_name": "Ім'я та прізвище:",
+    "profile_command_phone_number": "Номер телефону:",
+    "profile_command_store_address": "Адреса обраного вами магазину:",
+    "profile_command_creation_date": "Дата створення профілю:"
 }

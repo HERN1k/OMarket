@@ -115,10 +115,13 @@ namespace OMarket.Infrastructure.Repositories
                     .AsNoTracking()
                     .Select(storeAddress => new
                     {
-                        Guid = storeAddress.Id.ToString(),
+                        Guid = storeAddress.Store.Id.ToString(),
                         GuidId = storeAddress.Id,
                         Address = storeAddress.Address,
-                        City = storeAddress.Store.City.CityName
+                        City = storeAddress.Store.City.CityName,
+                        Latitude = storeAddress.Latitude,
+                        Longitude = storeAddress.Longitude,
+                        StoreId = storeAddress.Store.Id
                     }).ToArray();
 
                 return result.ToFrozenDictionary(
@@ -127,7 +130,10 @@ namespace OMarket.Infrastructure.Repositories
                     {
                         Id = item.GuidId,
                         City = item.City,
-                        Address = item.Address
+                        Address = item.Address,
+                        Latitude = item.Latitude,
+                        Longitude = item.Longitude,
+                        StoreId = item.StoreId
                     });
             }
             catch (Exception ex)
@@ -191,6 +197,31 @@ namespace OMarket.Infrastructure.Repositories
                     underType => underType.Guid);
 
                 return (GuidToString, StringToGuid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public FrozenSet<StoreDto> GetAllStores()
+        {
+            try
+            {
+                using AppDBContext context = _contextFactory.CreateDbContext();
+
+                return context.Stores
+                    .AsNoTracking()
+                    .Select(store => new StoreDto()
+                    {
+                        Id = store.Id,
+                        AddressId = store.AddressId,
+                        CityId = store.CityId,
+                        AdminId = store.AdminId,
+                        StoreTelegramChatId = store.StoreTelegramChatId,
+                        PhoneNumber = store.PhoneNumber
+                    }).ToFrozenSet();
             }
             catch (Exception ex)
             {
