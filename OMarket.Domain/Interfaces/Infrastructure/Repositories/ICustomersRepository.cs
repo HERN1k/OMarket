@@ -16,10 +16,8 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
 
         Task SaveContactsAsync(long id, string phoneNumber, CancellationToken token, string? firstName = null, string? lastName = null);
 
-        Task SaveStoreAddressAsync(long id, string city, string address, CancellationToken token);
+        Task SaveStoreAsync(long id, Guid storeId, CancellationToken token);
 
         Task RemoveCustomerAsync(long id);
-
-
     }
 }

@@ -79,10 +79,11 @@ namespace OMarket.Application.Services.Distributor
                     throw new TelegramException();
                 }
             }
-            else if (_updateManager.Update.Message?.Text != "/start" &&
-                    _updateManager.Update.Message?.Text != "/mainmenu" &&
+            else if (_updateManager.Update.Message is not null &&
+                    _updateManager.Update.Message.Text is not null &&
+                    !_updateManager.Update.Message.Text.StartsWith('/') &&
                     _updateManager.Update.Type == UpdateType.Message &&
-                    _updateManager.Update.Message?.Type == MessageType.Text)
+                    _updateManager.Update.Message.Type == MessageType.Text)
             {
                 if (_updateManager.Update.Message is null ||
                     _updateManager.Update.Message.From is null)
@@ -90,15 +91,37 @@ namespace OMarket.Application.Services.Distributor
                     throw new TelegramException();
                 }
 
-                string? customerSearchChoiceString = await _distributedCache
-                    .GetStringAsync($"{CacheKeys.CustomerSearchChoiceId}{_updateManager.Update.Message.From.Id}", token);
+                string? customerFreeInputString = await _distributedCache
+                    .GetStringAsync($"{CacheKeys.CustomerFreeInputId}{_updateManager.Update.Message.From.Id}", token);
 
-                if (string.IsNullOrEmpty(customerSearchChoiceString))
+                if (string.IsNullOrEmpty(customerFreeInputString))
                 {
                     throw new TelegramException();
                 }
 
-                if (!_staticCollections.CommandsDictionary.TryGetValue(TgCommands.ENDSEARCH, out var commandType))
+                if (!customerFreeInputString.StartsWith('/'))
+                {
+                    throw new TelegramException();
+                }
+
+                string[] queryLines = customerFreeInputString.Split('_', 2);
+
+                if (queryLines.Length < 2)
+                {
+                    throw new TelegramException();
+                }
+
+                TgCommands messageCommand = TgCommandExtensions
+                    .GetTelegramCommand(queryLines[0][1..]);
+
+                token.ThrowIfCancellationRequested();
+
+                if (messageCommand == TgCommands.NONE)
+                {
+                    throw new TelegramException();
+                }
+
+                if (!_staticCollections.CommandsDictionary.TryGetValue(messageCommand, out var commandType))
                 {
                     throw new TelegramException();
                 }
@@ -145,7 +168,7 @@ namespace OMarket.Application.Services.Distributor
                 string[] rawCommand = GetCommandsAndArguments(token);
 
                 TgCommands messageCommand = TgCommandExtensions
-                  .GetTelegramCommand(rawCommand[0]);
+                    .GetTelegramCommand(rawCommand[0]);
 
                 token.ThrowIfCancellationRequested();
 

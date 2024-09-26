@@ -1,7 +1,5 @@
 ﻿using System.Text.Json;
 
-using AutoMapper;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -25,23 +23,19 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly IDistributedCache _cache;
 
-        private readonly IMapper _mapper;
-
         private readonly int _pageSize = 1;
 
         public ProductsRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
                 IStaticCollectionsService staticCollections,
                 ILogger<CustomersRepository> logger,
-                IDistributedCache cache,
-                IMapper mapper
+                IDistributedCache cache
             )
         {
             _contextFactory = contextFactory;
             _staticCollections = staticCollections;
             _logger = logger;
             _cache = cache;
-            _mapper = mapper;
         }
 
         public async Task<ProductDto> GetProductByIdAsync(Guid id, CancellationToken token)
@@ -114,7 +108,7 @@ namespace OMarket.Infrastructure.Repositories
         {
             token.ThrowIfCancellationRequested();
 
-            if (pageNumber <= 0)
+            if (pageNumber <= 0 || storeId == Guid.Empty)
             {
                 throw new TelegramException();
             }
@@ -132,7 +126,12 @@ namespace OMarket.Infrastructure.Repositories
                 return product ?? throw new TelegramException();
             }
 
-            if (!Guid.TryParse(underType, out Guid guid) || !_staticCollections.GuidToStringUnderTypesDictionary.ContainsKey(underType))
+            if (!Guid.TryParse(underType, out Guid underTypeGuid) || !_staticCollections.GuidToStringUnderTypesDictionary.ContainsKey(underType))
+            {
+                throw new TelegramException();
+            }
+
+            if (underTypeGuid == Guid.Empty)
             {
                 throw new TelegramException();
             }
@@ -144,12 +143,12 @@ namespace OMarket.Infrastructure.Repositories
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
                 var products = await (
-                    from productTemp in context.Products
-                    join dataStoreProduct in context.DataStoreProducts
+                    from productTemp in context.Products.AsNoTracking()
+                    join dataStoreProduct in context.DataStoreProducts.AsNoTracking()
                     on new { ProductId = productTemp.Id, StoreId = storeId } equals new { dataStoreProduct.ProductId, dataStoreProduct.StoreId }
                     into storeGroup
                     from storeProduct in storeGroup.DefaultIfEmpty()
-                    where productTemp.UnderTypeId == guid
+                    where productTemp.UnderTypeId == underTypeGuid
                     orderby productTemp.Price
                     select new ProductDto
                     {
@@ -170,7 +169,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 int maxPageNumber = await context.Products
                     .AsNoTracking()
-                    .Where(product => product.UnderTypeId == guid)
+                    .Where(product => product.UnderTypeId == underTypeGuid)
                     .CountAsync(token);
 
                 product = products
@@ -181,7 +180,8 @@ namespace OMarket.Infrastructure.Repositories
                         TypeId = product.TypeId.ToString(),
                         PageNumber = pageNumber,
                         MaxNumber = maxPageNumber
-                    }).ToArray()
+                    })
+                    .ToArray()
                     .ElementAtOrDefault(0);
 
                 if (product is null)
@@ -247,13 +247,17 @@ namespace OMarket.Infrastructure.Repositories
 
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
+                string normalizedName = name.ToLower();
+
                 products = await (
                     from productTemp in context.Products
                     join dataStoreProduct in context.DataStoreProducts
                     on new { ProductId = productTemp.Id, StoreId = storeId } equals new { dataStoreProduct.ProductId, dataStoreProduct.StoreId }
                     into storeGroup
                     from storeProduct in storeGroup.DefaultIfEmpty()
-                    where productTemp.Name.Contains(name)
+#pragma warning disable CA1862
+                    where productTemp.Name.ToLower().Contains(normalizedName)
+#pragma warning restore CA1862
                     orderby productTemp.Price
                     select new ProductDto
                     {

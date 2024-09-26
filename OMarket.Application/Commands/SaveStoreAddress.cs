@@ -71,15 +71,19 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                if (!_staticCollections.CitiesWithStoreAddressesDictionary.TryGetValue(request.Query, out var storeAddress))
+                if (!Guid.TryParse(request.Query, out Guid storeId))
                 {
                     throw new TelegramException();
                 }
 
-                await _customersRepository.SaveStoreAddressAsync(
+                if (storeId == Guid.Empty)
+                {
+                    throw new TelegramException();
+                }
+
+                await _customersRepository.SaveStoreAsync(
                     id: request.Customer.Id,
-                    city: storeAddress.City,
-                    address: storeAddress.Address,
+                    storeId: storeId,
                     token: token);
 
                 InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);

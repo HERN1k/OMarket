@@ -72,7 +72,9 @@ namespace OMarket.Infrastructure.Repositories
                         PhoneNumber = customerEntity.PhoneNumber,
                         IsBot = customerEntity.IsBot,
                         StoreId = customerEntity.StoreId,
-                        CreatedAt = customerEntity.CreatedAt
+                        CreatedAt = customerEntity.CreatedAt,
+                        BlockedOrders = customerEntity.BlockedOrders,
+                        BlockedReviews = customerEntity.BlockedReviews,
                     };
 
                     customerString = JsonSerializer.Serialize<CustomerDto>(customer);
@@ -143,7 +145,9 @@ namespace OMarket.Infrastructure.Repositories
                         PhoneNumber = customerEntity.PhoneNumber,
                         IsBot = customerEntity.IsBot,
                         StoreId = customerEntity.StoreId,
-                        CreatedAt = customerEntity.CreatedAt
+                        CreatedAt = customerEntity.CreatedAt,
+                        BlockedOrders = customerEntity.BlockedOrders,
+                        BlockedReviews = customerEntity.BlockedReviews,
                     };
 
                     customerString = JsonSerializer.Serialize<CustomerDto>(customer);
@@ -231,7 +235,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 await context.SaveChangesAsync(token);
 
-                CustomerDto customerDto = new CustomerDto()
+                CustomerDto customerDto = new()
                 {
                     Id = customer.Id,
                     Username = customer.Username,
@@ -240,7 +244,9 @@ namespace OMarket.Infrastructure.Repositories
                     PhoneNumber = customer.PhoneNumber,
                     IsBot = customer.IsBot,
                     StoreId = customer.StoreId,
-                    CreatedAt = customer.CreatedAt
+                    CreatedAt = customer.CreatedAt,
+                    BlockedOrders = customer.BlockedOrders,
+                    BlockedReviews = customer.BlockedReviews,
                 };
 
                 string? customerString = JsonSerializer.Serialize<CustomerDto>(customerDto);
@@ -307,7 +313,7 @@ namespace OMarket.Infrastructure.Repositories
                     Username = customer.Username,
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
-                    PhoneNumber = customer.PhoneNumber,
+                    PhoneNumber = phoneNumber,
                     IsBot = customer.IsBot,
                     StoreId = customer.StoreId,
                     CreatedAt = customer.CreatedAt
@@ -337,14 +343,9 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
-        public async Task SaveStoreAddressAsync(long id, string city, string address, CancellationToken token)
+        public async Task SaveStoreAsync(long id, Guid storeId, CancellationToken token)
         {
             if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
-
-            if (string.IsNullOrEmpty(city) || string.IsNullOrEmpty(address))
             {
                 throw new TelegramException();
             }
@@ -359,35 +360,16 @@ namespace OMarket.Infrastructure.Repositories
                     .SingleOrDefaultAsync(e => e.Id == id, cancellationToken: token)
                         ?? throw new TelegramException("exception_first_use_command_start");
 
-                Guid cityId = await context.Cities
-                    .AsNoTracking()
-                    .Where(e => e.CityName == city)
-                    .Select(e => e.Id)
-                    .SingleOrDefaultAsync(token);
-
-                Guid addressId = await context.StoreAddresses
-                    .AsNoTracking()
-                    .Where(e => e.Address == address)
-                    .Select(e => e.Id)
-                    .SingleOrDefaultAsync(token);
-
-                if (cityId == Guid.Empty || addressId == Guid.Empty)
-                {
-                    throw new TelegramException();
-                }
-
-                Guid storeId = await context.Stores
-                    .AsNoTracking()
-                    .Where(e => e.CityId == cityId && e.AddressId == addressId)
-                    .Select(e => e.Id)
-                    .SingleOrDefaultAsync(token);
-
                 if (storeId == Guid.Empty)
                 {
                     throw new TelegramException();
                 }
 
-                customer.StoreId = storeId;
+                Store store = await context.Stores
+                    .SingleOrDefaultAsync(store => store.Id == storeId, cancellationToken: token)
+                        ?? throw new TelegramException();
+
+                customer.Store = store;
 
                 await context.SaveChangesAsync(token);
 
@@ -399,7 +381,7 @@ namespace OMarket.Infrastructure.Repositories
                     LastName = customer.LastName,
                     PhoneNumber = customer.PhoneNumber,
                     IsBot = customer.IsBot,
-                    StoreId = customer.StoreId,
+                    StoreId = storeId,
                     CreatedAt = customer.CreatedAt
                 });
 

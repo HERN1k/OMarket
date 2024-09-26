@@ -86,7 +86,10 @@ namespace OMarket.Application.Commands
                     pattern: RegexPatterns.PhoneNumberFormattingPattern,
                     replacement: string.Empty);
 
-                if (!formattedPhoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
+                formattedPhoneNumber = '+' + formattedPhoneNumber;
+
+                if (formattedPhoneNumber.Length <= 32 &&
+                    !formattedPhoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
                 {
                     await RemoveCustomerAndSendExceptionMessage(token);
                     return;

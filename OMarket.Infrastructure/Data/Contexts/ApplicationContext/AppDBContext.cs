@@ -23,6 +23,7 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ProductUnderType> ProductUnderTypes { get; set; }
         public DbSet<DataStoreProduct> DataStoreProducts { get; set; }
+        public DbSet<Review> Reviews { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +43,7 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
             modelBuilder.BuildOrderItemEntity();
             modelBuilder.BuildProductUnderTypeEntity();
             modelBuilder.BuildDataStoreProductEntity();
+            modelBuilder.BuildReviewEntity();
 
             base.OnModelCreating(modelBuilder);
         }

@@ -9,7 +9,6 @@ using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
-using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
@@ -31,7 +30,6 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly IDistributedCache _distributedCache;
-        private readonly IStaticCollectionsService _staticCollections;
         private readonly IProductsRepository _productsRepository;
 
         public EndSearch(
@@ -41,7 +39,6 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 IDistributedCache distributedCache,
-                IStaticCollectionsService staticCollections,
                 IProductsRepository productsRepository
             )
         {
@@ -51,7 +48,6 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _distributedCache = distributedCache;
-            _staticCollections = staticCollections;
             _productsRepository = productsRepository;
         }
 
@@ -76,7 +72,7 @@ namespace OMarket.Application.Commands
                 await _response.SendCallbackAnswer(token);
             }
 
-            string cacheKey = $"{CacheKeys.CustomerSearchChoiceId}{request.Customer.Id}";
+            string cacheKey = $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}";
 
             string? typeString = await _distributedCache.GetStringAsync(cacheKey, token);
 
@@ -85,7 +81,21 @@ namespace OMarket.Application.Commands
                 throw new TelegramException();
             }
 
-            string[] queryLines = typeString.Split('=');
+            string[] tempLines = typeString.Split('_', 2);
+
+            if (tempLines.Length != 2)
+            {
+                throw new TelegramException();
+            }
+
+            if (tempLines[0] != "/65536")
+            {
+                await _distributedCache.RemoveAsync(cacheKey, token);
+
+                throw new TelegramException();
+            }
+
+            string[] queryLines = tempLines[1].Split('=');
 
             if (queryLines.Length != 2)
             {
@@ -122,7 +132,7 @@ namespace OMarket.Application.Commands
                 await _response.RemoveLastMessage(token);
                 Message message = await _response.SendMessageAnswer(text, token, _inlineMarkup.ToMainMenuBack());
 
-                await _distributedCache.SetStringAsync(cacheKey, $"{queryLines[0]}={message.MessageId}", token);
+                await _distributedCache.SetStringAsync(cacheKey, $"/65536_{queryLines[0]}={message.MessageId}", token);
 
                 return;
             }

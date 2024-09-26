@@ -1,5 +1,4 @@
-﻿
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
@@ -63,15 +62,19 @@ namespace OMarket.Application.Commands
                 throw new TelegramException();
             }
 
-            if (!_staticCollections.CitiesWithStoreAddressesDictionary.TryGetValue(request.Query, out var storeAddress))
+            if (!Guid.TryParse(request.Query, out Guid storeId))
             {
                 throw new TelegramException();
             }
 
-            await _customersRepository.SaveStoreAddressAsync(
+            if (storeId == Guid.Empty)
+            {
+                throw new TelegramException();
+            }
+
+            await _customersRepository.SaveStoreAsync(
                 id: request.Customer.Id,
-                city: storeAddress.City,
-                address: storeAddress.Address,
+                storeId: storeId,
                 token: token);
 
             await _response.EditLastMessage(_i18n.T("update_store_address_command_address_is_saved"), token, _inlineMarkup.Empty);

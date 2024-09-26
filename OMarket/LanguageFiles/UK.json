@@ -96,7 +96,7 @@
 
     // Product search by name
     "product_search_by_name_command_select_category_search": "Виберіть категорію товарів для пошуку:",
-    "product_search_by_name_command_write_name_of_product": "Напишіть будь ласка назву продукту який ви шукаєте 😊",
+    "product_search_by_name_command_write_name_of_product": "Надішліть будь ласка назву продукту який ви шукаєте 😊",
 
     // End search
     "end_search_command_search_yielded_no_results": "Нажаль пошук не дав результатів.",
@@ -108,14 +108,30 @@
 
     // Store contacts
     "store_contacts_command_select_address_to_display_contacts": "Виберіть адресу магазину, для якого потрібно відобразити контакти 😊",
-    "store_contacts_command_store_city": "Місто:",
-    "store_contacts_command_store_address": "Адреса:",
-    "store_contacts_command_phone_number": "Номер телефону:",
+    "store_contacts_command_store_city": "🏙️ Місто:",
+    "store_contacts_command_store_address": "📍 Адреса:",
+    "store_contacts_command_phone_number": "📱 Номер телефону:",
 
     // Profile 
-    "profile_command_username": "Username:",
-    "profile_command_name": "Ім'я та прізвище:",
-    "profile_command_phone_number": "Номер телефону:",
-    "profile_command_store_address": "Адреса обраного вами магазину:",
-    "profile_command_creation_date": "Дата створення профілю:"
+    "profile_command_username": "🧑‍💻 Username:",
+    "profile_command_name": "🧑‍💼 Ім'я та прізвище:",
+    "profile_command_phone_number": "📱 Номер телефону:",
+    "profile_command_store_address": "📍 Адреса обраного вами магазину:",
+    "profile_command_creation_date": "📆 Дата створення профілю:",
+    "profile_command_update_phone_number_button": "🔄 Оновити номер телефону",
+    "profile_command_update_selected_store_button": "🔄 Оновити обраний магазин",
+
+    // Profile update
+    "profile_update_command_select_store_address": "Виберіть будь ласка адресу магазину 😊",
+    "profile_update_command_selected_store_changed": "Адресу обраного магазину успішно змінено 🎉",
+    "profile_update_command_phone_number_changed": "Номер телефону успішно змінено 🎉",
+    "profile_update_command_enter_new_phone_number": "Надішліть новий номер телефону в одному з наступних форматів 😊",
+    "profile_update_command_phone_number_is_not_correct": "На жаль, номер телефону надіслано не в правильному форматі, спробуйте ще раз 😊",
+
+    // Add review
+    "add_review_command_select_store_address_leave_review": "Виберіть адресу магазину, про який хочете залишити відгук 😊",
+    "add_review_command_send_your_feedback": "Надішліть будь ласка ваш відгук, ми завжди їх читаємо та швидко реагуємо на зауваження та пропозиції 😊",
+    "add_review_command_platform_limitations": "Через обмеження платформи ми не можемо обробляти відгуки, які містять більше 256 символів.",
+    "add_review_command_thank_you_review_saved": "Дякуємо, ваш відгук збережено 🎉",
+    "add_review_command_cannot_send_review_blocked": "На жаль, ви не можете надіслати відгук, оскільки ви заблоковані, для отримання детальної інформації ви можете замовити консультацію по телефону в головному меню."
 }

@@ -220,6 +220,7 @@ namespace OMarket.Configurators
             _applicationBuilder.Services.AddScoped<ICityRepository, CityRepository>();
             _applicationBuilder.Services.AddScoped<ICustomersRepository, CustomersRepository>();
             _applicationBuilder.Services.AddScoped<IProductsRepository, ProductsRepository>();
+            _applicationBuilder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
             _applicationBuilder.Services.AddSingleton<IApplicationRepository, ApplicationRepository>();
 

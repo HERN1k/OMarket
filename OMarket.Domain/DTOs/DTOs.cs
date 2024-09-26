@@ -136,6 +136,10 @@ namespace OMarket.Domain.DTOs
 
         public DateTime? CreatedAt { get; set; }
 
+        public bool BlockedOrders { get; set; }
+
+        public bool BlockedReviews { get; set; }
+
         public bool Equals(CustomerDto? other)
         {
             if (other == null)
@@ -395,6 +399,76 @@ namespace OMarket.Domain.DTOs
         public override bool Equals(object? obj)
         {
             if (obj is StoreDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ReviewDto : IEquatable<ReviewDto>
+    {
+        public Guid Id { get; set; }
+
+        public string Text { get; set; } = string.Empty;
+
+        public long CustomerId { get; set; }
+
+        public Guid StoreId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public bool Equals(ReviewDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ReviewDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ReviewWithDbInfoDto : IEquatable<ReviewWithDbInfoDto>
+    {
+        public Guid Id { get; set; }
+
+        public ReviewDto? Review { get; set; }
+
+        public int PageNumber { get; set; }
+
+        public int MaxNumber { get; set; }
+
+        public bool Equals(ReviewWithDbInfoDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ReviewWithDbInfoDto otherDto)
             {
                 return Equals(otherDto);
             }

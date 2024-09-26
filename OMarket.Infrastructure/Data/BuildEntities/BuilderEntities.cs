@@ -45,9 +45,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasMaxLength(64);
 
                 entity.Property(e => e.PhoneNumber)
-                    .HasColumnType("varchar(16)")
+                    .HasColumnType("varchar(32)")
                     .HasMinLength(10)
-                    .HasMaxLength(16);
+                    .HasMaxLength(32);
 
                 entity.Property(e => e.StoreId)
                     .HasColumnType("uuid");
@@ -58,6 +58,14 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp with time zone")
+                    .IsRequired();
+
+                entity.Property(e => e.BlockedOrders)
+                    .HasColumnType("boolean")
+                    .IsRequired();
+
+                entity.Property(e => e.BlockedReviews)
+                    .HasColumnType("boolean")
                     .IsRequired();
             });
         }
@@ -264,9 +272,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .IsRequired();
 
                 entity.Property(e => e.PhoneNumber)
-                    .HasColumnType("varchar(16)")
+                    .HasColumnType("varchar(32)")
                     .HasMinLength(10)
-                    .HasMaxLength(16)
+                    .HasMaxLength(32)
                     .IsRequired();
             });
         }
@@ -664,6 +672,59 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.Property(e => e.Status)
                     .HasColumnType("boolean")
+                    .IsRequired();
+            });
+        }
+
+        public static void BuildReviewEntity(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Review>(entity =>
+            {
+                entity.ToTable("Reviews");
+
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => e.Id)
+                    .IsUnique();
+
+                entity.HasIndex(e => e.StoreId);
+
+                entity.HasIndex(e => e.CustomerId);
+
+                entity.HasIndex(e => e.CreatedAt);
+
+                entity.HasOne(e => e.Customer)
+                    .WithMany(e => e.Reviews)
+                    .HasForeignKey(e => e.CustomerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Store)
+                    .WithMany(e => e.Reviews)
+                    .HasForeignKey(e => e.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Setting property 
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.Text)
+                    .HasColumnType("varchar(512)")
+                    .HasMinLength(1)
+                    .HasMinLength(512)
+                    .IsRequired();
+
+                entity.Property(e => e.CustomerId)
+                    .HasColumnType("bigint")
+                    .IsRequired();
+
+                entity.Property(e => e.StoreId)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("timestamp with time zone")
                     .IsRequired();
             });
         }

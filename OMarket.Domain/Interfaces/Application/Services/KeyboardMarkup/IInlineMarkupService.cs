@@ -38,5 +38,13 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
         InlineKeyboardMarkup SelectStoreAddressWithLocation(LanguageCode? code = null);
 
         InlineKeyboardMarkup SelectStoreAddressWithContacts(LanguageCode? code = null);
+
+        InlineKeyboardMarkup Profile(LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressUpdate(LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressForAddReview(LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressForViewReview(LanguageCode? code = null);
     }
 }

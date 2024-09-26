@@ -16,8 +16,8 @@ using Telegram.Bot.Types.Enums;
 
 namespace OMarket.Application.Commands
 {
-    [TgCommand(TgCommands.STARTSEARCH)]
-    public class StartSearch : ITgCommand
+    [TgCommand(TgCommands.STARTADDREVIEW)]
+    public class StartAddReview : ITgCommand
     {
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
@@ -26,7 +26,7 @@ namespace OMarket.Application.Commands
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly IDistributedCache _distributedCache;
 
-        public StartSearch(
+        public StartAddReview(
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 IDataProcessorService dataProcessor,
@@ -64,23 +64,34 @@ namespace OMarket.Application.Commands
                 await _response.SendCallbackAnswer(token);
             }
 
-            if (string.IsNullOrEmpty(request.Query))
+            string text;
+            if (request.Customer.BlockedReviews)
             {
-                throw new TelegramException();
+                text = $"""
+                    {_i18n.T("main_menu_command_leave_review_button")}
+
+                    <b>{_i18n.T("add_review_command_cannot_send_review_blocked")}</b>
+                    """;
+
+                await _response.EditLastMessage(text, token, _inlineMarkup.ToMainMenuBack());
+
+                return;
             }
 
-            int messageId = _updateManager.CallbackQuery.Message?.MessageId
-                ?? throw new TelegramException();
+            text = $"""
+                {_i18n.T("main_menu_command_leave_review_button")}
 
-            await _distributedCache.SetStringAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}", $"/65536_{request.Query}={messageId}", token);
-
-            string text = $"""
-                {_i18n.T("main_menu_command_product_search_by_name")}
-
-                {_i18n.T("product_search_by_name_command_write_name_of_product")}
+                {_i18n.T("add_review_command_select_store_address_leave_review")}
                 """;
 
-            await _response.EditLastMessage(text, token, _inlineMarkup.Empty);
+            int messageId = _updateManager.CallbackQuery.Message?.MessageId
+                    ?? throw new TelegramException();
+
+            await _distributedCache.SetStringAsync(
+                $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}",
+                $"/67108864_{messageId}", token);
+
+            await _response.EditLastMessage(text, token, _inlineMarkup.SelectStoreAddressForAddReview());
         }
     }
 }

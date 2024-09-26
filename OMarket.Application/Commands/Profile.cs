@@ -14,7 +14,6 @@ using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
 
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace OMarket.Application.Commands
 {
@@ -107,7 +106,7 @@ namespace OMarket.Application.Commands
             sb.AppendLine();
             sb.Append("<b>");
             sb.Append(_i18n.T("profile_command_phone_number"));
-            sb.Append("</b> <i>+");
+            sb.Append("</b> <i>");
             sb.Append(request.Customer.PhoneNumber);
             sb.Append("</i>\n");
             sb.AppendLine();
@@ -127,9 +126,7 @@ namespace OMarket.Application.Commands
             sb.Append(localDateTime.ToString("t", new CultureInfo("uk-UA")));
             sb.Append("</i>\n");
 
-            InlineKeyboardMarkup buttons = _inlineMarkup.ToMainMenuBack();
-
-            await _response.EditLastMessage(sb.ToString(), token, buttons);
+            await _response.EditLastMessage(sb.ToString(), token, _inlineMarkup.Profile());
         }
     }
 }

@@ -130,14 +130,14 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_customer_reviews_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_customer_reviews_button", code), "/268435456"),
                 ],
                 [
                     InlineKeyboardButton
                         .WithCallbackData(_i18n.T("main_menu_command_consultation_button", code), "/dev"),
 
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_leave_review_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_leave_review_button", code), "/134217728"),
                 ],
                 [
                     InlineKeyboardButton
@@ -549,6 +549,120 @@ namespace OMarket.Application.Services.KeyboardMarkup
             result = new(tempButtons);
 
             _memoryCache.Set(CacheKeys.SelectStoreAddressWithContactsId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup Profile(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.KeyboardMarkupProfileId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("profile_command_update_phone_number_button", code),
+                "/33554432")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("profile_command_update_selected_store_button", code),
+                "/16777216")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.KeyboardMarkupProfileId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressUpdate(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressUpdateId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> tempButtons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                tempButtons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/16777216_{item.Value.StoreId}"),
+                });
+            }
+
+            result = new(tempButtons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressUpdateId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressForAddReview(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressForAddReviewId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                buttons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/67108864_{item.Value.StoreId}"),
+                });
+            }
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressForAddReviewId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressForViewReview(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressForViewReviewId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                buttons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/268435456_{item.Value.StoreId}_1"),
+                });
+            }
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressForViewReviewId, result, _memoryCacheOptions);
 
             return result;
         }

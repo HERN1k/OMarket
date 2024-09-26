@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
@@ -10,29 +8,29 @@ using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
-using OMarket.Helpers.Utilities;
+using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 
 using Telegram.Bot.Types.Enums;
 
 namespace OMarket.Application.Commands
 {
-    [TgCommand(TgCommands.STARTSEARCH)]
-    public class StartSearch : ITgCommand
+    [TgCommand(TgCommands.CUSTOMERSREVIEWS)]
+    public class CustomersReviews : ITgCommand
     {
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly IReviewRepository _reviewRepository;
 
-        public StartSearch(
+        public CustomersReviews(
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache
+                IReviewRepository reviewRepository
             )
         {
             _updateManager = updateManager;
@@ -40,7 +38,7 @@ namespace OMarket.Application.Commands
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _reviewRepository = reviewRepository;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -66,21 +64,45 @@ namespace OMarket.Application.Commands
 
             if (string.IsNullOrEmpty(request.Query))
             {
-                throw new TelegramException();
+                string text = $"""
+                    {_i18n.T("main_menu_command_leave_review_button")}
+
+                    {_i18n.T("add_review_command_select_store_address_leave_review")}
+                    """;
+
+                await _response.EditLastMessage(text, token, _inlineMarkup.SelectStoreAddressForViewReview());
             }
+            else
+            {
+                string[] queryLines = request.Query.Split('-', 2);
 
-            int messageId = _updateManager.CallbackQuery.Message?.MessageId
-                ?? throw new TelegramException();
+                if (queryLines.Length != 2)
+                {
+                    throw new TelegramException();
+                }
 
-            await _distributedCache.SetStringAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}", $"/65536_{request.Query}={messageId}", token);
+                if (!Guid.TryParse(queryLines[0], out Guid storeId))
+                {
+                    throw new TelegramException();
+                }
 
-            string text = $"""
-                {_i18n.T("main_menu_command_product_search_by_name")}
+                if (storeId == Guid.Empty)
+                {
+                    throw new TelegramException();
+                }
 
-                {_i18n.T("product_search_by_name_command_write_name_of_product")}
-                """;
+                if (!int.TryParse(queryLines[1], out int pageNumber))
+                {
+                    throw new TelegramException();
+                }
 
-            await _response.EditLastMessage(text, token, _inlineMarkup.Empty);
+                await _reviewRepository.GetReviewWithPaginationAsync(
+                    pageNumber: pageNumber,
+                    storeId: storeId,
+                    token: token);
+
+                // TODO
+            }
         }
     }
 }
