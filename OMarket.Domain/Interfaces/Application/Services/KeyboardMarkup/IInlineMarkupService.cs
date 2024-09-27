@@ -46,5 +46,11 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
         InlineKeyboardMarkup SelectStoreAddressForAddReview(LanguageCode? code = null);
 
         InlineKeyboardMarkup SelectStoreAddressForViewReview(LanguageCode? code = null);
+
+        InlineKeyboardMarkup ReviewView(ReviewWithDbInfoDto dto, LanguageCode? code = null);
+
+        InlineKeyboardMarkup NoReviewsHaveBeenView(LanguageCode? code = null);
+
+        InlineKeyboardMarkup CreateOrder(LanguageCode? code = null);
     }
 }

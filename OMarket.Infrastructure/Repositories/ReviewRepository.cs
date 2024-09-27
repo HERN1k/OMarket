@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Entities;
 using OMarket.Domain.Exceptions.Telegram;
-using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
@@ -18,8 +17,6 @@ namespace OMarket.Infrastructure.Repositories
     {
         private readonly IDbContextFactory<AppDBContext> _contextFactory;
 
-        private readonly IStaticCollectionsService _staticCollections;
-
         private readonly ILogger<CustomersRepository> _logger;
 
         private readonly IDistributedCache _cache;
@@ -28,13 +25,11 @@ namespace OMarket.Infrastructure.Repositories
 
         public ReviewRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
-                IStaticCollectionsService staticCollections,
                 ILogger<CustomersRepository> logger,
                 IDistributedCache cache
             )
         {
             _contextFactory = contextFactory;
-            _staticCollections = staticCollections;
             _logger = logger;
             _cache = cache;
         }
@@ -52,6 +47,15 @@ namespace OMarket.Infrastructure.Repositories
             {
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
 
+                bool isNewReviews = await context.Reviews
+                    .Where(review => review.CustomerId == id && review.Text == text)
+                    .AnyAsync(token);
+
+                if (isNewReviews)
+                {
+                    return;
+                }
+
                 await context.Reviews.AddAsync(new Review()
                 {
                     Text = text,
@@ -59,7 +63,17 @@ namespace OMarket.Infrastructure.Repositories
                     StoreId = storeId,
                 }, cancellationToken: token);
 
+                int maxPages = await context.Reviews
+                    .AsNoTracking()
+                    .Where(review => review.StoreId == storeId)
+                    .CountAsync(token);
+
                 await context.SaveChangesAsync(token);
+
+                for (int page = 1; page <= maxPages; page++)
+                {
+                    await _cache.RemoveAsync($"{CacheKeys.ReviewId}{storeId}-{_pageSize}-{page}", token);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -102,6 +116,7 @@ namespace OMarket.Infrastructure.Repositories
                 var reviews = await context.Reviews
                    .AsNoTracking()
                    .Where(review => review.StoreId == storeId)
+                   .OrderByDescending(review => review.CreatedAt)
                    .Skip((pageNumber - 1) * _pageSize)
                    .Take(_pageSize)
                    .Select(review => new ReviewDto()
@@ -139,7 +154,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 if (string.IsNullOrEmpty(reviewString))
                 {
-                    throw new TelegramException();
+                    return null;
                 }
 
                 await _cache.SetStringAsync(cacheKey, reviewString, token);

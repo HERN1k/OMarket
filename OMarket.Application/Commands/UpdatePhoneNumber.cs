@@ -243,14 +243,20 @@ namespace OMarket.Application.Commands
                 throw new TelegramException();
             }
 
-            await _response.RemoveMessageById(messageId, token);
-            await _response.RemoveLastMessage(token);
-            Message message = await _response.SendMessageAnswer(
-                text: _i18n.T("profile_update_command_phone_number_is_not_correct"),
-                token: token,
-                buttons: _inlineMarkup.ToMainMenuBack());
+            try
+            {
+                await _response.RemoveMessageById(messageId, token);
+                await _response.RemoveLastMessage(token);
+            }
+            finally
+            {
+                Message message = await _response.SendMessageAnswer(
+                    text: _i18n.T("profile_update_command_phone_number_is_not_correct"),
+                    token: token,
+                    buttons: _inlineMarkup.ToMainMenuBack());
 
-            await _distributedCache.SetStringAsync(cacheKey, $"/33554432_{message.MessageId}", token);
+                await _distributedCache.SetStringAsync(cacheKey, $"/33554432_{message.MessageId}", token);
+            }
         }
     }
 }

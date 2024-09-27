@@ -102,7 +102,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
             if (string.IsNullOrEmpty(await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{customer.Id}", token)))
             {
                 buttons.Add([
-                    InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_make_order_button", code), "/menuproducttypes")]);
+                    InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_make_order_button", code), "/64")]);
             }
             else
             {
@@ -114,7 +114,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
             [
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_product_catalog_button", code), "/menuproducttypes"),
+                        .WithCallbackData(_i18n.T("main_menu_command_product_catalog_button", code), "/64"),
                 ],
                 [
                     InlineKeyboardButton
@@ -342,18 +342,17 @@ namespace OMarket.Application.Services.KeyboardMarkup
         {
             List<InlineKeyboardButton[]> buttons = new();
 
-            buttons.Add([
-                    InlineKeyboardButton.WithCallbackData(
-                        _i18n.T("cart_command_confirm_the_order"),
-                        "/dev")]);
+            buttons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("cart_command_confirm_the_order"),
+                "/536870912")]);
 
-            buttons.Add([
-                    InlineKeyboardButton.WithCallbackData(
-                        _i18n.T("cart_command_edit_cart_button"),
-                        "/8192")]);
+            buttons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("cart_command_edit_cart_button"),
+                "/8192")]);
 
-            buttons.Add([
-                    InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), $"/mainmenu_back")]);
+            buttons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                $"/mainmenu_back")]);
 
             return new(buttons);
         }
@@ -520,6 +519,10 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 });
             }
 
+            tempButtons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                "/mainmenu_back")]);
+
             result = new(tempButtons);
 
             _memoryCache.Set(CacheKeys.SelectStoreAddressWithLocationId, result, _memoryCacheOptions);
@@ -545,6 +548,10 @@ namespace OMarket.Application.Services.KeyboardMarkup
                         callbackData: $"/4194304_{item.Value.StoreId}"),
                 });
             }
+
+            tempButtons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                "/mainmenu_back")]);
 
             result = new(tempButtons);
 
@@ -599,6 +606,10 @@ namespace OMarket.Application.Services.KeyboardMarkup
                         callbackData: $"/16777216_{item.Value.StoreId}"),
                 });
             }
+
+            tempButtons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                "/8388608")]);
 
             result = new(tempButtons);
 
@@ -665,6 +676,87 @@ namespace OMarket.Application.Services.KeyboardMarkup
             _memoryCache.Set(CacheKeys.SelectStoreAddressForViewReviewId, result, _memoryCacheOptions);
 
             return result;
+        }
+
+        public InlineKeyboardMarkup ReviewView(ReviewWithDbInfoDto dto, LanguageCode? code = null)
+        {
+            if (dto.PageNumber <= 0)
+            {
+                throw new TelegramException();
+            }
+
+            if (dto.Review == null)
+            {
+                throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([
+                dto.PageNumber == 1
+                    ? InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_button_disable", code),
+                        _i18n.T("product_view_button_is_disable_button", code))
+                    : InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_previous_button", code),
+                        $"/268435456_{dto.Review.StoreId}_{dto.PageNumber - 1}"),
+
+                dto.PageNumber == dto.MaxNumber
+                    ? InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_button_disable", code),
+                        _i18n.T("product_view_button_is_disable_button", code))
+                    : InlineKeyboardButton.WithCallbackData(
+                        _i18n.T("product_view_next_button", code),
+                        $"/268435456_{dto.Review.StoreId}_{dto.PageNumber + 1}")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup NoReviewsHaveBeenView(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.NoReviewsHaveBeenViewId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("add_review_command_add_first_review_button", code),
+                $"/134217728")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.NoReviewsHaveBeenViewId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup CreateOrder(LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("order_command_delivery_delivery_button", code),
+                $"/1000000000_delivery")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("order_command_delivery_self_pickup_button", code),
+                $"/1000000000_selfpickup")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_to_main_menu", code),
+                "/mainmenu_back")]);
+
+            return new(buttons);
         }
     }
 }

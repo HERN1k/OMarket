@@ -5,6 +5,7 @@ using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -28,6 +29,7 @@ namespace OMarket.Application.Commands
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICustomersRepository _customersRepository;
         private readonly IStaticCollectionsService _staticCollections;
+        private readonly ICartService _cartService;
 
         public UpdateSelectedStore(
                 IUpdateManager updateManager,
@@ -36,7 +38,8 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 ICustomersRepository customersRepository,
-                IStaticCollectionsService staticCollections
+                IStaticCollectionsService staticCollections,
+                ICartService cartService
             )
         {
             _updateManager = updateManager;
@@ -46,6 +49,7 @@ namespace OMarket.Application.Commands
             _inlineMarkup = inlineMarkup;
             _customersRepository = customersRepository;
             _staticCollections = staticCollections;
+            _cartService = cartService;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -65,6 +69,8 @@ namespace OMarket.Application.Commands
                     {_i18n.T("main_menu_command_profile_button")}
 
                     {_i18n.T("profile_update_command_select_store_address")}
+
+                    <i>{_i18n.T("profile_update_command_cart_will_be_empty")}</i>
                     """;
 
                 await _response.EditLastMessage(text, token, _inlineMarkup.SelectStoreAddressUpdate());
@@ -85,6 +91,8 @@ namespace OMarket.Application.Commands
                     id: request.Customer.Id,
                     storeId: storeId,
                     token: token);
+
+                await _cartService.RemoveCartAsync(request.Customer.Id, token);
 
                 request = await _dataProcessor.MapRequestData(token);
 

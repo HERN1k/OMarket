@@ -1,8 +1,9 @@
-﻿using System.Text;
+﻿using Microsoft.Extensions.Caching.Distributed;
 
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
+using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
@@ -10,36 +11,41 @@ using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
+using OMarket.Helpers.Utilities;
 
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
 namespace OMarket.Application.Commands
 {
-    [TgCommand(TgCommands.CART)]
-    public class Cart : ITgCommand
+    [TgCommand(TgCommands.DELIVERYORDER)]
+    public class DeliveryOrder : ITgCommand
     {
-        private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
+        private readonly IUpdateManager _updateManager;
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICartService _cartService;
+        private readonly IDistributedCache _distributedCache;
 
-        public Cart(
-                IUpdateManager updateManager,
+        public DeliveryOrder(
                 ISendResponseService response,
+                IUpdateManager updateManager,
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
-                ICartService cartService
+                ICartService cartService,
+                IDistributedCache distributedCache
             )
         {
-            _updateManager = updateManager;
             _response = response;
+            _updateManager = updateManager;
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _cartService = cartService;
+            _distributedCache = distributedCache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -63,35 +69,43 @@ namespace OMarket.Application.Commands
                 await _response.SendCallbackAnswer(token);
             }
 
-            List<CartItemDto> cart = await _cartService
-                .GatCustomerCartAsync(request.Customer.Id, token);
+            string cacheKey = $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}";
 
-            if (cart.Count == 0)
+            if (request.Customer.BlockedOrders)
             {
-                await _response.SendCallbackAnswerAlert(_i18n.T("cart_command_your_cart_is_empty"), token);
+                string blockedText = $"""
+                    {_i18n.T("order_command_your_order_title")}
+
+                    <b>{_i18n.T("order_command_cannot_create_order_blocked")}</b>
+                    """;
+
+                await _distributedCache.RemoveAsync(cacheKey, token);
+
+                await _cartService.RemoveCartAsync(request.Customer.Id, token);
+
+                await _response.EditLastMessage(blockedText, token, _inlineMarkup.ToMainMenuBack());
 
                 return;
             }
 
-            int quantity = 0;
-            decimal totalPrice = decimal.Zero;
-            StringBuilder sb = new();
-
-            sb.AppendLine(_i18n.T("cart_command_title"));
-            sb.AppendLine();
-            foreach (var item in cart)
+            if (string.IsNullOrEmpty(request.Query))
             {
-                decimal price = item.Product?.Price * item.Quantity ?? decimal.Zero;
-                sb.AppendLine($"📌 <b>{item.Product?.Name}</b>, {item.Product?.Dimensions}");
-                sb.AppendLine($"💵 <b>{item.Product?.Price}</b> * <b>{item.Quantity}</b> шт. = <b>{price}</b> грн.");
-                sb.AppendLine();
+                await _distributedCache.RemoveAsync(cacheKey, token);
 
-                quantity += item.Quantity;
-                totalPrice += price;
+                throw new TelegramException("exception_main_please_try_again");
             }
-            sb.AppendLine($"<i>{_i18n.T("cart_command_quantity")}</i> <b>{quantity}</b> <i>{_i18n.T("cart_command_for_amount")}</i> <b>{totalPrice}</b> <i>грн.</i>");
 
-            await _response.EditLastMessage(sb.ToString(), token, _inlineMarkup.Cart());
+            string text = $"""
+                {_i18n.T("order_command_your_order_title")}
+
+                <b>{_i18n.T("order_command_send_comment")}</b>
+
+                <i>{_i18n.T("order_command_please_note_automatically_confirmed_order")}</i>
+                """;
+
+            Message message = await _response.EditLastMessage(text, token, _inlineMarkup.ToMainMenuBack());
+
+            await _distributedCache.SetStringAsync(cacheKey, $"/1000000100_{message.MessageId}={request.Query}", token);
         }
     }
 }

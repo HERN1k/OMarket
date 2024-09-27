@@ -2,6 +2,7 @@
 using OMarket.Domain.Interfaces.Application.Services.Bot;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
+using OMarket.Helpers.Extensions;
 
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -60,7 +61,7 @@ namespace OMarket.Application.Services.SendResponse
 
             return await _client.SendTextMessageAsync(
                 chatId: chatId,
-                text: text,
+                text: text.TrimTelegramMessageText(),
                 replyMarkup: buttons,
                 parseMode: parseMode,
                 cancellationToken: token);
@@ -77,7 +78,7 @@ namespace OMarket.Application.Services.SendResponse
 
             await _client.AnswerCallbackQueryAsync(
                 callbackQueryId: _updateManager.Update.CallbackQuery.Id,
-                text: text,
+                text: text.TrimTelegramCallbackText(),
                 cancellationToken: token);
         }
 
@@ -106,7 +107,7 @@ namespace OMarket.Application.Services.SendResponse
 
             await _client.AnswerCallbackQueryAsync(
                 callbackQueryId: _updateManager.Update.CallbackQuery.Id,
-                text: _updateManager.Update.CallbackQuery.Data ?? "🤩",
+                text: _updateManager.Update.CallbackQuery.Data?.TrimTelegramCallbackText() ?? "🤩",
                 showAlert: false,
                 cacheTime: 0,
                 cancellationToken: token);
@@ -123,7 +124,7 @@ namespace OMarket.Application.Services.SendResponse
 
             await _client.AnswerCallbackQueryAsync(
                 callbackQueryId: _updateManager.Update.CallbackQuery.Id,
-                text: text ?? "🤩",
+                text: text.TrimTelegramCallbackText() ?? "🤩",
                 showAlert: false,
                 cacheTime: 0,
                 cancellationToken: token);
@@ -165,13 +166,25 @@ namespace OMarket.Application.Services.SendResponse
                 throw new TelegramException();
             }
 
-            return await _client.EditMessageTextAsync(
-                chatId: chatId,
-                messageId: messageId,
-                text: text,
-                replyMarkup: buttons,
-                parseMode: parseMode,
-                cancellationToken: token);
+            try
+            {
+                return await _client.EditMessageTextAsync(
+                    chatId: chatId,
+                    messageId: messageId,
+                    text: text.TrimTelegramMessageText(),
+                    replyMarkup: buttons,
+                    parseMode: parseMode,
+                    cancellationToken: token);
+            }
+            catch (Exception)
+            {
+                return await _client.SendTextMessageAsync(
+                    chatId: chatId,
+                    text: text.TrimTelegramMessageText(),
+                    replyMarkup: buttons,
+                    parseMode: parseMode,
+                    cancellationToken: token);
+            }
         }
 
         public async Task<Message> EditMessageMarkup(InlineKeyboardMarkup buttons, CancellationToken token)
@@ -217,17 +230,6 @@ namespace OMarket.Application.Services.SendResponse
                 cancellationToken: token);
         }
 
-        public async Task<Message> EditMessageMarkup(Message message, InlineKeyboardMarkup buttons, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-
-            return await _client.EditMessageReplyMarkupAsync(
-                chatId: message.Chat.Id,
-                messageId: message.MessageId,
-                replyMarkup: buttons,
-                cancellationToken: token);
-        }
-
         public async Task<Message> SendPhotoWithTextAndButtons(string text, Uri photoUri, IReplyMarkup buttons, CancellationToken token, ParseMode? parseMode = ParseMode.Html)
         {
             token.ThrowIfCancellationRequested();
@@ -266,7 +268,7 @@ namespace OMarket.Application.Services.SendResponse
             return await _client.SendPhotoAsync(
                 chatId: chatId,
                 photo: new InputFileUrl(photoUri),
-                caption: text,
+                caption: text.TrimTelegramMessageText(),
                 replyMarkup: buttons,
                 parseMode: parseMode,
                 cancellationToken: token);

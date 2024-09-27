@@ -124,7 +124,9 @@ namespace OMarket.Application.Commands
 
                     <b>{_i18n.T("add_review_command_send_your_feedback")}</b>
 
-                    <i>{_i18n.T("add_review_command_platform_limitations")}</i>
+                    <i>{_i18n.T("add_review_command_platform_limitations")}
+
+                    {_i18n.T("add_review_command_all_reviews_are_anonymous")}</i>
                     """;
 
                 await _response.EditLastMessage(text, token, _inlineMarkup.Empty);
@@ -218,14 +220,20 @@ namespace OMarket.Application.Commands
                 throw new TelegramException();
             }
 
-            await _response.RemoveMessageById(messageId, token);
-            await _response.RemoveLastMessage(token);
-            Message message = await _response.SendMessageAnswer(
-                text: _i18n.T(""),
-                token: token,
-                buttons: _inlineMarkup.ToMainMenuBack());
+            try
+            {
+                await _response.RemoveMessageById(messageId, token);
+                await _response.RemoveLastMessage(token);
+            }
+            finally
+            {
+                Message message = await _response.SendMessageAnswer(
+                    text: _i18n.T("exception_main_please_try_again"),
+                    token: token,
+                    buttons: _inlineMarkup.ToMainMenuBack());
 
-            await _distributedCache.SetStringAsync(cacheKey, $"/67108864_{message.MessageId}={storeId}", token);
+                await _distributedCache.SetStringAsync(cacheKey, $"/67108864_{message.MessageId}={storeId}", token);
+            }
         }
     }
 }

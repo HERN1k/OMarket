@@ -9,5 +9,7 @@ namespace OMarket.Domain.Interfaces.Application.Services.Cart
         Task<List<CartItemDto>> GatCustomerCartAsync(long id, CancellationToken token);
 
         Task<List<CartItemDto>> SetQuantityProductAsync(long customerId, Guid productId, int quantity, CancellationToken token);
+
+        Task RemoveCartAsync(long customerId, CancellationToken token);
     }
 }

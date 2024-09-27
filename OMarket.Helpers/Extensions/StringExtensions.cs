@@ -22,5 +22,15 @@ namespace OMarket.Helpers.Extensions
 
         public static string ConvertFromBase64(this string input) =>
             Encoding.UTF8.GetString(Convert.FromBase64String(input));
+
+        public static string TrimTelegramMessageText(this string input)
+        {
+            return input.Length >= 4096 ? input[..4000] + "... (Message too long)" : input;
+        }
+
+        public static string TrimTelegramCallbackText(this string input)
+        {
+            return input.Length >= 200 ? input[..190] + "... (Message too long)" : input;
+        }
     }
 }

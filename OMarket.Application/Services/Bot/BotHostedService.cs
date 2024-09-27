@@ -21,7 +21,7 @@ namespace OMarket.Application.Services.Bot
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

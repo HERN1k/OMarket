@@ -20,8 +20,6 @@ namespace OMarket.Domain.Interfaces.Application.Services.SendResponse
 
         Task<Message> EditMessageMarkup(InlineKeyboardMarkup buttons, CancellationToken token);
 
-        Task<Message> EditMessageMarkup(Message message, InlineKeyboardMarkup buttons, CancellationToken token);
-
         Task<Message> SendPhotoWithTextAndButtons(string text, Uri photoUri, IReplyMarkup buttons, CancellationToken token, ParseMode? parseMode = ParseMode.Html);
 
         Task RemoveLastMessage(CancellationToken token);

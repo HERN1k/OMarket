@@ -300,5 +300,62 @@ namespace OMarket.Infrastructure.Repositories
                 throw;
             }
         }
+
+        public async Task<bool> CheckingAvailabilityOfProductsInTheStore(List<CartItemDto> cart, Guid storeId, CancellationToken token)
+        {
+            if (cart.Count <= 0 || storeId == Guid.Empty)
+            {
+                return false;
+            }
+
+            if (cart.Any(item => item.Product == null))
+            {
+                return false;
+            }
+
+            try
+            {
+                token.ThrowIfCancellationRequested();
+
+                await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+                foreach (var item in cart)
+                {
+                    if (item.Product is null || item.Quantity <= 0)
+                    {
+                        return false;
+                    }
+                }
+
+                List<Guid> productIds = cart
+                    .Select(item => item.Product!.Id)
+                    .ToList();
+
+                if (productIds.Count == 0)
+                {
+                    return false;
+                }
+
+                var availableProductIds = await context.DataStoreProducts
+                    .AsNoTracking()
+                    .Where(product =>
+                        product.StoreId == storeId &&
+                        product.Status == true &&
+                        productIds.Contains(product.ProductId))
+                    .Select(product => product.ProductId)
+                    .ToListAsync(token);
+
+                return productIds.All(id => availableProductIds.Contains(id));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                return false;
+            }
+        }
     }
 }

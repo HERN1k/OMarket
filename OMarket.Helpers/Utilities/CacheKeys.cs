@@ -37,5 +37,7 @@
         public const string CustomerFreeInputId = "CustomerFreeInputId";
 
         public const string SearchProductsByNameId = "SearchProductsByNameId";
+
+        public const string NoReviewsHaveBeenViewId = "NoReviewsHaveBeenViewId";
     }
 }

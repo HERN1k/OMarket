@@ -1,4 +1,5 @@
 ﻿using OMarket.Domain.Enums;
+using OMarket.Domain.Interfaces.Domain.Entities;
 
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -469,6 +470,80 @@ namespace OMarket.Domain.DTOs
         public override bool Equals(object? obj)
         {
             if (obj is ReviewWithDbInfoDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class OrderProductDto : IEquatable<OrderProductDto>
+    {
+        public Guid Id { get; set; }
+
+        public ProductDto Product { get; set; } = null!;
+
+        public int Quantity { get; set; }
+
+        public bool Equals(OrderProductDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is OrderProductDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class CreatedOrderDto : IEquatable<CreatedOrderDto>
+    {
+        public Guid Id { get; init; } = IEntity.CreateUuidV7ToGuid();
+
+        public HashSet<OrderProductDto> Products { get; set; } = new();
+
+        public long CustomerId { get; set; }
+
+        public Guid StoreId { get; set; }
+
+        public string Comment { get; set; } = string.Empty;
+
+        public decimal TotalPrice { get; set; }
+
+        public decimal TotalQuantity { get; set; }
+
+        public DeliveryMethod DeliveryMethod { get; set; }
+
+        public bool Equals(CreatedOrderDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is CreatedOrderDto otherDto)
             {
                 return Equals(otherDto);
             }

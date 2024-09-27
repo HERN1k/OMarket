@@ -128,11 +128,17 @@ namespace OMarket.Application.Commands
                     {_i18n.T("end_search_command_try_again")}
                     """;
 
-                await _response.RemoveMessageById(messageId, token);
-                await _response.RemoveLastMessage(token);
-                Message message = await _response.SendMessageAnswer(text, token, _inlineMarkup.ToMainMenuBack());
+                try
+                {
+                    await _response.RemoveMessageById(messageId, token);
+                    await _response.RemoveLastMessage(token);
+                }
+                finally
+                {
+                    Message message = await _response.SendMessageAnswer(text, token, _inlineMarkup.ToMainMenuBack());
 
-                await _distributedCache.SetStringAsync(cacheKey, $"/65536_{queryLines[0]}={message.MessageId}", token);
+                    await _distributedCache.SetStringAsync(cacheKey, $"/65536_{queryLines[0]}={message.MessageId}", token);
+                }
 
                 return;
             }
@@ -160,9 +166,15 @@ namespace OMarket.Application.Commands
 
             InlineKeyboardMarkup buttons = _inlineMarkup.EndSearchProducts(products);
 
-            await _response.RemoveMessageById(messageId, token);
-            await _response.RemoveLastMessage(token);
-            await _response.SendMessageAnswer(sb.ToString(), token, buttons);
+            try
+            {
+                await _response.RemoveMessageById(messageId, token);
+                await _response.RemoveLastMessage(token);
+            }
+            finally
+            {
+                await _response.SendMessageAnswer(sb.ToString(), token, buttons);
+            }
         }
     }
 }

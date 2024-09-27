@@ -155,5 +155,8 @@ namespace OMarket.Application.Services.Cart
 
             return cart;
         }
+
+        public async Task RemoveCartAsync(long customerId, CancellationToken token) =>
+            await _distributedCache.RemoveAsync($"{CacheKeys.CustomerCartId}{customerId}", token);
     }
 }
