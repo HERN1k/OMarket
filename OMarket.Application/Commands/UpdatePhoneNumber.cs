@@ -238,7 +238,7 @@ namespace OMarket.Application.Commands
 
         private async Task ThrowIfRegexError(string cacheKey, int messageId, CancellationToken token)
         {
-            if (messageId < 1 || string.IsNullOrEmpty(cacheKey))
+            if (string.IsNullOrEmpty(cacheKey))
             {
                 throw new TelegramException();
             }

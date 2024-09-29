@@ -122,7 +122,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_history_of_orders_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_history_of_orders_button", code), "/1000000600"),
                 ],
                 [
                     InlineKeyboardButton
@@ -134,7 +134,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 ],
                 [
                     InlineKeyboardButton
-                        .WithCallbackData(_i18n.T("main_menu_command_consultation_button", code), "/dev"),
+                        .WithCallbackData(_i18n.T("main_menu_command_consultation_button", code), "/1000000500"),
 
                     InlineKeyboardButton
                         .WithCallbackData(_i18n.T("main_menu_command_leave_review_button", code), "/134217728"),
@@ -753,10 +753,121 @@ namespace OMarket.Application.Services.KeyboardMarkup
                 $"/1000000000_selfpickup")]);
 
             buttons.Add([ InlineKeyboardButton.WithCallbackData(
-                _i18n.T("menu_item_to_main_menu", code),
-                "/mainmenu_back")]);
+                _i18n.T("menu_item_back", code),
+                "/4096")]);
 
             return new(buttons);
+        }
+
+        public InlineKeyboardMarkup MarkupOrderForStoreChat(string status, Guid orderId, LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            string statusString = $"{_i18n.T("admins_command_status_button", code)} {status}";
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                statusString, statusString)]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("admins_command_change_order_status_button", code),
+                $"/1000000400_{orderId}")]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                new string('―', 12), new string('―', 12))]);
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("admins_command_delete_message_button", code),
+                "/1000000300")]);
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup ChangeOrderStatus(string orderId, LanguageCode? code = null)
+        {
+            List<InlineKeyboardButton[]> buttons = new();
+
+            foreach (var item in _staticCollections.OrderStatusesDictionary)
+            {
+                buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                    item.Value,
+                    $"/1000000400_{orderId}_{item.Key}")]);
+            }
+
+            return new(buttons);
+        }
+
+        public InlineKeyboardMarkup SelectStoreAddressForConsultation(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.SelectStoreAddressForConsultationId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            foreach (var item in _staticCollections.CitiesWithStoreAddressesDictionary)
+            {
+                buttons.Add(new InlineKeyboardButton[]
+                {
+                    InlineKeyboardButton.WithCallbackData(
+                        text: $"{item.Value.City} {item.Value.Address}",
+                        callbackData: $"/1000000500_{item.Value.StoreId}"),
+                });
+            }
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.SelectStoreAddressForConsultationId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup RemoveThisMessage(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.RemoveThisMessageId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([ InlineKeyboardButton.WithCallbackData(
+                _i18n.T("admins_command_delete_message_button", code),
+                "/1000000300")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.RemoveThisMessageId, result, _memoryCacheOptions);
+
+            return result;
+        }
+
+        public InlineKeyboardMarkup CustomerOrders(LanguageCode? code = null)
+        {
+            if (_memoryCache.TryGetValue(CacheKeys.CustomerOrdersId, out InlineKeyboardMarkup? result))
+            {
+                return result ?? throw new TelegramException();
+            }
+
+            List<InlineKeyboardButton[]> buttons = new();
+
+            buttons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("order_command_update", code),
+                "/1000000600")]);
+
+            buttons.Add([InlineKeyboardButton.WithCallbackData(
+                _i18n.T("menu_item_back", code),
+                "/mainmenu_back")]);
+
+            result = new(buttons);
+
+            _memoryCache.Set(CacheKeys.CustomerOrdersId, result, _memoryCacheOptions);
+
+            return result;
         }
     }
 }

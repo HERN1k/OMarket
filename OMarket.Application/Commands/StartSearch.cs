@@ -72,7 +72,9 @@ namespace OMarket.Application.Commands
             int messageId = _updateManager.CallbackQuery.Message?.MessageId
                 ?? throw new TelegramException();
 
-            await _distributedCache.SetStringAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}", $"/65536_{request.Query}={messageId}", token);
+            await _distributedCache.SetStringAsync(
+                $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}",
+                $"/65536_{request.Query}={messageId}", token);
 
             string text = $"""
                 {_i18n.T("main_menu_command_product_search_by_name")}

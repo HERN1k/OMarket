@@ -16,6 +16,10 @@ namespace OMarket.Domain.DTOs
             LanguageCode LanguageCode
         );
 
+    public record ProductFullNameWithPrice(
+        string FullName,
+        decimal Price);
+
     public class CityDto : IEquatable<CityDto>
     {
         public Guid Id { get; set; }
@@ -205,8 +209,6 @@ namespace OMarket.Domain.DTOs
 
         public Guid ProductTypeId { get; set; }
 
-        public List<ProductBrandDto> ProductBrands { get; set; } = new();
-
         public bool Equals(ProductUnderTypeDto? other)
         {
             if (other == null)
@@ -231,36 +233,6 @@ namespace OMarket.Domain.DTOs
         }
     }
 
-    public class ProductBrandDto : IEquatable<ProductBrandDto>
-    {
-        public Guid Id { get; set; }
-
-        public string BrandName { get; set; } = string.Empty;
-
-        public bool Equals(ProductBrandDto? other)
-        {
-            if (other == null)
-                return false;
-
-            return Id == other.Id;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is ProductBrandDto otherDto)
-            {
-                return Equals(otherDto);
-            }
-
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
-    }
-
     public class ProductDto : IEquatable<ProductDto>
     {
         public Guid Id { get; init; }
@@ -272,8 +244,6 @@ namespace OMarket.Domain.DTOs
         public Guid TypeId { get; set; }
 
         public Guid UnderTypeId { get; set; }
-
-        public Guid BrandId { get; set; }
 
         public decimal Price { get; set; }
 
@@ -385,7 +355,7 @@ namespace OMarket.Domain.DTOs
 
         public Guid AdminId { get; set; }
 
-        public Guid StoreTelegramChatId { get; set; }
+        public long? TgChatId { get; set; }
 
         public string PhoneNumber { get; set; } = string.Empty;
 
@@ -525,11 +495,13 @@ namespace OMarket.Domain.DTOs
 
         public Guid StoreId { get; set; }
 
+        public long TgChatId { get; set; }
+
         public string Comment { get; set; } = string.Empty;
 
         public decimal TotalPrice { get; set; }
 
-        public decimal TotalQuantity { get; set; }
+        public int TotalQuantity { get; set; }
 
         public DeliveryMethod DeliveryMethod { get; set; }
 
@@ -544,6 +516,174 @@ namespace OMarket.Domain.DTOs
         public override bool Equals(object? obj)
         {
             if (obj is CreatedOrderDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class OrderItemDto : IEquatable<OrderItemDto>
+    {
+        public Guid Id { get; set; }
+
+        public Guid OrderId { get; set; }
+
+        public Guid ProductId { get; set; }
+
+        public int Quantity { get; set; }
+
+        public decimal UnitPrice { get; set; }
+
+        public decimal TotalPrice { get; set; }
+
+        public bool Equals(OrderItemDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is OrderItemDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class OrderDto : IEquatable<OrderDto>
+    {
+        public Guid Id { get; set; }
+
+        public List<OrderItemDto> Products { get; set; } = new();
+
+        public long CustomerId { get; set; }
+
+        public Guid StoreId { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public Guid StatusId { get; set; }
+
+        //public string DeliveryMethod { get; set; } = string.Empty;
+
+        public string Status { get; set; } = string.Empty;
+
+        public DateTime CreatedAt { get; set; }
+
+        public bool Equals(OrderDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is OrderDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ViewOrderItemDto : IEquatable<ViewOrderItemDto>
+    {
+        public Guid Id { get; set; }
+
+        public Guid OrderId { get; set; }
+
+        public int Quantity { get; set; }
+
+        public Guid ProductId { get; set; }
+
+        public string FullName { get; set; } = string.Empty;
+
+        public decimal Price { get; set; }
+
+        public decimal TotalPrice { get; set; }
+
+        public bool Equals(ViewOrderItemDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ViewOrderItemDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class ViewOrderDto : IEquatable<ViewOrderDto>
+    {
+        public Guid Id { get; set; }
+
+        public List<ViewOrderItemDto> Products { get; set; } = new();
+
+        public Guid StatusId { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+
+        public decimal TotalAmount { get; set; }
+
+        public int TotalQuantity { get; set; }
+
+        public string DeliveryMethod { get; set; } = string.Empty;
+
+        public Guid StoreId { get; set; }
+
+        public StoreAddressWithCityDto Store { get; set; } = null!;
+
+        public DateTime CreatedAt { get; set; }
+
+        public bool Equals(ViewOrderDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is ViewOrderDto otherDto)
             {
                 return Equals(otherDto);
             }

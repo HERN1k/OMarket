@@ -29,7 +29,7 @@ namespace OMarket.Application.Services.Cart
         {
             token.ThrowIfCancellationRequested();
 
-            if (customerId <= 0 || quantity <= 0)
+            if (quantity <= 0)
             {
                 throw new TelegramException();
             }
@@ -90,11 +90,6 @@ namespace OMarket.Application.Services.Cart
         {
             token.ThrowIfCancellationRequested();
 
-            if (id <= 0)
-            {
-                throw new TelegramException();
-            }
-
             string? cartString = await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{id}", token);
 
             if (string.IsNullOrEmpty(cartString))
@@ -109,7 +104,7 @@ namespace OMarket.Application.Services.Cart
         {
             token.ThrowIfCancellationRequested();
 
-            if (customerId <= 0 || quantity < 0)
+            if (quantity < 0)
             {
                 throw new TelegramException();
             }

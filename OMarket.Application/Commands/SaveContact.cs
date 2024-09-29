@@ -137,10 +137,8 @@ namespace OMarket.Application.Commands
 
                 await _response.SendMessageAnswer(text, token, _inlineMarkup.SelectStoreAddress("savestoreaddress"));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex);
-
                 await RemoveCustomerAndSendExceptionMessage(token);
 
                 return;

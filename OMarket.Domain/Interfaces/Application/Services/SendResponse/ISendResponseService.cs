@@ -8,6 +8,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.SendResponse
     {
         Task<Message> SendMessageAnswer(string text, CancellationToken token, IReplyMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html);
 
+        Task<Message> SendMessageAnswerByChatId(long chatId, string text, CancellationToken token, IReplyMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html);
+
         Task SendCallbackAnswer(string text, CancellationToken token);
 
         Task SendCallbackAnswer(CancellationToken token);

@@ -43,12 +43,12 @@ namespace OMarket.Application.Commands
         {
             token.ThrowIfCancellationRequested();
 
+            RequestInfo request = await _dataProcessor.MapRequestData(token);
+
             if (_updateManager.Update.Type == UpdateType.CallbackQuery)
             {
                 await _response.SendCallbackAnswer(token);
             }
-
-            RequestInfo request = await _dataProcessor.MapRequestData(token);
 
             if (request.Customer.StoreId == null)
             {

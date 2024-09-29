@@ -244,11 +244,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasForeignKey<Store>(e => e.AdminId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(e => e.StoreTelegramChat)
-                    .WithOne(e => e.Store)
-                    .HasForeignKey<Store>(e => e.StoreTelegramChatId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
                 // Setting property 
 
                 entity.Property(e => e.Id)
@@ -267,9 +262,8 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
-                entity.Property(e => e.StoreTelegramChatId)
-                    .HasColumnType("uuid")
-                    .IsRequired();
+                entity.Property(e => e.TgChatId)
+                    .HasColumnType("bigint");
 
                 entity.Property(e => e.PhoneNumber)
                     .HasColumnType("varchar(32)")
@@ -313,31 +307,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.Property(e => e.CredentialsId)
                     .HasColumnType("uuid")
                     .IsRequired();
-            });
-        }
 
-        public static void BuildStoreTelegramChatEntity(this ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<StoreTelegramChat>(entity =>
-            {
-                entity.ToTable("StoreTelegramChats");
-
-                entity.HasKey(e => e.Id);
-
-                entity.HasIndex(e => e.Id)
-                    .IsUnique();
-
-                entity.HasIndex(e => e.ChatId);
-
-                // Setting property 
-
-                entity.Property(e => e.Id)
-                    .HasColumnType("uuid")
-                    .IsRequired();
-
-                entity.Property(e => e.ChatId)
-                    .HasColumnType("bigint")
-                    .IsRequired();
+                entity.Property(e => e.TgAccountId)
+                    .HasColumnType("bigint");
             });
         }
 
@@ -383,6 +355,10 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
+                entity.Property(e => e.DeliveryMethod)
+                    .HasColumnType("varchar(64)")
+                    .IsRequired();
+
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp with time zone")
                     .IsRequired();
@@ -417,33 +393,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .IsRequired();
 
                 entity.Property(e => e.TypeName)
-                    .HasColumnType("varchar(32)")
-                    .HasMinLength(1)
-                    .HasMaxLength(32)
-                    .IsRequired();
-            });
-        }
-
-        public static void BuildProductBrandEntity(this ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<ProductBrand>(entity =>
-            {
-                entity.ToTable("ProductBrands");
-
-                entity.HasKey(e => e.Id);
-
-                entity.HasIndex(e => e.Id)
-                    .IsUnique();
-
-                entity.HasIndex(e => e.BrandName);
-
-                // Setting property 
-
-                entity.Property(e => e.Id)
-                    .HasColumnType("uuid")
-                    .IsRequired();
-
-                entity.Property(e => e.BrandName)
                     .HasColumnType("varchar(32)")
                     .HasMinLength(1)
                     .HasMaxLength(32)
@@ -506,8 +455,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.UnderTypeId);
 
-                entity.HasIndex(e => e.BrandId);
-
                 entity.HasOne(e => e.ProductType)
                     .WithMany(e => e.Products)
                     .HasForeignKey(e => e.TypeId)
@@ -516,11 +463,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.ProductUnderType)
                     .WithMany(e => e.Products)
                     .HasForeignKey(e => e.UnderTypeId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.ProductBrand)
-                    .WithMany(e => e.Products)
-                    .HasForeignKey(e => e.BrandId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 // Setting property 
@@ -546,10 +488,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .IsRequired();
 
                 entity.Property(e => e.UnderTypeId)
-                    .HasColumnType("uuid")
-                    .IsRequired();
-
-                entity.Property(e => e.BrandId)
                     .HasColumnType("uuid")
                     .IsRequired();
 

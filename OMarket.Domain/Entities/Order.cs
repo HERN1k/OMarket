@@ -6,13 +6,15 @@ namespace OMarket.Domain.Entities
 {
     public class Order : IEntity
     {
-        public Guid Id { get; init; } = IEntity.CreateUuidV7ToGuid();
+        public Guid Id { get; init; }
 
         public long CustomerId { get; set; }
 
         public Guid StoreId { get; set; }
 
         public decimal TotalAmount { get; set; }
+
+        public string DeliveryMethod { get; set; } = string.Empty;
 
         public Guid StatusId { get; set; }
 

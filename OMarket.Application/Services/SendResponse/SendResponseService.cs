@@ -67,6 +67,16 @@ namespace OMarket.Application.Services.SendResponse
                 cancellationToken: token);
         }
 
+        public async Task<Message> SendMessageAnswerByChatId(long chatId, string text, CancellationToken token, IReplyMarkup? buttons = null, ParseMode? parseMode = ParseMode.Html)
+        {
+            return await _client.SendTextMessageAsync(
+                chatId: chatId,
+                text: text.TrimTelegramMessageText(),
+                replyMarkup: buttons,
+                parseMode: parseMode,
+                cancellationToken: token);
+        }
+
         public async Task SendCallbackAnswer(string text, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -319,11 +329,6 @@ namespace OMarket.Application.Services.SendResponse
         public async Task RemoveMessageById(int messageId, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
-
-            if (messageId <= 0)
-            {
-                throw new TelegramException();
-            }
 
             long chatId;
             if (_updateManager.Update.Type == UpdateType.Message)

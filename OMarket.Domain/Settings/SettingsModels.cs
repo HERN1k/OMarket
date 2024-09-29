@@ -34,11 +34,8 @@ namespace OMarket.Domain.Settings
                 List<Admins> admins,
                 List<string> orderStatuses,
                 List<Stores> stores,
-                List<StoreTelegramChats> storeTelegramChats,
                 List<string> typesProducts,
-                Dictionary<string, List<string>> productUnderTypes,
-                List<string> brandsProducts,
-                Dictionary<string, List<string>> productUnderTypesBrands
+                Dictionary<string, List<string>> productUnderTypes
             )
         {
             if (cities.Count <= 0)
@@ -59,20 +56,11 @@ namespace OMarket.Domain.Settings
             if (stores.Count <= 0)
                 throw new ArgumentNullException(nameof(stores), "The initial database data is incorrect.");
 
-            if (storeTelegramChats.Count <= 0)
-                throw new ArgumentNullException(nameof(storeTelegramChats), "The initial database data is incorrect.");
-
             if (typesProducts.Count <= 0)
                 throw new ArgumentNullException(nameof(typesProducts), "The initial database data is incorrect.");
 
             if (productUnderTypes.Count <= 0)
                 throw new ArgumentNullException(nameof(productUnderTypes), "The initial database data is incorrect.");
-
-            if (brandsProducts.Count <= 0)
-                throw new ArgumentNullException(nameof(brandsProducts), "The initial database data is incorrect.");
-
-            if (productUnderTypesBrands.Count <= 0)
-                throw new ArgumentNullException(nameof(productUnderTypesBrands), "The initial database data is incorrect.");
 
             Initialize = initialize;
             Cities = cities;
@@ -81,11 +69,8 @@ namespace OMarket.Domain.Settings
             Admins = admins;
             OrderStatuses = orderStatuses;
             Stores = stores;
-            StoreTelegramChats = storeTelegramChats;
             TypesProducts = typesProducts;
             ProductUnderTypes = productUnderTypes;
-            BrandsProducts = brandsProducts;
-            ProductUnderTypesBrands = productUnderTypesBrands;
         }
 
         public bool Initialize { get; init; }
@@ -95,11 +80,8 @@ namespace OMarket.Domain.Settings
         public List<Admins> Admins { get; init; }
         public List<string> OrderStatuses { get; init; }
         public List<Stores> Stores { get; init; }
-        public List<StoreTelegramChats> StoreTelegramChats { get; init; }
         public List<string> TypesProducts { get; init; }
         public Dictionary<string, List<string>> ProductUnderTypes { get; init; }
-        public List<string> BrandsProducts { get; init; }
-        public Dictionary<string, List<string>> ProductUnderTypesBrands { get; init; }
     }
 
     public record StoreAddresses(
@@ -113,11 +95,6 @@ namespace OMarket.Domain.Settings
             string Permission,
             string Login,
             string Hash
-        );
-
-    public record StoreTelegramChats(
-            string Address,
-            long ChatId
         );
 
     public record Stores(

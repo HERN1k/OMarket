@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using System.Text;
 
+using Microsoft.Extensions.Caching.Distributed;
+
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -12,6 +14,7 @@ using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
+using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types.Enums;
 
@@ -25,6 +28,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IDataProcessorService _dataProcessor;
         private readonly IInlineMarkupService _inlineMarkup;
+        private readonly IDistributedCache _distributedCache;
         private readonly IStaticCollectionsService _staticCollections;
 
         public Profile(
@@ -33,6 +37,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IDataProcessorService dataProcessor,
                 IInlineMarkupService inlineMarkup,
+                IDistributedCache distributedCache,
                 IStaticCollectionsService staticCollections
             )
         {
@@ -41,6 +46,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _dataProcessor = dataProcessor;
             _inlineMarkup = inlineMarkup;
+            _distributedCache = distributedCache;
             _staticCollections = staticCollections;
         }
 
@@ -64,6 +70,8 @@ namespace OMarket.Application.Commands
             {
                 await _response.SendCallbackAnswer(token);
             }
+
+            await _distributedCache.RemoveAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}", token);
 
             if (request.Customer.StoreId == null || request.Customer.StoreId == Guid.Empty)
             {

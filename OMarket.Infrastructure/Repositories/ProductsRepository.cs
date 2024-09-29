@@ -19,7 +19,7 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly IStaticCollectionsService _staticCollections;
 
-        private readonly ILogger<CustomersRepository> _logger;
+        private readonly ILogger<ProductsRepository> _logger;
 
         private readonly IDistributedCache _cache;
 
@@ -28,7 +28,7 @@ namespace OMarket.Infrastructure.Repositories
         public ProductsRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
                 IStaticCollectionsService staticCollections,
-                ILogger<CustomersRepository> logger,
+                ILogger<ProductsRepository> logger,
                 IDistributedCache cache
             )
         {
@@ -70,7 +70,6 @@ namespace OMarket.Infrastructure.Repositories
                         PhotoUri = product.PhotoUri,
                         TypeId = product.TypeId,
                         UnderTypeId = product.UnderTypeId,
-                        BrandId = product.BrandId,
                         Price = product.Price,
                         Dimensions = product.Dimensions,
                         Description = product.Description
@@ -157,7 +156,6 @@ namespace OMarket.Infrastructure.Repositories
                         PhotoUri = productTemp.PhotoUri,
                         TypeId = productTemp.TypeId,
                         UnderTypeId = productTemp.UnderTypeId,
-                        BrandId = productTemp.BrandId,
                         Price = productTemp.Price,
                         Dimensions = productTemp.Dimensions,
                         Description = productTemp.Description,
@@ -266,7 +264,6 @@ namespace OMarket.Infrastructure.Repositories
                         PhotoUri = productTemp.PhotoUri,
                         TypeId = productTemp.TypeId,
                         UnderTypeId = productTemp.UnderTypeId,
-                        BrandId = productTemp.BrandId,
                         Price = productTemp.Price,
                         Dimensions = productTemp.Dimensions,
                         Description = productTemp.Description,

@@ -13,7 +13,7 @@ namespace OMarket.Infrastructure.Repositories
     {
         private readonly IDbContextFactory<AppDBContext> _contextFactory;
 
-        private readonly ILogger<CustomersRepository> _logger;
+        private readonly ILogger<CityRepository> _logger;
 
         private readonly IDistributedCache _cache;
 
@@ -21,7 +21,7 @@ namespace OMarket.Infrastructure.Repositories
 
         public CityRepository(
             IDbContextFactory<AppDBContext> contextFactory,
-            ILogger<CustomersRepository> logger,
+            ILogger<CityRepository> logger,
             IDistributedCache cache,
             IMapper mapper
           )

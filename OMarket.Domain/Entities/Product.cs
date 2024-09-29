@@ -14,8 +14,6 @@ namespace OMarket.Domain.Entities
 
         public Guid UnderTypeId { get; set; }
 
-        public Guid BrandId { get; set; }
-
         public decimal Price { get; set; }
 
         public string? Dimensions { get; set; }
@@ -27,8 +25,6 @@ namespace OMarket.Domain.Entities
         public virtual ProductType ProductType { get; set; }
 
         public virtual ProductUnderType ProductUnderType { get; set; }
-
-        public virtual ProductBrand ProductBrand { get; set; }
 
         public virtual ICollection<DataStoreProduct> DataStoreProducts { get; set; } = new List<DataStoreProduct>();
 

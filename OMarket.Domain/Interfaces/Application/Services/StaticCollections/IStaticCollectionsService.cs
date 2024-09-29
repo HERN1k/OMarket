@@ -23,5 +23,11 @@ namespace OMarket.Domain.Interfaces.Application.Services.StaticCollections
         FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; }
 
         FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; }
+
+        FrozenDictionary<int, string> OrderStatusesDictionary { get; }
+
+        FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; }
+
+        FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; }
     }
 }

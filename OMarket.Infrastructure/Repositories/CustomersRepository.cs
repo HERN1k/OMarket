@@ -42,10 +42,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<CustomerDto> GetCustomerFromIdAsync(long id, CancellationToken token)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
             CustomerDto? customer;
 
             string? customerString = await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}", token);
@@ -117,10 +113,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<CustomerDto> GetCustomerFromIdAsync(long id)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
             CustomerDto? customer;
 
             string? customerString = await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}");
@@ -188,11 +180,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<bool> AnyCustomerByIdAsync(long id, CancellationToken token)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
-
             if (string.IsNullOrEmpty(await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}", token)))
             {
                 token.ThrowIfCancellationRequested();
@@ -273,11 +260,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task SaveContactsAsync(long id, string phoneNumber, CancellationToken token, string? firstName = null, string? lastName = null)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
-
             if (string.IsNullOrEmpty(phoneNumber) || string.IsNullOrWhiteSpace(phoneNumber))
             {
                 throw new TelegramException();
@@ -345,11 +327,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task SaveStoreAsync(long id, Guid storeId, CancellationToken token)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
-
             try
             {
                 token.ThrowIfCancellationRequested();
@@ -409,11 +386,6 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task RemoveCustomerAsync(long id)
         {
-            if (id <= 0 || id > long.MaxValue)
-            {
-                throw new TelegramException();
-            }
-
             try
             {
                 await using AppDBContext context = await _contextFactory.CreateDbContextAsync();

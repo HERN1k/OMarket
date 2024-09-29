@@ -15,10 +15,8 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
         public DbSet<OrderStatus> OrderStatuses { get; set; }
         public DbSet<Store> Stores { get; set; }
         public DbSet<Admin> Admins { get; set; }
-        public DbSet<StoreTelegramChat> StoreTelegramChats { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<ProductType> ProductTypes { get; set; }
-        public DbSet<ProductBrand> ProductBrands { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<ProductUnderType> ProductUnderTypes { get; set; }
@@ -35,10 +33,8 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
             modelBuilder.BuildOrderStatusEntity();
             modelBuilder.BuildStoreEntity();
             modelBuilder.BuildAdminEntity();
-            modelBuilder.BuildStoreTelegramChatEntity();
             modelBuilder.BuildOrderEntity();
             modelBuilder.BuildProductTypeEntity();
-            modelBuilder.BuildProductBrandEntity();
             modelBuilder.BuildProductEntity();
             modelBuilder.BuildOrderItemEntity();
             modelBuilder.BuildProductUnderTypeEntity();

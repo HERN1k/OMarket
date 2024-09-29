@@ -6,10 +6,8 @@ using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
-using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
-using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 
 using Telegram.Bot.Types.ReplyMarkups;
 
@@ -18,31 +16,25 @@ namespace OMarket.Application.Commands
     [TgCommand(TgCommands.SEARCHPRODUCTADDCART)]
     public class SearchProductAddCart : ITgCommand
     {
-        private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICartService _cartService;
-        private readonly IProductsRepository _productsRepository;
 
         public SearchProductAddCart(
-                IUpdateManager updateManager,
                 ISendResponseService response,
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
-                ICartService cartService,
-                IProductsRepository productsRepository
+                ICartService cartService
             )
         {
-            _updateManager = updateManager;
             _response = response;
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _cartService = cartService;
-            _productsRepository = productsRepository;
         }
 
         public async Task InvokeAsync(CancellationToken token)

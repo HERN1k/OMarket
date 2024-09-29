@@ -17,5 +17,11 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
         (FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid) GetProductsTypesWithoutInclusions();
 
         FrozenSet<StoreDto> GetAllStores();
+
+        FrozenDictionary<int, string> GetAllOrderStatuses();
+
+        FrozenDictionary<Guid, string> GetAllOrderStatusesWithGuids();
+
+        FrozenDictionary<Guid, ProductFullNameWithPrice> GetAllProductGuidWithFullNameAndPrice();
     }
 }

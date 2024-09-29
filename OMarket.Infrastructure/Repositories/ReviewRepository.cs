@@ -17,7 +17,7 @@ namespace OMarket.Infrastructure.Repositories
     {
         private readonly IDbContextFactory<AppDBContext> _contextFactory;
 
-        private readonly ILogger<CustomersRepository> _logger;
+        private readonly ILogger<ReviewRepository> _logger;
 
         private readonly IDistributedCache _cache;
 
@@ -25,7 +25,7 @@ namespace OMarket.Infrastructure.Repositories
 
         public ReviewRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
-                ILogger<CustomersRepository> logger,
+                ILogger<ReviewRepository> logger,
                 IDistributedCache cache
             )
         {
@@ -38,7 +38,7 @@ namespace OMarket.Infrastructure.Repositories
         {
             token.ThrowIfCancellationRequested();
 
-            if (id <= 0 || storeId == Guid.Empty || text.Length >= 256 || string.IsNullOrEmpty(text))
+            if (storeId == Guid.Empty || text.Length >= 256 || string.IsNullOrEmpty(text))
             {
                 throw new TelegramException();
             }

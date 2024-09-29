@@ -5,7 +5,6 @@ using OMarket.Domain.Exceptions.Telegram;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
-using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
@@ -22,7 +21,6 @@ namespace OMarket.Application.Commands
         private readonly IUpdateManager _updateManager;
         private readonly ISendResponseService _response;
         private readonly IDataProcessorService _dataProcessor;
-        private readonly IStaticCollectionsService _staticCollections;
         private readonly ICustomersRepository _customersRepository;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
@@ -31,7 +29,6 @@ namespace OMarket.Application.Commands
                 IUpdateManager updateManager,
                 ISendResponseService response,
                 IDataProcessorService dataProcessor,
-                IStaticCollectionsService staticCollections,
                 ICustomersRepository customersRepository,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup
@@ -40,7 +37,6 @@ namespace OMarket.Application.Commands
             _updateManager = updateManager;
             _response = response;
             _dataProcessor = dataProcessor;
-            _staticCollections = staticCollections;
             _customersRepository = customersRepository;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;

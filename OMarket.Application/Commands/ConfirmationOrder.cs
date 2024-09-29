@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using System.Globalization;
+using System.Text;
+
+using Microsoft.Extensions.Caching.Distributed;
 
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
@@ -31,6 +34,8 @@ namespace OMarket.Application.Commands
         private readonly ICartService _cartService;
         private readonly IDistributedCache _distributedCache;
         private readonly IProductsRepository _productsRepository;
+        private readonly IStoreRepository _storeRepository;
+        private readonly IOrdersRepository _ordersRepository;
         private readonly IStaticCollectionsService _staticCollections;
 
         public ConfirmationOrder(
@@ -42,6 +47,8 @@ namespace OMarket.Application.Commands
                 ICartService cartService,
                 IDistributedCache distributedCache,
                 IProductsRepository productsRepository,
+                IStoreRepository storeRepository,
+                IOrdersRepository ordersRepository,
                 IStaticCollectionsService staticCollections
             )
         {
@@ -53,6 +60,8 @@ namespace OMarket.Application.Commands
             _cartService = cartService;
             _distributedCache = distributedCache;
             _productsRepository = productsRepository;
+            _storeRepository = storeRepository;
+            _ordersRepository = ordersRepository;
             _staticCollections = staticCollections;
         }
 
@@ -89,6 +98,133 @@ namespace OMarket.Application.Commands
                 await _response.SendMessageAnswer(blockedText, token, _inlineMarkup.ToMainMenuBack());
 
                 return;
+            }
+
+            (int messageId, string deliveryMethodString) = await GetQuery(cacheKey, token);
+
+            await _response.RemoveMessageById(messageId, token);
+            await _response.RemoveLastMessage(token);
+            Message awaitMessage = await _response.SendMessageAnswer(_i18n.T("order_command_please_wait"), token);
+
+            DeliveryMethod deliveryMethod = DeliveryMethodExtensions.GetDeliveryMethod(deliveryMethodString);
+
+            string orderComment = GetOrderComment();
+
+            long? storeTgChatId = await _storeRepository
+                .GetStoreChatIdAsync((Guid)request.Customer.StoreId, token);
+
+            CreatedOrderDto? createdOrder = await CreatOrderDto(
+                request: request,
+                orderComment: orderComment,
+                method: deliveryMethod,
+                storeTgChatId: storeTgChatId,
+                token: token);
+
+            if (createdOrder is null)
+            {
+                await ThrowIfError(cacheKey, request.Customer.Id, awaitMessage.MessageId, token);
+
+                return;
+            }
+
+            OrderDto? order = await _ordersRepository.SaveNewOrderAsync(createdOrder, token);
+
+            if (order is null)
+            {
+                await ThrowIfError(cacheKey, request.Customer.Id, awaitMessage.MessageId, token);
+                return;
+            }
+
+            string text = GetStoreText(request, order, createdOrder);
+
+            InlineKeyboardMarkup buttonsForStoreChat = _inlineMarkup.MarkupOrderForStoreChat(
+                status: "Взято в обробку",
+                orderId: order.Id);
+
+            await _response.SendMessageAnswerByChatId(createdOrder.TgChatId, text, token, buttonsForStoreChat);
+
+            await _cartService.RemoveCartAsync(request.Customer.Id, token);
+
+            InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
+
+            string answerText = $"""
+                {_i18n.T("order_command_thank_you")}
+
+                {_i18n.T("order_command_order_being_processed_in_store")}
+
+                {_i18n.T("generic_main_manu_title")}
+                """;
+
+            await _response.RemoveMessageById(awaitMessage.MessageId, token);
+            await _response.EditLastMessage(answerText, token, buttons);
+        }
+
+        private string GetStoreText(RequestInfo request, OrderDto order, CreatedOrderDto createdOrder)
+        {
+            string date = GetFormattedDate(order.CreatedAt);
+            string deliveryMethod = GetFormattedDeliveryMethod(createdOrder.DeliveryMethod);
+            StringBuilder sb = new();
+            int index = 0;
+
+            sb.AppendLine($"<b>{_i18n.T("admins_command_new_order")}</b>");
+            sb.AppendLine();
+            sb.AppendLine($"{_i18n.T("order_command_order")} {order.Id.GetHashCode().ToString()[1..]}");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_date")}</b> <i>{date}</i>");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_customer_name")}</b> <i>{request.Customer.FirstName + ' ' + request.Customer.LastName}</i>");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_customer_phone_number")}</b> <i>{request.Customer.PhoneNumber}</i>");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_delivery_method")}</b> <i>{deliveryMethod}</i>");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_customer_comment")}</b> ");
+            sb.AppendLine();
+            sb.AppendLine($"<i>{createdOrder.Comment}</i>");
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_products")}</b> ");
+            sb.AppendLine();
+            foreach (var item in createdOrder.Products)
+            {
+                sb.AppendLine($"<b>№{++index}</b> <i>{item.Product.Name}, {item.Product.Dimensions}</i><b> - {item.Quantity} шт.</b>");
+                sb.AppendLine();
+            }
+            sb.AppendLine($"{_i18n.T("admins_command_quantity")} <b>{createdOrder.TotalQuantity}</b> {_i18n.T("admins_command_for_amount")} <b>{createdOrder.TotalPrice} грн.</b>");
+
+            if (createdOrder.DeliveryMethod == DeliveryMethod.DELIVERY)
+            {
+                sb.AppendLine();
+                sb.AppendLine($"<b>{_i18n.T("admins_command_order_does_not_include_the_cost_of_delivery")}</b>");
+            }
+
+            return sb.ToString();
+        }
+
+        private string GetFormattedDeliveryMethod(DeliveryMethod deliveryMethod)
+        {
+            return deliveryMethod == DeliveryMethod.DELIVERY
+                ? "Доставка"
+                : "Самовивіз";
+        }
+
+        private string GetFormattedDate(DateTime date)
+        {
+            DateTime localDateTime = TimeZoneInfo.ConvertTimeFromUtc(
+                dateTime: date,
+                destinationTimeZone: TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time"));
+
+            return localDateTime.ToString("dd MMM yyyy HH:mm:ss", new CultureInfo("uk-UA"));
+        }
+
+        private async Task<(int messageId, string deliveryMethodString)> GetQuery(string cacheKey, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(cacheKey))
+            {
+                await _distributedCache.RemoveAsync(cacheKey, token);
+
+                throw new TelegramException("exception_main_please_try_again");
             }
 
             string? messageIdString = await _distributedCache.GetStringAsync(cacheKey, token);
@@ -130,131 +266,108 @@ namespace OMarket.Application.Commands
                 throw new TelegramException("exception_main_please_try_again");
             }
 
-            Message awaitMessage = await _response.SendMessageAnswer(_i18n.T("order_command_please_wait"), token);
+            return (messageId: messageId, deliveryMethodString: queryLines[1].ToUpper());
+        }
 
-            List<CartItemDto> cart = await _cartService.GatCustomerCartAsync(request.Customer.Id, token);
-
-            if (cart.Count <= 0)
+        private string GetOrderComment()
+        {
+            if (_updateManager.Update.Message is null || string.IsNullOrEmpty(_updateManager.Update.Message.Text))
             {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
-
-                return;
+                return string.Empty;
             }
 
-            if (request.Customer.StoreId == Guid.Empty)
-            {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
+            string text = _updateManager.Update.Message.Text;
 
-                return;
-            }
-
-            if (!_staticCollections.StoresSet.Any(store => store.Id == request.Customer.StoreId))
-            {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
-
-                return;
-            }
-
-            string? orderComment = _updateManager.Update.Message?.Text;
-
-            if (string.IsNullOrEmpty(orderComment))
-            {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
-                return;
-            }
-
-            string formattedOrderComment = orderComment
+            string formattedText = text
                 .Replace("&", "&amp;")
                 .Replace("<", "&lt;")
                 .Replace(">", "&gt;")
                 .Replace("\"", "&quot;")
                 .Replace("'", "&#39;");
 
-            if (formattedOrderComment.Length >= 128)
+            if (formattedText.Length >= 128)
             {
-                formattedOrderComment = formattedOrderComment[..120];
+                formattedText = formattedText[..120];
             }
 
-            DeliveryMethod deliveryMethod = DeliveryMethodExtensions.GetDeliveryMethod(queryLines[1].ToUpper());
+            return formattedText;
+        }
 
-            if (deliveryMethod == DeliveryMethod.NONE)
+        private bool IsValidStoreId(RequestInfo request)
+        {
+            if (request.Customer.StoreId == Guid.Empty)
             {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
+                return false;
+            }
 
-                return;
+            if (!_staticCollections.StoresSet.Any(store => store.Id == request.Customer.StoreId))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<CreatedOrderDto?> CreatOrderDto(RequestInfo request, string orderComment, DeliveryMethod method, long? storeTgChatId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(request.Customer.PhoneNumber))
+            {
+                return null;
+            }
+
+            if (!IsValidStoreId(request))
+            {
+                return null;
+            }
+
+            if (string.IsNullOrEmpty(orderComment))
+            {
+                return null;
+            }
+
+            if (method == DeliveryMethod.NONE)
+            {
+                return null;
+            }
+
+            if (storeTgChatId is null)
+            {
+                return null;
+            }
+
+            List<CartItemDto> cart = await _cartService.GatCustomerCartAsync(request.Customer.Id, token);
+
+            if (cart.Count <= 0)
+            {
+                return null;
             }
 
             bool isReliableData = await _productsRepository.CheckingAvailabilityOfProductsInTheStore(
                 cart: cart,
-                storeId: (Guid)request.Customer.StoreId,
+                storeId: (Guid)request.Customer.StoreId!,
                 token: token);
 
             if (!isReliableData)
             {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
-
-                return;
+                return null;
             }
 
             CreatedOrderDto? order = SetOrderProducts(cart);
 
             if (order is null)
             {
-                await ThrowIfError(cacheKey, request.Customer.Id, messageId, awaitMessage.MessageId, token);
-
-                return;
+                return null;
             }
 
             order.StoreId = (Guid)request.Customer.StoreId;
+            order.TgChatId = (long)storeTgChatId;
             order.CustomerId = request.Customer.Id;
-            order.DeliveryMethod = deliveryMethod;
-            order.Comment = formattedOrderComment;
+            order.DeliveryMethod = method;
+            order.Comment = orderComment;
 
-            Console.WriteLine($"Id: {order.Id}");
-            Console.WriteLine($"StoreId: {order.StoreId}");
-            Console.WriteLine($"CustomerId: {order.CustomerId}");
-            Console.WriteLine($"DeliveryMethod: {order.DeliveryMethod}");
-            Console.WriteLine($"Comment: {order.Comment}");
-            Console.WriteLine($"TotalQuantity: {order.TotalQuantity}");
-            Console.WriteLine($"TotalPrice: {order.TotalPrice}");
-            foreach (var item in order.Products)
-            {
-                Console.WriteLine($"ProductName: {item.Product.Name}");
-            }
-
-
-
-
-        }
-
-        private async Task ThrowIfError(string cacheKey, long customerId, int messageId, int awaitMessageId, CancellationToken token)
-        {
-            if (customerId <= 0 || messageId <= 0 || awaitMessageId <= 0 || string.IsNullOrEmpty(cacheKey))
-            {
-                throw new TelegramException("exception_main_please_try_again");
-            }
-
-            try
-            {
-                await _distributedCache.RemoveAsync(cacheKey, token);
-                await _cartService.RemoveCartAsync(customerId, token);
-
-                await _response.RemoveMessageById(awaitMessageId, token);
-                await _response.RemoveMessageById(messageId, token);
-                await _response.RemoveLastMessage(token);
-            }
-            finally
-            {
-                string text = $"""
-                    {_i18n.T("exception_main")}
-
-                    {_i18n.T("generic_main_manu_title")}
-                    """;
-
-                InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
-
-                await _response.SendMessageAnswer(text, token, buttons);
-            }
+            return order;
         }
 
         private CreatedOrderDto? SetOrderProducts(List<CartItemDto> cart)
@@ -293,6 +406,35 @@ namespace OMarket.Application.Commands
             }
 
             return order;
+        }
+
+        private async Task ThrowIfError(string cacheKey, long customerId, int messageId, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(cacheKey))
+            {
+                throw new TelegramException("exception_main_please_try_again");
+            }
+
+            try
+            {
+                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cartService.RemoveCartAsync(customerId, token);
+
+                await _response.RemoveMessageById(messageId, token);
+                await _response.RemoveLastMessage(token);
+            }
+            finally
+            {
+                string text = $"""
+                    {_i18n.T("exception_main")}
+
+                    {_i18n.T("generic_main_manu_title")}
+                    """;
+
+                InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
+
+                await _response.SendMessageAnswer(text, token, buttons);
+            }
         }
     }
 }

@@ -12,6 +12,8 @@ namespace OMarket.Domain.Entities
 
         public Guid CredentialsId { get; set; }
 
+        public long? TgAccountId { get; set; }
+
         public virtual Store Store { get; set; }
 
         public virtual AdminsPermission AdminsPermission { get; set; }

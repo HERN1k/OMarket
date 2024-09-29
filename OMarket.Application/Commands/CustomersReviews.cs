@@ -149,7 +149,9 @@ namespace OMarket.Application.Commands
 
                     <b>{_i18n.T("add_review_command_date")}</b> <i>{formattedDate}</i>
 
-                    {review.Review?.Text ?? string.Empty}
+                    <b>{_i18n.T("add_review_command_customer_review")}</b>
+
+                    <i>{review.Review?.Text ?? string.Empty}</i>
                     """;
 
                 InlineKeyboardMarkup buttons = _inlineMarkup.ReviewView(review);

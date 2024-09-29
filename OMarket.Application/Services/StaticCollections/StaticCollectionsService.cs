@@ -32,6 +32,12 @@ namespace OMarket.Application.Services.StaticCollections
 
         public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; init; }
 
+        public FrozenDictionary<int, string> OrderStatusesDictionary { get; init; }
+
+        public FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; init; }
+
+        public FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; init; }
+
         private readonly IApplicationRepository _appRepository;
 
         private readonly ILogger<StaticCollectionsService> _logger;
@@ -64,6 +70,12 @@ namespace OMarket.Application.Services.StaticCollections
                 _appRepository.GetProductsUnderTypes();
             GuidToStringUnderTypesDictionary = GuidToStringUnderTypes;
             StringToGuidUnderTypesDictionary = StringToGuidUnderTypes;
+
+            OrderStatusesDictionary = _appRepository.GetAllOrderStatuses();
+
+            OrderStatusesWithGuidDictionary = _appRepository.GetAllOrderStatusesWithGuids();
+
+            ProductGuidToFullNameWithPriceDictionary = _appRepository.GetAllProductGuidWithFullNameAndPrice();
 
             _logger.LogInformation("Static collections have been successfully initialized.");
         }

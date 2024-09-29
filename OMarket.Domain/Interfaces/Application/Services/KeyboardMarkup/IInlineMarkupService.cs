@@ -52,5 +52,15 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
         InlineKeyboardMarkup NoReviewsHaveBeenView(LanguageCode? code = null);
 
         InlineKeyboardMarkup CreateOrder(LanguageCode? code = null);
+
+        InlineKeyboardMarkup MarkupOrderForStoreChat(string status, Guid orderId, LanguageCode? code = null);
+
+        InlineKeyboardMarkup ChangeOrderStatus(string orderId, LanguageCode? code = null);
+
+        InlineKeyboardMarkup SelectStoreAddressForConsultation(LanguageCode? code = null);
+
+        InlineKeyboardMarkup RemoveThisMessage(LanguageCode? code = null);
+
+        InlineKeyboardMarkup CustomerOrders(LanguageCode? code = null);
     }
 }

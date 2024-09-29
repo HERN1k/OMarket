@@ -34,6 +34,14 @@
 
         public const string SelectStoreAddressForViewReviewId = "SelectStoreAddressForViewReviewId";
 
+        public const string SelectStoreAddressForConsultationId = "SelectStoreAddressForConsultationId";
+
+        public const string CustomerOrdersId = "CustomerOrdersId";
+
+        public const string ChangeOrderStatusId = "ChangeOrderStatusId";
+
+        public const string RemoveThisMessageId = "RemoveThisMessageId";
+
         public const string CustomerFreeInputId = "CustomerFreeInputId";
 
         public const string SearchProductsByNameId = "SearchProductsByNameId";

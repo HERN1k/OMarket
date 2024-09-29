@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
@@ -11,9 +12,11 @@ using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
 namespace OMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240929104350_DropTableBrands")]
+    partial class DropTableBrands
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -214,10 +217,6 @@ namespace OMarket.Infrastructure.Migrations
 
                     b.Property<long>("CustomerId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("DeliveryMethod")
-                        .IsRequired()
-                        .HasColumnType("varchar(64)");
 
                     b.Property<Guid>("StatusId")
                         .HasColumnType("uuid");

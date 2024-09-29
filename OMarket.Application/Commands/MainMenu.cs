@@ -56,11 +56,6 @@ namespace OMarket.Application.Commands
                 return;
             }
 
-            if (!string.IsNullOrEmpty(_updateManager.Update.Message?.Text))
-            {
-                await _response.RemoveLastMessage(token);
-            }
-
             InlineKeyboardMarkup buttons = await _inlineMarkup.MainMenu(token);
 
             if (StringHelper.IsBackCommand(_updateManager.Update, out string command))

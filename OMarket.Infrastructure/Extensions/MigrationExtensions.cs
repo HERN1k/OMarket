@@ -40,13 +40,9 @@ namespace OMarket.Infrastructure.Extensions
 
             HashSet<OrderStatus> orderStatusesSet = new();
 
-            Dictionary<string, StoreTelegramChat> storeTelegramChatsDictionary = new();
-
             HashSet<Store> storesSet = new();
 
             HashSet<ProductType> productTypesSet = new();
-
-            HashSet<ProductBrand> productBrandsSet = new();
             #endregion
 
             #region Mapping entities collections
@@ -120,15 +116,6 @@ namespace OMarket.Infrastructure.Extensions
                 }
                 #endregion
 
-                #region Mapping stores telegram chats entities
-                foreach (StoreTelegramChats item in initialData.StoreTelegramChats)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
-
-                    storeTelegramChatsDictionary.Add(item.Address, new StoreTelegramChat() { ChatId = item.ChatId });
-                }
-                #endregion
-
                 #region Mapping stores entities
                 foreach (Stores item in initialData.Stores)
                 {
@@ -147,21 +134,7 @@ namespace OMarket.Infrastructure.Extensions
                         Admin = adminsDictionary.SingleOrDefault(e => e.Key == item.Address).Value
                             ?? throw new ArgumentException("Incorrect address name.", nameof(item.Address)),
 
-                        StoreTelegramChat = storeTelegramChatsDictionary
-                            .SingleOrDefault(e => e.Key == item.Address).Value
-                                ?? throw new ArgumentException("Incorrect address name.", nameof(item.Address)),
-
                         PhoneNumber = item.PhoneNumber
-                    });
-                }
-                #endregion
-
-                #region Mapping product brands entities
-                foreach (string item in initialData.BrandsProducts)
-                {
-                    productBrandsSet.Add(new ProductBrand()
-                    {
-                        BrandName = item
                     });
                 }
                 #endregion
@@ -185,30 +158,10 @@ namespace OMarket.Infrastructure.Extensions
 
                     foreach (string item in value)
                     {
-                        List<ProductBrand> productBrands = new();
-
-                        if (initialData.ProductUnderTypesBrands.TryGetValue(item, out var brands))
-                        {
-                            if (brands.Count > 0)
-                            {
-                                foreach (string brandItem in brands)
-                                {
-                                    ProductBrand? productBrand = productBrandsSet
-                                        .SingleOrDefault(e => e.BrandName == brandItem);
-
-                                    if (productBrand is not null)
-                                    {
-                                        productBrands.Add(productBrand);
-                                    }
-                                }
-                            }
-                        }
-
                         productUnderTypes.Add(new ProductUnderType()
                         {
                             UnderTypeName = item,
-                            ProductType = productType,
-                            ProductBrands = productBrands
+                            ProductType = productType
                         });
                     }
 
@@ -235,7 +188,6 @@ namespace OMarket.Infrastructure.Extensions
                     context.AdminsCredentials.AddRange(adminsCredentialsSet);
                     context.Admins.AddRange(adminsDictionary.Values);
                     context.OrderStatuses.AddRange(orderStatusesSet);
-                    context.StoreTelegramChats.AddRange(storeTelegramChatsDictionary.Values);
                     context.Stores.AddRange(storesSet);
                     context.ProductTypes.AddRange(productTypesSet);
 

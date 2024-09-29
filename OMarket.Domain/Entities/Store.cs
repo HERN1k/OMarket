@@ -14,7 +14,7 @@ namespace OMarket.Domain.Entities
 
         public Guid AdminId { get; set; }
 
-        public Guid StoreTelegramChatId { get; set; }
+        public long? TgChatId { get; set; }
 
         public string PhoneNumber { get; set; } = string.Empty;
 
@@ -23,8 +23,6 @@ namespace OMarket.Domain.Entities
         public virtual City City { get; set; }
 
         public virtual Admin Admin { get; set; }
-
-        public virtual StoreTelegramChat StoreTelegramChat { get; set; }
 
         public virtual ICollection<Customer> Customers { get; set; } = new List<Customer>();
 

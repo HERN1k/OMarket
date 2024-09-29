@@ -14,7 +14,6 @@ using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
 using OMarket.Domain.Interfaces.Application.Services.Translator;
 using OMarket.Domain.Interfaces.Domain.TgCommand;
-using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
 
 using Telegram.Bot.Types.Enums;
@@ -26,7 +25,6 @@ namespace OMarket.Application.Commands
     {
         private readonly ISendResponseService _response;
         private readonly IUpdateManager _updateManager;
-        private readonly IProductsRepository _productsRepository;
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
@@ -37,7 +35,6 @@ namespace OMarket.Application.Commands
         public CreateOrder(
                 ISendResponseService response,
                 IUpdateManager updateManager,
-                IProductsRepository productsRepository,
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
@@ -48,7 +45,6 @@ namespace OMarket.Application.Commands
         {
             _response = response;
             _updateManager = updateManager;
-            _productsRepository = productsRepository;
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;

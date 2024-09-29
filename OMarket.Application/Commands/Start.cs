@@ -63,8 +63,7 @@ namespace OMarket.Application.Commands
 
             CustomerDto customer = _mapper.Map<CustomerDto>(_updateManager.Update);
 
-            bool isOldUser = await _repository
-                .AnyCustomerByIdAsync(customer.Id, token);
+            bool isOldUser = await _repository.AnyCustomerByIdAsync(customer.Id, token);
 
             if (!isOldUser)
             {
@@ -74,8 +73,6 @@ namespace OMarket.Application.Commands
             {
                 customer = await _repository.GetCustomerFromIdAsync(customer.Id, token);
             }
-
-            await _response.RemoveLastMessage(token);
 
             if (string.IsNullOrEmpty(customer.PhoneNumber))
             {

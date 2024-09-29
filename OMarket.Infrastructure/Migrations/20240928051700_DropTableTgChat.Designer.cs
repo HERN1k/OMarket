@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
@@ -11,9 +12,11 @@ using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
 namespace OMarket.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20240928051700_DropTableTgChat")]
+    partial class DropTableTgChat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +36,6 @@ namespace OMarket.Infrastructure.Migrations
 
                     b.Property<Guid>("PermissionId")
                         .HasColumnType("uuid");
-
-                    b.Property<long?>("TgAccountId")
-                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -215,10 +215,6 @@ namespace OMarket.Infrastructure.Migrations
                     b.Property<long>("CustomerId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("DeliveryMethod")
-                        .IsRequired()
-                        .HasColumnType("varchar(64)");
-
                     b.Property<Guid>("StatusId")
                         .HasColumnType("uuid");
 
@@ -301,6 +297,9 @@ namespace OMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("BrandId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Description")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
@@ -332,6 +331,8 @@ namespace OMarket.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BrandId");
+
                     b.HasIndex("Id")
                         .IsUnique();
 
@@ -342,6 +343,28 @@ namespace OMarket.Infrastructure.Migrations
                     b.HasIndex("UnderTypeId");
 
                     b.ToTable("Products", (string)null);
+                });
+
+            modelBuilder.Entity("OMarket.Domain.Entities.ProductBrand", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BrandName")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)")
+                        .HasAnnotation("MinLength", 1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandName");
+
+                    b.HasIndex("Id")
+                        .IsUnique();
+
+                    b.ToTable("ProductBrands", (string)null);
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.ProductType", b =>
@@ -493,6 +516,21 @@ namespace OMarket.Infrastructure.Migrations
                     b.ToTable("StoreAddresses", (string)null);
                 });
 
+            modelBuilder.Entity("ProductBrandProductUnderType", b =>
+                {
+                    b.Property<Guid>("ProductBrandsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProductUnderTypesId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ProductBrandsId", "ProductUnderTypesId");
+
+                    b.HasIndex("ProductUnderTypesId");
+
+                    b.ToTable("ProductBrandProductUnderType");
+                });
+
             modelBuilder.Entity("OMarket.Domain.Entities.Admin", b =>
                 {
                     b.HasOne("OMarket.Domain.Entities.AdminsCredentials", "AdminsCredentials")
@@ -597,6 +635,12 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Product", b =>
                 {
+                    b.HasOne("OMarket.Domain.Entities.ProductBrand", "ProductBrand")
+                        .WithMany("Products")
+                        .HasForeignKey("BrandId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("OMarket.Domain.Entities.ProductType", "ProductType")
                         .WithMany("Products")
                         .HasForeignKey("TypeId")
@@ -608,6 +652,8 @@ namespace OMarket.Infrastructure.Migrations
                         .HasForeignKey("UnderTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("ProductBrand");
 
                     b.Navigation("ProductType");
 
@@ -671,6 +717,21 @@ namespace OMarket.Infrastructure.Migrations
                     b.Navigation("City");
                 });
 
+            modelBuilder.Entity("ProductBrandProductUnderType", b =>
+                {
+                    b.HasOne("OMarket.Domain.Entities.ProductBrand", null)
+                        .WithMany()
+                        .HasForeignKey("ProductBrandsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OMarket.Domain.Entities.ProductUnderType", null)
+                        .WithMany()
+                        .HasForeignKey("ProductUnderTypesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("OMarket.Domain.Entities.Admin", b =>
                 {
                     b.Navigation("Store");
@@ -713,6 +774,11 @@ namespace OMarket.Infrastructure.Migrations
                     b.Navigation("DataStoreProducts");
 
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("OMarket.Domain.Entities.ProductBrand", b =>
+                {
+                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.ProductType", b =>

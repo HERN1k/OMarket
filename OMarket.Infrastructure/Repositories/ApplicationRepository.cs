@@ -1,9 +1,6 @@
 ﻿using System.Collections.Frozen;
 
-using AutoMapper;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
@@ -18,21 +15,13 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly ILogger<ApplicationRepository> _logger;
 
-        private readonly IDistributedCache _cache;
-
-        private readonly IMapper _mapper;
-
         public ApplicationRepository(
             IDbContextFactory<AppDBContext> contextFactory,
-            ILogger<ApplicationRepository> logger,
-            IDistributedCache cache,
-            IMapper mapper
+            ILogger<ApplicationRepository> logger
           )
         {
             _contextFactory = contextFactory;
             _logger = logger;
-            _cache = cache;
-            _mapper = mapper;
         }
 
         public List<ProductTypeDto> GetProductTypesWithInclusions()
@@ -52,13 +41,7 @@ namespace OMarket.Infrastructure.Repositories
                             {
                                 Id = underTypes.Id,
                                 UnderTypeName = underTypes.UnderTypeName,
-                                ProductTypeId = underTypes.ProductTypeId,
-                                ProductBrands = underTypes.ProductBrands
-                                    .Select(productBrand => new ProductBrandDto()
-                                    {
-                                        Id = productBrand.Id,
-                                        BrandName = productBrand.BrandName,
-                                    }).ToList()
+                                ProductTypeId = underTypes.ProductTypeId
                             }).ToList()
                     }).ToList();
             }
@@ -88,13 +71,7 @@ namespace OMarket.Infrastructure.Repositories
                             {
                                 Id = underTypes.Id,
                                 UnderTypeName = underTypes.UnderTypeName,
-                                ProductTypeId = underTypes.ProductTypeId,
-                                ProductBrands = underTypes.ProductBrands
-                                    .Select(productBrand => new ProductBrandDto()
-                                    {
-                                        Id = productBrand.Id,
-                                        BrandName = productBrand.BrandName,
-                                    }).ToList()
+                                ProductTypeId = underTypes.ProductTypeId
                             }).ToList()
                     }).ToListAsync(token);
             }
@@ -219,9 +196,64 @@ namespace OMarket.Infrastructure.Repositories
                         AddressId = store.AddressId,
                         CityId = store.CityId,
                         AdminId = store.AdminId,
-                        StoreTelegramChatId = store.StoreTelegramChatId,
                         PhoneNumber = store.PhoneNumber
                     }).ToFrozenSet();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public FrozenDictionary<int, string> GetAllOrderStatuses()
+        {
+            try
+            {
+                using AppDBContext context = _contextFactory.CreateDbContext();
+
+                int index = 0;
+
+                return context.OrderStatuses
+                    .AsNoTracking()
+                    .Select(status => status.Status)
+                    .ToFrozenDictionary(e => ++index, e => e);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public FrozenDictionary<Guid, string> GetAllOrderStatusesWithGuids()
+        {
+            try
+            {
+                using AppDBContext context = _contextFactory.CreateDbContext();
+
+                return context.OrderStatuses
+                    .AsNoTracking()
+                    .ToFrozenDictionary(e => e.Id, e => e.Status);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "{Message}", ex.Message);
+                throw;
+            }
+        }
+
+        public FrozenDictionary<Guid, ProductFullNameWithPrice> GetAllProductGuidWithFullNameAndPrice()
+        {
+            try
+            {
+                using AppDBContext context = _contextFactory.CreateDbContext();
+
+                return context.Products
+                    .AsNoTracking()
+                    .ToFrozenDictionary(e => e.Id, e => new ProductFullNameWithPrice(
+                        FullName: $"{e.Name}, {e.Dimensions}",
+                        Price: e.Price));
             }
             catch (Exception ex)
             {
