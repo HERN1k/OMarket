@@ -1,6 +1,8 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 
+using OMarket.Helpers.Utilities;
+
 namespace OMarket.Helpers.Extensions
 {
     public static class StringExtensions
@@ -31,6 +33,31 @@ namespace OMarket.Helpers.Extensions
         public static string TrimTelegramCallbackText(this string input)
         {
             return input.Length >= 200 ? input[..190] + "... (Message too long)" : input;
+        }
+
+        public static string FormattedExceptionStatus(this string input)
+        {
+            string message = input.Replace('_', ' ');
+
+            return message[0] + message.Substring(1).ToLower() + '.';
+        }
+
+        public static string FormattedPhoneNumber(this string input)
+        {
+            string formattedPhoneNumber = Regex.Replace(
+                    input: input,
+                    pattern: RegexPatterns.PhoneNumberFormattingPattern,
+                    replacement: string.Empty);
+
+            formattedPhoneNumber = '+' + formattedPhoneNumber;
+
+            if (formattedPhoneNumber.Length <= 32 &&
+                !formattedPhoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
+            {
+                return string.Empty;
+            }
+
+            return formattedPhoneNumber;
         }
     }
 }

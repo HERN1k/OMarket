@@ -18,7 +18,7 @@ namespace OMarket.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Login = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
-                    Hash = table.Column<string>(type: "char(64)", nullable: false)
+                    Hash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -35,6 +35,19 @@ namespace OMarket.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AdminsPermissions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AdminTokens",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AdminId = table.Column<Guid>(type: "uuid", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdminTokens", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -62,18 +75,6 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductBrands",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    BrandName = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductBrands", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductTypes",
                 columns: table => new
                 {
@@ -86,38 +87,13 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StoreAddresses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Address = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false),
-                    Latitude = table.Column<decimal>(type: "numeric(9,6)", nullable: false),
-                    Longitude = table.Column<decimal>(type: "numeric(9,6)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StoreAddresses", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StoreTelegramChats",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ChatId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_StoreTelegramChats", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Admins",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     PermissionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CredentialsId = table.Column<Guid>(type: "uuid", nullable: false)
+                    CredentialsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TgAccountId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -127,13 +103,13 @@ namespace OMarket.Infrastructure.Migrations
                         column: x => x.CredentialsId,
                         principalTable: "AdminsCredentials",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Admins_AdminsPermissions_PermissionId",
                         column: x => x.PermissionId,
                         principalTable: "AdminsPermissions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -152,7 +128,7 @@ namespace OMarket.Infrastructure.Migrations
                         column: x => x.ProductTypeId,
                         principalTable: "ProductTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -162,9 +138,9 @@ namespace OMarket.Infrastructure.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     AddressId = table.Column<Guid>(type: "uuid", nullable: false),
                     CityId = table.Column<Guid>(type: "uuid", nullable: false),
-                    AdminId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StoreTelegramChatId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PhoneNumber = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: false)
+                    AdminId = table.Column<Guid>(type: "uuid", nullable: true),
+                    TgChatId = table.Column<long>(type: "bigint", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,47 +150,11 @@ namespace OMarket.Infrastructure.Migrations
                         column: x => x.AdminId,
                         principalTable: "Admins",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Stores_Cities_CityId",
                         column: x => x.CityId,
                         principalTable: "Cities",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Stores_StoreAddresses_AddressId",
-                        column: x => x.AddressId,
-                        principalTable: "StoreAddresses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Stores_StoreTelegramChats_StoreTelegramChatId",
-                        column: x => x.StoreTelegramChatId,
-                        principalTable: "StoreTelegramChats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ProductBrandProductUnderType",
-                columns: table => new
-                {
-                    ProductBrandsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ProductUnderTypesId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductBrandProductUnderType", x => new { x.ProductBrandsId, x.ProductUnderTypesId });
-                    table.ForeignKey(
-                        name: "FK_ProductBrandProductUnderType_ProductBrands_ProductBrandsId",
-                        column: x => x.ProductBrandsId,
-                        principalTable: "ProductBrands",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ProductBrandProductUnderType_ProductUnderTypes_ProductUnder~",
-                        column: x => x.ProductUnderTypesId,
-                        principalTable: "ProductUnderTypes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -228,7 +168,6 @@ namespace OMarket.Infrastructure.Migrations
                     PhotoUri = table.Column<string>(type: "varchar(128)", maxLength: 128, nullable: false),
                     TypeId = table.Column<Guid>(type: "uuid", nullable: false),
                     UnderTypeId = table.Column<Guid>(type: "uuid", nullable: false),
-                    BrandId = table.Column<Guid>(type: "uuid", nullable: false),
                     Price = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
                     Dimensions = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true),
                     Description = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true)
@@ -237,23 +176,17 @@ namespace OMarket.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Products_ProductBrands_BrandId",
-                        column: x => x.BrandId,
-                        principalTable: "ProductBrands",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_Products_ProductTypes_TypeId",
                         column: x => x.TypeId,
                         principalTable: "ProductTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Products_ProductUnderTypes_UnderTypeId",
                         column: x => x.UnderTypeId,
                         principalTable: "ProductUnderTypes",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -265,10 +198,12 @@ namespace OMarket.Infrastructure.Migrations
                     Username = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true),
                     FirstName = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
                     LastName = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: true),
-                    PhoneNumber = table.Column<string>(type: "varchar(16)", maxLength: 16, nullable: true),
+                    PhoneNumber = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: true),
                     IsBot = table.Column<bool>(type: "boolean", nullable: false),
                     StoreId = table.Column<Guid>(type: "uuid", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    BlockedOrders = table.Column<bool>(type: "boolean", nullable: false),
+                    BlockedReviews = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -278,6 +213,27 @@ namespace OMarket.Infrastructure.Migrations
                         column: x => x.StoreId,
                         principalTable: "Stores",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StoreAddresses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Address = table.Column<string>(type: "varchar(256)", maxLength: 256, nullable: false),
+                    Latitude = table.Column<decimal>(type: "numeric(9,6)", nullable: false),
+                    Longitude = table.Column<decimal>(type: "numeric(9,6)", nullable: false),
+                    StoreId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StoreAddresses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StoreAddresses_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -321,6 +277,7 @@ namespace OMarket.Infrastructure.Migrations
                     CustomerId = table.Column<long>(type: "bigint", nullable: false),
                     StoreId = table.Column<Guid>(type: "uuid", nullable: false),
                     TotalAmount = table.Column<decimal>(type: "numeric(10,2)", nullable: false),
+                    DeliveryMethod = table.Column<string>(type: "varchar(64)", nullable: false),
                     StatusId = table.Column<Guid>(type: "uuid", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -332,19 +289,46 @@ namespace OMarket.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Orders_OrderStatuses_StatusId",
                         column: x => x.StatusId,
                         principalTable: "OrderStatuses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_Orders_Stores_StoreId",
                         column: x => x.StoreId,
                         principalTable: "Stores",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Text = table.Column<string>(type: "varchar(512)", nullable: false),
+                    CustomerId = table.Column<long>(type: "bigint", nullable: false),
+                    StoreId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Customers_CustomerId",
+                        column: x => x.CustomerId,
+                        principalTable: "Customers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -399,8 +383,26 @@ namespace OMarket.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_AdminsCredentials_Login",
+                table: "AdminsCredentials",
+                column: "Login",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AdminsPermissions_Id",
                 table: "AdminsPermissions",
+                column: "Id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AdminTokens_AdminId",
+                table: "AdminTokens",
+                column: "AdminId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AdminTokens_Id",
+                table: "AdminTokens",
                 column: "Id",
                 unique: true);
 
@@ -496,27 +498,6 @@ namespace OMarket.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProductBrandProductUnderType_ProductUnderTypesId",
-                table: "ProductBrandProductUnderType",
-                column: "ProductUnderTypesId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductBrands_BrandName",
-                table: "ProductBrands",
-                column: "BrandName");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductBrands_Id",
-                table: "ProductBrands",
-                column: "Id",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_BrandId",
-                table: "Products",
-                column: "BrandId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Products_Id",
                 table: "Products",
                 column: "Id",
@@ -565,16 +546,42 @@ namespace OMarket.Infrastructure.Migrations
                 column: "UnderTypeName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reviews_CreatedAt",
+                table: "Reviews",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_CustomerId",
+                table: "Reviews",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_Id",
+                table: "Reviews",
+                column: "Id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_StoreId",
+                table: "Reviews",
+                column: "StoreId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StoreAddresses_Id",
                 table: "StoreAddresses",
                 column: "Id",
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_StoreAddresses_StoreId",
+                table: "StoreAddresses",
+                column: "StoreId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Stores_AddressId",
                 table: "Stores",
-                column: "AddressId",
-                unique: true);
+                column: "AddressId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Stores_AdminId",
@@ -592,28 +599,14 @@ namespace OMarket.Infrastructure.Migrations
                 table: "Stores",
                 column: "Id",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Stores_StoreTelegramChatId",
-                table: "Stores",
-                column: "StoreTelegramChatId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StoreTelegramChats_ChatId",
-                table: "StoreTelegramChats",
-                column: "ChatId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StoreTelegramChats_Id",
-                table: "StoreTelegramChats",
-                column: "Id",
-                unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AdminTokens");
+
             migrationBuilder.DropTable(
                 name: "DataStoreProducts");
 
@@ -621,7 +614,10 @@ namespace OMarket.Infrastructure.Migrations
                 name: "OrderItems");
 
             migrationBuilder.DropTable(
-                name: "ProductBrandProductUnderType");
+                name: "Reviews");
+
+            migrationBuilder.DropTable(
+                name: "StoreAddresses");
 
             migrationBuilder.DropTable(
                 name: "Orders");
@@ -634,9 +630,6 @@ namespace OMarket.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "OrderStatuses");
-
-            migrationBuilder.DropTable(
-                name: "ProductBrands");
 
             migrationBuilder.DropTable(
                 name: "ProductUnderTypes");
@@ -652,12 +645,6 @@ namespace OMarket.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Cities");
-
-            migrationBuilder.DropTable(
-                name: "StoreAddresses");
-
-            migrationBuilder.DropTable(
-                name: "StoreTelegramChats");
 
             migrationBuilder.DropTable(
                 name: "AdminsCredentials");

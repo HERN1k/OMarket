@@ -14,6 +14,8 @@ namespace OMarket.Domain.Entities
 
         public decimal Longitude { get; set; }
 
+        public Guid StoreId { get; set; }
+
         public virtual Store Store { get; set; }
     }
 }

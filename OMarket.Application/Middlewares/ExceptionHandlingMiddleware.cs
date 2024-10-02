@@ -1,12 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-using OMarket.Domain.Exceptions.Telegram;
-using OMarket.Domain.Interfaces.Application.Services.Bot;
-using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
-using OMarket.Domain.Interfaces.Application.Services.Translator;
-
-using Telegram.Bot;
-using Telegram.Bot.Types.Enums;
+using OMarket.Domain.DTOs;
+using OMarket.Domain.Exceptions.App;
+using OMarket.Helpers.Extensions;
+using OMarket.Helpers.Utilities;
 
 namespace OMarket.Application.Middlewares
 {
@@ -14,146 +12,85 @@ namespace OMarket.Application.Middlewares
     {
         private readonly RequestDelegate _next;
 
-        private readonly ITelegramBotClient _client;
+        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, IBotService bot)
+        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
         {
             _next = next;
-            _client = bot.Client;
+            _logger = logger;
         }
 
-        public async Task InvokeAsync(HttpContext context, IUpdateManager updateManager, II18nService i18n)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
                 await _next(context);
             }
-            catch (TelegramException ex)
+            catch (OperationCanceledException)
             {
-                await HandleTelegramExceptionAsync(context, ex, updateManager, i18n);
-                return;
-            }
-            catch (Exception)
-            {
-                await HandleExceptionAsync(context, updateManager, i18n);
-                return;
-            }
-        }
+                context.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
 
-        private async Task HandleTelegramExceptionAsync(HttpContext context, TelegramException exception, IUpdateManager updateManager, II18nService i18n)
-        {
-            if (updateManager.Update is null)
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.OperationCanceled, ExceptionStatus.OperationCanceled.FormattedExceptionStatus()));
+
+                return;
+            }
+            catch (ForbiddenAccessException ex)
             {
                 context.Response.StatusCode = StatusCodes.Status200OK;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync("{\"status\":\"error\",\"message\":\"Exception\"}");
-                return;
-            }
 
-            string exceptionMessage = i18n.T("exception_main");
-
-            if (!string.IsNullOrEmpty(exception.ExceptionMessage))
-            {
-                exceptionMessage = i18n.T(exception.ExceptionMessage);
-            }
-
-            if (exception.Buttons is not null)
-            {
-                if (updateManager.Update.Type == UpdateType.Message)
-                {
-                    if (updateManager.Update.Message is not null)
-                    {
-                        await _client.SendTextMessageAsync(
-                        chatId: updateManager.Update.Message.Chat.Id,
-                        text: exceptionMessage,
-                        replyMarkup: exception.Buttons,
-                        parseMode: ParseMode.Html
-                      );
-                    }
-                }
-                else if (updateManager.Update.Type == UpdateType.CallbackQuery)
-                {
-                    if (updateManager.Update.CallbackQuery is not null)
-                    {
-                        if (updateManager.Update.CallbackQuery.Message is not null)
-                        {
-                            await _client.SendTextMessageAsync(
-                              chatId: updateManager.Update.CallbackQuery.Message.Chat.Id,
-                              text: exceptionMessage,
-                              replyMarkup: exception.Buttons,
-                              parseMode: ParseMode.Html
-                            );
-
-                            await _client.AnswerCallbackQueryAsync(updateManager.Update.CallbackQuery.Id);
-                        }
-                    }
-                }
-
-                context.Response.StatusCode = StatusCodes.Status200OK;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync("{\"status\":\"error\",\"message\":\"Exception\"}");
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.ForbiddenAccess, ex.Message ?? ExceptionStatus.ForbiddenAccess.FormattedExceptionStatus()));
 
                 return;
             }
-
-            if (updateManager.Update.Type == UpdateType.Message)
+            catch (UnauthorizedAccessException ex)
             {
-                if (updateManager.Update.Message is not null)
-                {
-                    await _client.SendTextMessageAsync(updateManager.Update.Message.Chat.Id, exceptionMessage);
-                }
-            }
-            else if (updateManager.Update.Type == UpdateType.CallbackQuery)
-            {
-                if (updateManager.Update.CallbackQuery is not null)
-                {
-                    if (updateManager.Update.CallbackQuery.Message is not null)
-                    {
-                        await _client.SendTextMessageAsync(updateManager.Update.CallbackQuery.Message.Chat.Id, exceptionMessage);
-                    }
-                    await _client.AnswerCallbackQueryAsync(updateManager.Update.CallbackQuery.Id);
-                }
-            }
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
 
-            context.Response.StatusCode = StatusCodes.Status200OK;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("{\"status\":\"error\",\"message\":\"Exception\"}");
-        }
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.UnauthorizedAccess, ex.Message ?? ExceptionStatus.UnauthorizedAccess.FormattedExceptionStatus()));
 
-        private async Task HandleExceptionAsync(HttpContext context, IUpdateManager updateManager, II18nService i18n)
-        {
-            if (updateManager.Update is null)
+                return;
+            }
+            catch (ArgumentNullException ex)
             {
                 context.Response.StatusCode = StatusCodes.Status200OK;
-                context.Response.ContentType = "application/json";
-                await context.Response.WriteAsync("{\"status\":\"error\",\"message\":\"Exception\"}");
+
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.ArgumentNull, ex.Message ?? ExceptionStatus.ArgumentNull.FormattedExceptionStatus()));
+
                 return;
             }
-
-            string exceptionMessage = i18n.T("exception_main");
-
-            if (updateManager.Update.Type == UpdateType.Message)
+            catch (ArgumentException ex)
             {
-                if (updateManager.Update.Message is not null)
-                {
-                    await _client.SendTextMessageAsync(updateManager.Update.Message.Chat.Id, exceptionMessage);
-                }
-            }
-            else if (updateManager.Update.Type == UpdateType.CallbackQuery)
-            {
-                if (updateManager.Update.CallbackQuery is not null)
-                {
-                    if (updateManager.Update.CallbackQuery.Message is not null)
-                    {
-                        await _client.SendTextMessageAsync(updateManager.Update.CallbackQuery.Message.Chat.Id, exceptionMessage);
-                    }
-                    await _client.AnswerCallbackQueryAsync(updateManager.Update.CallbackQuery.Id);
-                }
-            }
+                context.Response.StatusCode = StatusCodes.Status200OK;
 
-            context.Response.StatusCode = StatusCodes.Status200OK;
-            context.Response.ContentType = "application/json";
-            await context.Response.WriteAsync("{\"status\":\"error\",\"message\":\"Exception\"}");
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.Argument, ex.Message ?? ExceptionStatus.Argument.FormattedExceptionStatus()));
+
+                return;
+            }
+            catch (ApplicationException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status200OK;
+
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.Application, ex.Message ?? ExceptionStatus.Application.FormattedExceptionStatus()));
+
+                return;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Critical error occurred: {Message}", ex.Message);
+
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+                await context.Response.WriteAsJsonAsync(new ExceptionResult(
+                    ExceptionStatus.Critical, ExceptionStatus.Critical.FormattedExceptionStatus()));
+
+                return;
+            }
         }
     }
 }

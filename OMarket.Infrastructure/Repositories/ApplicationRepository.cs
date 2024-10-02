@@ -52,34 +52,24 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<ProductTypeDto>> GetProductTypesWithInclusionsAsync(CancellationToken token)
+        public async Task<List<ProductTypeDto>> GetProductTypesWithInclusionsAsync()
         {
-            token.ThrowIfCancellationRequested();
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
 
-            try
-            {
-                await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
-
-                return await context.ProductTypes
-                    .AsNoTracking()
-                    .Select(type => new ProductTypeDto()
-                    {
-                        Id = type.Id,
-                        TypeName = type.TypeName,
-                        ProductUnderTypes = type.ProductUnderTypes
-                            .Select(underTypes => new ProductUnderTypeDto()
-                            {
-                                Id = underTypes.Id,
-                                UnderTypeName = underTypes.UnderTypeName,
-                                ProductTypeId = underTypes.ProductTypeId
-                            }).ToList()
-                    }).ToListAsync(token);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "{Message}", ex.Message);
-                throw;
-            }
+            return await context.ProductTypes
+                .AsNoTracking()
+                .Select(type => new ProductTypeDto()
+                {
+                    Id = type.Id,
+                    TypeName = type.TypeName,
+                    ProductUnderTypes = type.ProductUnderTypes
+                        .Select(underTypes => new ProductUnderTypeDto()
+                        {
+                            Id = underTypes.Id,
+                            UnderTypeName = underTypes.UnderTypeName,
+                            ProductTypeId = underTypes.ProductTypeId
+                        }).ToList()
+                }).ToListAsync();
         }
 
         public FrozenDictionary<string, StoreAddressWithCityDto> GetAllCitiesWithStoreAddresses()
@@ -90,6 +80,8 @@ namespace OMarket.Infrastructure.Repositories
 
                 var result = context.StoreAddresses
                     .AsNoTracking()
+                    .Include(storeAddress => storeAddress.Store)
+                        .ThenInclude(store => store.City)
                     .Select(storeAddress => new
                     {
                         Guid = storeAddress.Store.Id.ToString(),
@@ -118,6 +110,38 @@ namespace OMarket.Infrastructure.Repositories
                 _logger.LogError(ex, "{Message}", ex.Message);
                 throw;
             }
+        }
+
+        public async Task<FrozenDictionary<string, StoreAddressWithCityDto>> GetAllCitiesWithStoreAddressesAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            var result = await context.StoreAddresses
+                .AsNoTracking()
+                .Include(storeAddress => storeAddress.Store)
+                    .ThenInclude(store => store.City)
+                .Select(storeAddress => new
+                {
+                    Guid = storeAddress.Store.Id.ToString(),
+                    GuidId = storeAddress.Id,
+                    Address = storeAddress.Address,
+                    City = storeAddress.Store.City.CityName,
+                    Latitude = storeAddress.Latitude,
+                    Longitude = storeAddress.Longitude,
+                    StoreId = storeAddress.Store.Id
+                }).ToArrayAsync();
+
+            return result.ToFrozenDictionary(
+                item => item.Guid,
+                item => new StoreAddressWithCityDto()
+                {
+                    Id = item.GuidId,
+                    City = item.City,
+                    Address = item.Address,
+                    Latitude = item.Latitude,
+                    Longitude = item.Longitude,
+                    StoreId = item.StoreId
+                });
         }
 
         public (FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid) GetProductsUnderTypes()
@@ -151,6 +175,29 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
+        public async Task<(FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid)> GetProductsUnderTypesAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            var result = await context.ProductUnderTypes
+                .AsNoTracking()
+                .Select(underType => new
+                {
+                    Guid = underType.Id.ToString(),
+                    String = underType.UnderTypeName
+                }).ToArrayAsync();
+
+            FrozenDictionary<string, string> GuidToString = result.ToFrozenDictionary(
+                underType => underType.Guid,
+                underType => underType.String);
+
+            FrozenDictionary<string, string> StringToGuid = result.ToFrozenDictionary(
+                underType => underType.String,
+                underType => underType.Guid);
+
+            return (GuidToString, StringToGuid);
+        }
+
         public (FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid) GetProductsTypesWithoutInclusions()
         {
             try
@@ -182,6 +229,29 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
+        public async Task<(FrozenDictionary<string, string> GuidToString, FrozenDictionary<string, string> StringToGuid)> GetProductsTypesWithoutInclusionsAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            var result = await context.ProductTypes
+                .AsNoTracking()
+                .Select(type => new
+                {
+                    Guid = type.Id.ToString(),
+                    String = type.TypeName
+                }).ToArrayAsync();
+
+            FrozenDictionary<string, string> GuidToString = result.ToFrozenDictionary(
+                underType => underType.Guid,
+                underType => underType.String);
+
+            FrozenDictionary<string, string> StringToGuid = result.ToFrozenDictionary(
+                underType => underType.String,
+                underType => underType.Guid);
+
+            return (GuidToString, StringToGuid);
+        }
+
         public FrozenSet<StoreDto> GetAllStores()
         {
             try
@@ -206,6 +276,24 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
+        public async Task<FrozenSet<StoreDto>> GetAllStoresAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            var stores = await context.Stores
+                .AsNoTracking()
+                .Select(store => new StoreDto()
+                {
+                    Id = store.Id,
+                    AddressId = store.AddressId,
+                    CityId = store.CityId,
+                    AdminId = store.AdminId,
+                    PhoneNumber = store.PhoneNumber
+                }).ToArrayAsync();
+
+            return stores.ToFrozenSet();
+        }
+
         public FrozenDictionary<int, string> GetAllOrderStatuses()
         {
             try
@@ -226,6 +314,20 @@ namespace OMarket.Infrastructure.Repositories
             }
         }
 
+        public async Task<FrozenDictionary<int, string>> GetAllOrderStatusesAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            int index = 0;
+
+            var orderStatuses = await context.OrderStatuses
+                .AsNoTracking()
+                .Select(status => status.Status)
+                .ToDictionaryAsync(e => ++index, e => e);
+
+            return orderStatuses.ToFrozenDictionary();
+        }
+
         public FrozenDictionary<Guid, string> GetAllOrderStatusesWithGuids()
         {
             try
@@ -241,6 +343,17 @@ namespace OMarket.Infrastructure.Repositories
                 _logger.LogError(ex, "{Message}", ex.Message);
                 throw;
             }
+        }
+
+        public async Task<FrozenDictionary<Guid, string>> GetAllOrderStatusesWithGuidsAsync()
+        {
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            var orderStatuses = await context.OrderStatuses
+                .AsNoTracking()
+                .ToDictionaryAsync(e => e.Id, e => e.Status);
+
+            return orderStatuses.ToFrozenDictionary();
         }
 
         public FrozenDictionary<Guid, ProductFullNameWithPrice> GetAllProductGuidWithFullNameAndPrice()

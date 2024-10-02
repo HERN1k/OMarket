@@ -28,19 +28,17 @@ namespace OMarket.Infrastructure.Extensions
                 .GetRequiredService<IOptions<DatabaseInitialDataSettings>>().Value;
 
             #region Entities collections
-            HashSet<City> citySet = new();
+            //HashSet<City> citySet = new();
 
-            HashSet<StoreAddress> storeAddressesSet = new();
+            //HashSet<StoreAddress> storeAddressesSet = new();
 
             HashSet<AdminsPermission> adminsPermissionsSet = new();
 
-            HashSet<AdminsCredentials> adminsCredentialsSet = new();
-
-            Dictionary<string, Admin> adminsDictionary = new();
+            (string Login, string Hash) admin = new();
 
             HashSet<OrderStatus> orderStatusesSet = new();
 
-            HashSet<Store> storesSet = new();
+            //HashSet<Store> storesSet = new();
 
             HashSet<ProductType> productTypesSet = new();
             #endregion
@@ -49,26 +47,26 @@ namespace OMarket.Infrastructure.Extensions
             if (initialData.Initialize)
             {
                 #region Mapping cities entities
-                foreach (string item in initialData.Cities)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item, nameof(item));
+                //foreach (string item in initialData.Cities)
+                //{
+                //    ArgumentException.ThrowIfNullOrEmpty(item, nameof(item));
 
-                    citySet.Add(new City() { CityName = item });
-                }
+                //    citySet.Add(new City() { CityName = item });
+                //}
                 #endregion
 
                 #region Mapping store addresses entities
-                foreach (StoreAddresses item in initialData.StoreAddresses)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
+                //foreach (StoreAddresses item in initialData.StoreAddresses)
+                //{
+                //    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
 
-                    storeAddressesSet.Add(new StoreAddress()
-                    {
-                        Address = item.Address,
-                        Latitude = item.Latitude,
-                        Longitude = item.Longitude
-                    });
-                }
+                //    storeAddressesSet.Add(new StoreAddress()
+                //    {
+                //        Address = item.Address,
+                //        Latitude = item.Latitude,
+                //        Longitude = item.Longitude
+                //    });
+                //}
                 #endregion
 
                 #region Mapping admins permissions entities
@@ -83,27 +81,14 @@ namespace OMarket.Infrastructure.Extensions
                 #region Mapping admins credentials and admins entities
                 foreach (Admins item in initialData.Admins)
                 {
-                    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
-                    ArgumentException.ThrowIfNullOrEmpty(item.Permission, nameof(item.Permission));
                     ArgumentException.ThrowIfNullOrEmpty(item.Login, nameof(item.Login));
                     ArgumentException.ThrowIfNullOrEmpty(item.Hash, nameof(item.Hash));
 
-                    AdminsCredentials credentials = new()
-                    {
-                        Login = item.Login,
-                        Hash = item.Hash
-                    };
+                    string hash = BCrypt.Net.BCrypt
+                        .EnhancedHashPassword(item.Hash, 12, BCrypt.Net.HashType.SHA256);
 
-                    adminsCredentialsSet.Add(credentials);
-
-                    adminsDictionary.Add(item.Address, new Admin()
-                    {
-                        AdminsPermission = adminsPermissionsSet
-                            .SingleOrDefault(e => e.Permission == item.Permission)
-                                ?? throw new ArgumentException("Incorrect permission name.", nameof(item.Permission)),
-
-                        AdminsCredentials = credentials
-                    });
+                    admin.Login = item.Login;
+                    admin.Hash = hash;
                 }
                 #endregion
 
@@ -117,26 +102,23 @@ namespace OMarket.Infrastructure.Extensions
                 #endregion
 
                 #region Mapping stores entities
-                foreach (Stores item in initialData.Stores)
-                {
-                    ArgumentException.ThrowIfNullOrEmpty(item.PhoneNumber, nameof(item.PhoneNumber));
-                    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
-                    ArgumentException.ThrowIfNullOrEmpty(item.City, nameof(item.City));
+                //foreach (Stores item in initialData.Stores)
+                //{
+                //    ArgumentException.ThrowIfNullOrEmpty(item.PhoneNumber, nameof(item.PhoneNumber));
+                //    ArgumentException.ThrowIfNullOrEmpty(item.Address, nameof(item.Address));
+                //    ArgumentException.ThrowIfNullOrEmpty(item.City, nameof(item.City));
 
-                    storesSet.Add(new Store()
-                    {
-                        Address = storeAddressesSet.SingleOrDefault(e => e.Address == item.Address)
-                            ?? throw new ArgumentException("Incorrect address name.", nameof(item.Address)),
+                //    storesSet.Add(new Store()
+                //    {
+                //        Address = storeAddressesSet.SingleOrDefault(e => e.Address == item.Address)
+                //            ?? throw new ArgumentException("Incorrect address name.", nameof(item.Address)),
 
-                        City = citySet.SingleOrDefault(e => e.CityName == item.City)
-                            ?? throw new ArgumentException("Incorrect city name.", nameof(item.City)),
+                //        City = citySet.SingleOrDefault(e => e.CityName == item.City)
+                //            ?? throw new ArgumentException("Incorrect city name.", nameof(item.City)),
 
-                        Admin = adminsDictionary.SingleOrDefault(e => e.Key == item.Address).Value
-                            ?? throw new ArgumentException("Incorrect address name.", nameof(item.Address)),
-
-                        PhoneNumber = item.PhoneNumber
-                    });
-                }
+                //        PhoneNumber = item.PhoneNumber
+                //    });
+                //}
                 #endregion
 
                 #region Mapping product types entities
@@ -175,23 +157,24 @@ namespace OMarket.Infrastructure.Extensions
 
             try
             {
-                using AppDBContext context = contextFactory.CreateDbContext();
-
-                context.Database.Migrate();
+                Migrate(contextFactory);
 
                 #region Save entities collection
                 if (initialData.Initialize)
                 {
-                    context.Cities.AddRange(citySet);
-                    context.StoreAddresses.AddRange(storeAddressesSet);
-                    context.AdminsPermissions.AddRange(adminsPermissionsSet);
-                    context.AdminsCredentials.AddRange(adminsCredentialsSet);
-                    context.Admins.AddRange(adminsDictionary.Values);
-                    context.OrderStatuses.AddRange(orderStatusesSet);
-                    context.Stores.AddRange(storesSet);
-                    context.ProductTypes.AddRange(productTypesSet);
+                    CreateNewEntities(
+                        contextFactory,
+                        //citySet,
+                        //storeAddressesSet,
+                        adminsPermissionsSet,
+                        orderStatusesSet,
+                        //storesSet,
+                        productTypesSet);
 
-                    context.SaveChanges();
+                    ArgumentException.ThrowIfNullOrEmpty(admin.Login, nameof(admin.Login));
+                    ArgumentException.ThrowIfNullOrEmpty(admin.Hash, nameof(admin.Hash));
+
+                    SaveNewSuperAdmin(contextFactory, admin.Login, admin.Hash);
                 }
                 #endregion
             }
@@ -202,6 +185,78 @@ namespace OMarket.Infrastructure.Extensions
             }
 
             logger.LogInformation("Database migration completed");
+        }
+
+        public static void Migrate(IDbContextFactory<AppDBContext> contextFactory)
+        {
+            using AppDBContext context = contextFactory.CreateDbContext();
+
+            context.Database.Migrate();
+
+            context.SaveChanges();
+        }
+
+        public static void CreateNewEntities(
+            IDbContextFactory<AppDBContext> contextFactory,
+            //HashSet<City> citySet,
+            //HashSet<StoreAddress> storeAddressesSet,
+            HashSet<AdminsPermission> adminsPermissionsSet,
+            HashSet<OrderStatus> orderStatusesSet,
+            //HashSet<Store> storesSet,
+            HashSet<ProductType> productTypesSet)
+        {
+            using AppDBContext context = contextFactory.CreateDbContext();
+
+            //context.Cities.AddRange(citySet);
+            //context.StoreAddresses.AddRange(storeAddressesSet);
+            context.AdminsPermissions.AddRange(adminsPermissionsSet);
+            context.OrderStatuses.AddRange(orderStatusesSet);
+            //context.Stores.AddRange(storesSet);
+            context.ProductTypes.AddRange(productTypesSet);
+
+            context.SaveChanges();
+        }
+
+        public static void SaveNewSuperAdmin(IDbContextFactory<AppDBContext> contextFactory, string login, string hash)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(login, nameof(login));
+            ArgumentException.ThrowIfNullOrEmpty(hash, nameof(hash));
+
+            using AppDBContext context = contextFactory.CreateDbContext();
+
+            bool isNewSuperAdmin = context.Admins
+                .Where(admin => admin.AdminsPermission.Permission == "SuperAdmin")
+                .Any();
+
+            bool isNewAdminLogin = context.Admins
+                .Where(admin => admin.AdminsCredentials.Login == login)
+                .Any();
+
+            if (isNewAdminLogin || isNewSuperAdmin)
+            {
+                return;
+            }
+
+            AdminsPermission? adminPermission = context.AdminsPermissions
+                .Where(permission => permission.Permission == "SuperAdmin")
+                .SingleOrDefault();
+
+            if (adminPermission is null)
+            {
+                return;
+            }
+
+            AdminsCredentials adminCredentials = new() { Login = login, Hash = hash };
+
+            Admin admin = new()
+            {
+                AdminsPermission = adminPermission,
+                AdminsCredentials = adminCredentials
+            };
+
+            context.Add(admin);
+
+            context.SaveChanges();
         }
     }
 }

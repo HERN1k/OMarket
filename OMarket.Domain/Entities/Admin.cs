@@ -1,7 +1,5 @@
 ﻿using OMarket.Domain.Interfaces.Domain.Entities;
 
-#nullable disable
-
 namespace OMarket.Domain.Entities
 {
     public class Admin : IEntity
@@ -14,10 +12,10 @@ namespace OMarket.Domain.Entities
 
         public long? TgAccountId { get; set; }
 
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
-        public virtual AdminsPermission AdminsPermission { get; set; }
+        public virtual AdminsPermission AdminsPermission { get; set; } = null!;
 
-        public virtual AdminsCredentials AdminsCredentials { get; set; }
+        public virtual AdminsCredentials AdminsCredentials { get; set; } = null!;
     }
 }

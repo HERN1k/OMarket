@@ -18,37 +18,39 @@ namespace OMarket.Application.Services.StaticCollections
     {
         public FrozenDictionary<TgCommands, Type> CommandsDictionary { get; init; }
 
-        public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; init; }
+        public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; private set; }
 
-        public FrozenSet<StoreDto> StoresSet { get; init; }
+        public FrozenSet<StoreDto> StoresSet { get; private set; }
 
-        public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; init; }
+        public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; private set; }
 
-        public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; init; }
+        public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; private set; }
 
-        public FrozenDictionary<string, string> StringToGuidProductsTypesDictionary { get; init; }
+        public FrozenDictionary<string, string> StringToGuidProductsTypesDictionary { get; private set; }
 
-        public FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; init; }
+        public FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; private set; }
 
-        public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; init; }
+        public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; private set; }
 
-        public FrozenDictionary<int, string> OrderStatusesDictionary { get; init; }
+        public FrozenDictionary<int, string> OrderStatusesDictionary { get; private set; }
 
-        public FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; init; }
+        public FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; private set; }
 
-        public FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; init; }
+        public FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; private set; }
 
         private readonly IApplicationRepository _appRepository;
 
         private readonly ILogger<StaticCollectionsService> _logger;
+
+        private readonly object _lock = new object();
 
         public StaticCollectionsService(
                 IApplicationRepository appRepository,
                 ILogger<StaticCollectionsService> logger
             )
         {
-            _appRepository = appRepository;
-            _logger = logger;
+            _appRepository = appRepository ?? throw new ArgumentNullException(nameof(appRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _logger.LogInformation("Starting initialization static collections...");
 
@@ -80,6 +82,45 @@ namespace OMarket.Application.Services.StaticCollections
             _logger.LogInformation("Static collections have been successfully initialized.");
         }
 
+        public async Task UpdateStaticCollectionsAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Updating static collections...");
+
+                var allProductsTypesDictionary = await MapAllProductsTypesAsync();
+                var storesSet = await _appRepository.GetAllStoresAsync();
+                var citiesWithStoreAddressesDictionary = await _appRepository
+                    .GetAllCitiesWithStoreAddressesAsync();
+                (FrozenDictionary<string, string> GuidToStringTypes, FrozenDictionary<string, string> StringToGuidTypes) =
+                    await _appRepository.GetProductsTypesWithoutInclusionsAsync();
+                (FrozenDictionary<string, string> GuidToStringUnderTypes, FrozenDictionary<string, string> StringToGuidUnderTypes) =
+                    await _appRepository.GetProductsUnderTypesAsync();
+                var orderStatusesDictionary = await _appRepository.GetAllOrderStatusesAsync();
+                var orderStatusesWithGuidDictionary = await _appRepository.GetAllOrderStatusesWithGuidsAsync();
+
+                lock (_lock)
+                {
+                    AllProductsTypesDictionary = allProductsTypesDictionary;
+                    StoresSet = storesSet;
+                    CitiesWithStoreAddressesDictionary = citiesWithStoreAddressesDictionary;
+                    GuidToStringProductsTypesDictionary = GuidToStringTypes;
+                    StringToGuidProductsTypesDictionary = StringToGuidTypes;
+                    GuidToStringUnderTypesDictionary = GuidToStringUnderTypes;
+                    StringToGuidUnderTypesDictionary = StringToGuidUnderTypes;
+                    OrderStatusesDictionary = orderStatusesDictionary;
+                    OrderStatusesWithGuidDictionary = orderStatusesWithGuidDictionary;
+                }
+
+                _logger.LogInformation("Static collections have been successfully updated.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogCritical(ex, "Static collections critical exception: {Message}\nStackTrace: {StackTrace}", [ex.Message, ex.StackTrace]);
+                throw new ApplicationException();
+            }
+        }
+
         private FrozenDictionary<TgCommands, Type> MapCommands()
         {
             IEnumerable<Type> commandTypes = AppDomain.CurrentDomain
@@ -108,6 +149,23 @@ namespace OMarket.Application.Services.StaticCollections
         private FrozenDictionary<string, ReadOnlyCollection<string>> MapAllProductsTypes()
         {
             List<ProductTypeDto> types = _appRepository.GetProductTypesWithInclusions();
+
+            Dictionary<string, ReadOnlyCollection<string>> typesDictionary = new();
+
+            foreach (var type in types)
+            {
+                typesDictionary.Add(type.TypeName, type.ProductUnderTypes
+                    .Select(e => e.UnderTypeName)
+                    .ToArray()
+                    .AsReadOnly());
+            }
+
+            return typesDictionary.ToFrozenDictionary();
+        }
+
+        private async Task<FrozenDictionary<string, ReadOnlyCollection<string>>> MapAllProductsTypesAsync()
+        {
+            List<ProductTypeDto> types = await _appRepository.GetProductTypesWithInclusionsAsync();
 
             Dictionary<string, ReadOnlyCollection<string>> typesDictionary = new();
 

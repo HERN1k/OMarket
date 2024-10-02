@@ -108,14 +108,20 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasIndex(e => e.Id)
                     .IsUnique();
 
+                entity.HasIndex(e => e.StoreId);
+
                 entity.HasOne(e => e.Store)
                     .WithOne(s => s.Address)
-                    .HasForeignKey<Store>(e => e.AddressId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .HasForeignKey<StoreAddress>(e => e.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
 
                 entity.Property(e => e.Id)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.StoreId)
                     .HasColumnType("uuid")
                     .IsRequired();
 
@@ -171,6 +177,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasIndex(e => e.Id)
                     .IsUnique();
 
+                entity.HasIndex(e => e.Login)
+                    .IsUnique();
+
                 // Setting property 
 
                 entity.Property(e => e.Id)
@@ -184,7 +193,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .IsRequired();
 
                 entity.Property(e => e.Hash)
-                    .HasColumnType("char(64)")
+                    .HasColumnType("varchar(64)")
+                    .HasMinLength(8)
+                    .HasMaxLength(64)
                     .IsRequired();
             });
         }
@@ -232,17 +243,17 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.City)
                     .WithMany(e => e.Stores)
                     .HasForeignKey(e => e.CityId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.Address)
                     .WithOne(e => e.Store)
-                    .HasForeignKey<Store>(e => e.AddressId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .HasForeignKey<StoreAddress>(e => e.StoreId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.Admin)
                     .WithOne(e => e.Store)
                     .HasForeignKey<Store>(e => e.AdminId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 // Setting property 
 
@@ -259,8 +270,7 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .IsRequired();
 
                 entity.Property(e => e.AdminId)
-                    .HasColumnType("uuid")
-                    .IsRequired();
+                    .HasColumnType("uuid");
 
                 entity.Property(e => e.TgChatId)
                     .HasColumnType("bigint");
@@ -287,12 +297,12 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.AdminsPermission)
                     .WithMany(c => c.Admins)
                     .HasForeignKey(e => e.PermissionId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.AdminsCredentials)
                     .WithOne(a => a.Admin)
                     .HasForeignKey<Admin>(e => e.CredentialsId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
 
@@ -329,17 +339,17 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.Customer)
                     .WithMany(e => e.Orders)
                     .HasForeignKey(e => e.CustomerId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(e => e.Store)
                     .WithMany(e => e.Orders)
                     .HasForeignKey(e => e.StoreId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasOne(e => e.OrderStatus)
                     .WithMany(e => e.Orders)
                     .HasForeignKey(e => e.StatusId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 // Setting property 
 
@@ -418,7 +428,7 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.ProductType)
                     .WithMany(e => e.ProductUnderTypes)
                     .HasForeignKey(e => e.ProductTypeId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
 
@@ -458,12 +468,12 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.ProductType)
                     .WithMany(e => e.Products)
                     .HasForeignKey(e => e.TypeId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.ProductUnderType)
                     .WithMany(e => e.Products)
                     .HasForeignKey(e => e.UnderTypeId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
 
@@ -663,6 +673,36 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnType("timestamp with time zone")
+                    .IsRequired();
+            });
+        }
+
+        public static void BuildAdminTokenEntity(this ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AdminToken>(entity =>
+            {
+                entity.ToTable("AdminTokens");
+
+                entity.HasKey(e => e.Id);
+
+                entity.HasIndex(e => e.Id)
+                    .IsUnique();
+
+                entity.HasIndex(e => e.AdminId)
+                    .IsUnique();
+
+                // Setting property 
+
+                entity.Property(e => e.Id)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.AdminId)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
+                entity.Property(e => e.RefreshToken)
+                    .HasColumnType("text")
                     .IsRequired();
             });
         }

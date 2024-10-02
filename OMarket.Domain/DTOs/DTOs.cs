@@ -16,6 +16,109 @@ namespace OMarket.Domain.DTOs
             LanguageCode LanguageCode
         );
 
+    public record AddNewCityRequest(
+        string CityName);
+
+    public record RemoveCityRequest(
+        string CityId);
+
+    public record RemoveCityRequestDto(
+        Guid CityId);
+
+    public class StoreDtoResponse : IEquatable<StoreDtoResponse>
+    {
+        public Guid Id { get; set; }
+
+        public Guid AddressId { get; set; }
+
+        public Guid CityId { get; set; }
+
+        public Guid? AdminId { get; set; }
+
+        public string Address { get; set; } = string.Empty;
+
+        public string City { get; set; } = string.Empty;
+
+        public string? AdminLogin { get; set; }
+
+        public long? TgChatId { get; set; }
+
+        public string PhoneNumber { get; set; } = string.Empty;
+
+        public bool Equals(StoreDtoResponse? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is StoreDtoResponse otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public record AddNewStoreRequest(
+        string CityId,
+        string Address,
+        string Latitude,
+        string Longitude,
+        string PhoneNumber);
+
+    public record AddNewStoreRequestDto(
+        Guid CityId,
+        string Address,
+        decimal Latitude,
+        decimal Longitude,
+        string PhoneNumber);
+
+    public record RegisterRequest(
+        string Login,
+        string Password,
+        string StoreId,
+        string Permission);
+
+    public record RegisterRequestDto(
+        string Login,
+        string Password,
+        Guid StoreId,
+        string Permission);
+
+    public record LoginRequest(
+        string Login,
+        string Password);
+
+    public record LoginResponse(
+        string Permission,
+        string Login);
+
+    public record ChangePasswordRequest(
+        string Password,
+        string NewPassword);
+
+    public record RemoveAdminRequest(
+        string Login,
+        string Password);
+
+    public record TokenClaims(
+        string Permission,
+        string Login);
+
+    public record ExceptionResult(
+        string Status,
+        string Message);
+
     public record ProductFullNameWithPrice(
         string FullName,
         decimal Price);
@@ -353,7 +456,7 @@ namespace OMarket.Domain.DTOs
 
         public Guid CityId { get; set; }
 
-        public Guid AdminId { get; set; }
+        public Guid? AdminId { get; set; }
 
         public long? TgChatId { get; set; }
 
@@ -684,6 +787,76 @@ namespace OMarket.Domain.DTOs
         public override bool Equals(object? obj)
         {
             if (obj is ViewOrderDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class AdminDto : IEquatable<AdminDto>
+    {
+        public Guid Id { get; set; }
+
+        public string Login { get; set; } = string.Empty;
+
+        public string Hash { get; set; } = string.Empty;
+
+        public string Permission { get; set; } = string.Empty;
+
+        public Guid? StoreId { get; set; }
+
+        public long? TgAccountId { get; set; }
+
+        public bool Equals(AdminDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is AdminDto otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public class AdminTokenDto : IEquatable<AdminTokenDto>
+    {
+        public Guid Id { get; set; }
+
+        public Guid AdminId { get; set; }
+
+        public string RefreshToken { get; set; } = string.Empty;
+
+        public bool Equals(AdminTokenDto? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is AdminTokenDto otherDto)
             {
                 return Equals(otherDto);
             }

@@ -33,7 +33,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
         private readonly IMapper _mapper;
 
         private MemoryCacheEntryOptions _memoryCacheOptions { get; init; } =
-            new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(2.0D) };
+            new() { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30.0D) };
 
         public InlineMarkupService(
                 II18nService i18n,

@@ -22,6 +22,7 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
         public DbSet<ProductUnderType> ProductUnderTypes { get; set; }
         public DbSet<DataStoreProduct> DataStoreProducts { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<AdminToken> AdminTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -40,6 +41,7 @@ namespace OMarket.Infrastructure.Data.Contexts.ApplicationContext
             modelBuilder.BuildProductUnderTypeEntity();
             modelBuilder.BuildDataStoreProductEntity();
             modelBuilder.BuildReviewEntity();
+            modelBuilder.BuildAdminTokenEntity();
 
             base.OnModelCreating(modelBuilder);
         }

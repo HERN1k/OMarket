@@ -1,11 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
-using OMarket.Domain.Interfaces.Application.Services.Cart;
-using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
@@ -23,9 +19,6 @@ namespace OMarket.Application.Commands
         private readonly IUpdateManager _updateManager;
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
-        private readonly IInlineMarkupService _inlineMarkup;
-        private readonly ICartService _cartService;
-        private readonly IDistributedCache _distributedCache;
         private readonly IAdminsRepository _adminsRepository;
         private readonly IStoreRepository _storeRepository;
         private readonly IStaticCollectionsService _staticCollections;
@@ -35,9 +28,6 @@ namespace OMarket.Application.Commands
                 IUpdateManager updateManager,
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
-                IInlineMarkupService inlineMarkup,
-                ICartService cartService,
-                IDistributedCache distributedCache,
                 IAdminsRepository adminsRepository,
                 IStoreRepository storeRepository,
                 IStaticCollectionsService staticCollections
@@ -47,9 +37,6 @@ namespace OMarket.Application.Commands
             _updateManager = updateManager;
             _dataProcessor = dataProcessor;
             _i18n = i18n;
-            _inlineMarkup = inlineMarkup;
-            _cartService = cartService;
-            _distributedCache = distributedCache;
             _adminsRepository = adminsRepository;
             _storeRepository = storeRepository;
             _staticCollections = staticCollections;
@@ -62,7 +49,7 @@ namespace OMarket.Application.Commands
             RequestInfo request = await _dataProcessor.MapRequestData(token);
 
             Guid? adminId = await _adminsRepository
-                .GetAdmin(request.Customer.Id, token);
+                .VerifyAdminByIdAsync(request.Customer.Id, token);
 
             if (adminId == null || adminId == Guid.Empty)
             {
