@@ -63,5 +63,17 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
         Task<CustomerDtoResponse?> GetCustomerByIdAsync(long customerId, CancellationToken token);
 
         Task<CustomerDtoResponse?> GetCustomerByPhoneNumberAsync(string phoneNumber, CancellationToken token);
+
+        Task<List<ProductTypesDto>> ProductTypesAsync(CancellationToken token);
+
+        Task RemoveProductByExceptionAsync(Guid productId);
+
+        Task<Guid> CreateNewProductAsync(AddNewProductDto request, CancellationToken token);
+
+        Task<Guid> ChangeProductAsync(ChangeProductDto request, CancellationToken token);
+
+        Task<string> RemoveProductAsync(Guid productId);
+
+        Task<ProductResponse> GetProductsWithPaginationAsync(Guid typeId, int page, CancellationToken token);
     }
 }

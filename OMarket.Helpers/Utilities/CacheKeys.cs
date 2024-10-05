@@ -55,5 +55,9 @@
         public const string AdminAdmins = "AdminAdmins";
 
         public const string AdminReviews = "AdminReviews";
+
+        public const string AdminProductTypes = "AdminProductTypes";
+
+        public const string AdminProductsWithoutStoreId = "AdminProductsWithoutStoreId";
     }
 }

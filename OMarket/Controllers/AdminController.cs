@@ -196,5 +196,57 @@ namespace OMarket.Controllers
 
             return Ok(new { Data = result });
         }
+
+        [Authorize]
+        [HttpGet("product-types")]
+        public async Task<IActionResult> ProductTypes(CancellationToken token)
+        {
+            List<ProductTypesDto> result = await _adminService.ProductTypesAsync(token);
+
+            return Ok(new { Data = result });
+        }
+
+        [Authorize(Policy = "RequireSuperAdminRole")]
+        [HttpPost("add-new-product")]
+        public async Task<IActionResult> AddNewProduct([FromForm] IFormFile file, [FromForm] string metadata, CancellationToken token)
+        {
+            await _adminService.AddNewProductAsync(file, metadata, token);
+
+            return Ok();
+        }
+
+        [Authorize(Policy = "RequireSuperAdminRole")]
+        [HttpPost("change-product")]
+        public async Task<IActionResult> ChangeProduct([FromForm] IFormFile? file, [FromForm] string metadata, CancellationToken token)
+        {
+            if (file != null)
+            {
+                await _adminService.ChangeProductAsync(file, metadata, token);
+            }
+            else
+            {
+                await _adminService.ChangeProductWithoutFileAsync(metadata, token);
+            }
+
+            return Ok();
+        }
+
+        [Authorize(Policy = "RequireSuperAdminRole")]
+        [HttpGet("remove-product")]
+        public async Task<IActionResult> RemoveProduct([FromQuery] Guid productId, CancellationToken token)
+        {
+            await _adminService.RemoveProductAsync(productId, token);
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("get-products")]
+        public async Task<IActionResult> GetProducts([FromQuery] Guid typeId, [FromQuery] int page, CancellationToken token)
+        {
+            ProductResponse result = await _adminService.GetProductsAsync(typeId, page, token);
+
+            return Ok(new { Data = result });
+        }
     }
 }

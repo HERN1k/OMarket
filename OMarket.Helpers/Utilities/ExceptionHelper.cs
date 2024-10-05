@@ -9,6 +9,10 @@ namespace OMarket.Helpers.Utilities
 {
     public static class ExceptionHelper
     {
+        private static readonly string[] _permittedExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+
+        private static readonly string[] _permittedContentTypes = { "image/jpeg", "image/png", "image/webp" };
+
         public static TokenClaims GetTokenClaims(this IEnumerable<Claim> claims)
         {
             string permission = claims.SingleOrDefault(claim => claim.Type == ClaimTypes.Role)
@@ -458,6 +462,297 @@ namespace OMarket.Helpers.Utilities
             }
 
             return new(storeId, address, phoneNumber, longitude, latitude, tgChatId);
+        }
+
+        public static AddNewProductDto VerificationData(this AddNewProductMetadata request, string extension, string contentType)
+        {
+            if (string.IsNullOrEmpty(extension))
+            {
+                throw new ArgumentException("З фото щось не так.");
+            }
+
+            if (string.IsNullOrEmpty(contentType))
+            {
+                throw new ArgumentException("З фото щось не так.");
+            }
+
+            if (string.IsNullOrEmpty(extension) || !_permittedExtensions.Contains(extension) || !_permittedContentTypes.Contains(contentType))
+            {
+                throw new ArgumentException("Недійсний формат файлу. Дозволені лише .webp .jpg, .jpeg і .png.");
+            }
+
+            if (string.IsNullOrEmpty(request.TypeId))
+            {
+                throw new ArgumentNullException(nameof(request.TypeId), "Поле унікальний ідентифікатор типу пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.UnderTypeId))
+            {
+                throw new ArgumentNullException(nameof(request.UnderTypeId), "Поле унікальний ідентифікатор під-типу пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.Name))
+            {
+                throw new ArgumentNullException(nameof(request.Name), "Поле назва пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.Price))
+            {
+                throw new ArgumentNullException(nameof(request.Price), "Поле ціна пустe.");
+            }
+
+            string name;
+            decimal price;
+            string? dimensions = null;
+            string? description = null;
+
+            #region typeId
+            if (!Guid.TryParse(request.TypeId, out Guid typeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор типу передано в невірному форматі.");
+            }
+
+            if (typeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор типу передано в невірному форматі.");
+            }
+            #endregion
+
+            #region underTypeId
+            if (!Guid.TryParse(request.UnderTypeId, out Guid underTypeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор під-типу передано в невірному форматі.");
+            }
+
+            if (underTypeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор під-типу передано в невірному форматі.");
+            }
+            #endregion
+
+            #region name
+            name = request.Name.Trim();
+            if (name.Length > 31)
+            {
+                name = name[..31];
+            }
+            #endregion
+
+            #region price
+            if (!decimal.TryParse(request.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal priceTemp))
+            {
+                throw new ArgumentException("Поле ціна передано в невірному форматі.");
+            }
+
+            price = Math.Round(priceTemp, 2);
+            #endregion
+
+            #region dimensions
+            if (!string.IsNullOrEmpty(request.Dimensions))
+            {
+                dimensions = request.Dimensions.Trim();
+                if (dimensions.Length > 31)
+                {
+                    dimensions = dimensions[..31];
+                }
+            }
+            #endregion
+
+            #region description
+            if (!string.IsNullOrEmpty(request.Description))
+            {
+                description = request.Description.Trim();
+                if (description.Length > 63)
+                {
+                    description = description[..63];
+                }
+            }
+            #endregion
+
+            return new()
+            {
+                TypeId = typeId,
+                UnderTypeId = underTypeId,
+                Name = name,
+                Price = price,
+                Dimensions = dimensions,
+                Description = description,
+                PhotoExtension = extension
+            };
+        }
+
+        public static ChangeProductDto VerificationData(this ChangeProductMetadata request, string extension, string contentType)
+        {
+            if (string.IsNullOrEmpty(extension))
+            {
+                throw new ArgumentException("З фото щось не так.");
+            }
+
+            if (string.IsNullOrEmpty(contentType))
+            {
+                throw new ArgumentException("З фото щось не так.");
+            }
+
+            if (string.IsNullOrEmpty(extension) || !_permittedExtensions.Contains(extension) || !_permittedContentTypes.Contains(contentType))
+            {
+                throw new ArgumentException("Недійсний формат файлу. Дозволені лише .webp .jpg, .jpeg і .png.");
+            }
+
+            if (string.IsNullOrEmpty(request.ProductId))
+            {
+                throw new ArgumentNullException(nameof(request.ProductId), "Поле унікальний ідентифікатор товару пустe.");
+            }
+
+            string? name = null;
+            decimal? price = null;
+            string? dimensions = null;
+            string? description = null;
+
+            #region productId
+            if (!Guid.TryParse(request.ProductId, out Guid productId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор товару передано в невірному форматі.");
+            }
+
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор товару передано в невірному форматі.");
+            }
+            #endregion
+
+            #region name
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                name = request.Name.Trim();
+                if (name.Length > 31)
+                {
+                    name = name[..31];
+                }
+            }
+            #endregion
+
+            #region price
+            if (!string.IsNullOrEmpty(request.Price))
+            {
+                if (!decimal.TryParse(request.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal priceTemp))
+                {
+                    throw new ArgumentException("Поле ціна передано в невірному форматі.");
+                }
+
+                price = Math.Round(priceTemp, 2);
+            }
+            #endregion
+
+            #region dimensions
+            if (!string.IsNullOrEmpty(request.Dimensions))
+            {
+                dimensions = request.Dimensions.Trim();
+                if (dimensions.Length > 31)
+                {
+                    dimensions = dimensions[..31];
+                }
+            }
+            #endregion
+
+            #region description
+            if (!string.IsNullOrEmpty(request.Description))
+            {
+                description = request.Description.Trim();
+                if (description.Length > 63)
+                {
+                    description = description[..63];
+                }
+            }
+            #endregion
+
+            return new()
+            {
+                ProductId = productId,
+                Name = name,
+                Price = price,
+                Dimensions = dimensions,
+                Description = description,
+                PhotoExtension = extension
+            };
+        }
+
+        public static ChangeProductDto VerificationData(this ChangeProductMetadata request)
+        {
+            if (string.IsNullOrEmpty(request.ProductId))
+            {
+                throw new ArgumentNullException(nameof(request.ProductId), "Поле унікальний ідентифікатор товару пустe.");
+            }
+
+            string? name = null;
+            decimal? price = null;
+            string? dimensions = null;
+            string? description = null;
+
+            #region productId
+            if (!Guid.TryParse(request.ProductId, out Guid productId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор товару передано в невірному форматі.");
+            }
+
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор товару передано в невірному форматі.");
+            }
+            #endregion
+
+            #region name
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                name = request.Name.Trim();
+                if (name.Length > 31)
+                {
+                    name = name[..31];
+                }
+            }
+            #endregion
+
+            #region price
+            if (!string.IsNullOrEmpty(request.Price))
+            {
+                if (!decimal.TryParse(request.Price, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal priceTemp))
+                {
+                    throw new ArgumentException("Поле ціна передано в невірному форматі.");
+                }
+
+                price = Math.Round(priceTemp, 2);
+            }
+            #endregion
+
+            #region dimensions
+            if (!string.IsNullOrEmpty(request.Dimensions))
+            {
+                dimensions = request.Dimensions.Trim();
+                if (dimensions.Length > 31)
+                {
+                    dimensions = dimensions[..31];
+                }
+            }
+            #endregion
+
+            #region description
+            if (!string.IsNullOrEmpty(request.Description))
+            {
+                description = request.Description.Trim();
+                if (description.Length > 63)
+                {
+                    description = description[..63];
+                }
+            }
+            #endregion
+
+            return new()
+            {
+                ProductId = productId,
+                Name = name,
+                Price = price,
+                Dimensions = dimensions,
+                Description = description
+            };
         }
     }
 }

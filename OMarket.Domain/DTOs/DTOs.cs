@@ -16,6 +16,83 @@ namespace OMarket.Domain.DTOs
             LanguageCode LanguageCode
         );
 
+    public class ProductResponse
+    {
+        public List<ProductDtoResponse> Products { get; set; } = new();
+
+        public int PageCount { get; set; } = 0;
+
+        public int TotalQuantity { get; set; } = 0;
+    }
+
+    public class ProductDtoResponse
+    {
+        public Guid Id { get; init; }
+        public string Name { get; set; } = string.Empty;
+        public string PhotoUri { get; set; } = string.Empty;
+        public Guid TypeId { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public Guid UnderTypeId { get; set; }
+        public string UnderType { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string? Dimensions { get; set; }
+        public string? Description { get; set; }
+        public bool Status { get; set; }
+    }
+
+    public class ChangeProductDto
+    {
+        public Guid ProductId { get; set; }
+        public string? Name { get; set; }
+        public decimal? Price { get; set; }
+        public string? Dimensions { get; set; }
+        public string? Description { get; set; }
+        public string PhotoExtension { get; set; } = string.Empty;
+    }
+
+    public class ChangeProductMetadata
+    {
+        public string ProductId { get; set; } = string.Empty;
+        public string? Name { get; set; }
+        public string? Price { get; set; }
+        public string? Dimensions { get; set; }
+        public string? Description { get; set; }
+    }
+
+    public class AddNewProductDto
+    {
+        public Guid TypeId { get; set; }
+        public Guid UnderTypeId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public decimal Price { get; set; }
+        public string? Dimensions { get; set; }
+        public string? Description { get; set; }
+        public string PhotoExtension { get; set; } = string.Empty;
+    }
+
+    public class AddNewProductMetadata
+    {
+        public string TypeId { get; set; } = string.Empty;
+        public string UnderTypeId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Price { get; set; } = string.Empty;
+        public string Dimensions { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class ProductUnderTypesDto
+    {
+        public string UnderType { get; set; } = string.Empty;
+        public Guid UnderTypeId { get; set; }
+    }
+
+    public class ProductTypesDto
+    {
+        public Guid TypeId { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public List<ProductUnderTypesDto> UnderTypes { get; set; } = new();
+    }
+
     public class CustomerDtoResponse
     {
         public long Id { get; set; }

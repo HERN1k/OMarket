@@ -16,6 +16,8 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly int _pageSizeReview = 5;
 
+        private readonly int _pageSizeProduct = 12;
+
         public AdminsRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
                 ILogger<AdminsRepository> logger
@@ -896,6 +898,200 @@ namespace OMarket.Infrastructure.Repositories
                 .SingleOrDefaultAsync(token);
 
             return customer;
+        }
+
+        public async Task<List<ProductTypesDto>> ProductTypesAsync(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            return await context.ProductTypes
+                .AsNoTracking()
+                .Include(type => type.ProductUnderTypes)
+                .Select(type => new ProductTypesDto()
+                {
+                    TypeId = type.Id,
+                    Type = type.TypeName,
+                    UnderTypes = type.ProductUnderTypes
+                        .Select(underType => new ProductUnderTypesDto()
+                        {
+                            UnderTypeId = underType.Id,
+                            UnderType = underType.UnderTypeName
+                        })
+                        .ToList()
+                })
+                .ToListAsync(token);
+        }
+
+        public async Task RemoveProductByExceptionAsync(Guid productId)
+        {
+            if (productId == Guid.Empty)
+            {
+                return;
+            }
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            Product? product = await context.Products
+                .Where(product => product.Id == productId)
+                .SingleOrDefaultAsync();
+
+            if (product is null)
+            {
+                return;
+            }
+
+            context.Products.Remove(product);
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<Guid> CreateNewProductAsync(AddNewProductDto request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            ProductType type = await context.ProductTypes
+                .Where(type => type.Id == request.TypeId)
+                .SingleOrDefaultAsync(token) ?? throw new ArgumentException("Такого типу товарів незнайдено.");
+
+            ProductUnderType underType = await context.ProductUnderTypes
+                .Where(underType => underType.Id == request.UnderTypeId)
+                .SingleOrDefaultAsync(token) ?? throw new ArgumentException("Такого під-типу товарів незнайдено.");
+
+            Product product = new()
+            {
+                Name = request.Name,
+                PhotoUri = string.Empty,
+                ProductType = type,
+                ProductUnderType = underType,
+                Price = request.Price,
+                Dimensions = request.Dimensions,
+                Description = request.Description,
+            };
+            product.PhotoUri = $"{product.Id}{request.PhotoExtension}";
+
+            Guid result = product.Id;
+
+            await context.Products.AddAsync(product, token);
+
+            await context.SaveChangesAsync(token);
+
+            return result;
+        }
+
+        public async Task<Guid> ChangeProductAsync(ChangeProductDto request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            Product product = await context.Products
+                .Where(product => product.Id == request.ProductId)
+                .SingleOrDefaultAsync(token) ?? throw new ArgumentException("Такого товару незнайдено.");
+
+            if (request.Name is not null)
+            {
+                product.Name = request.Name;
+            }
+
+            if (request.Price is not null)
+            {
+                product.Price = (decimal)request.Price;
+            }
+
+            if (request.Dimensions is not null)
+            {
+                product.Dimensions = request.Dimensions;
+            }
+
+            if (request.Description is not null)
+            {
+                product.Description = request.Description;
+            }
+
+            Guid result = product.Id;
+
+            await context.SaveChangesAsync(token);
+
+            return result;
+        }
+
+        public async Task<string> RemoveProductAsync(Guid productId)
+        {
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(productId), "Поле унікальний ідентифікатор продукту пусте.");
+            }
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync();
+
+            Product product = await context.Products
+                .Where(product => product.Id == productId)
+                .SingleOrDefaultAsync() ?? throw new ArgumentException("Такого товару незнайдено.");
+
+            string result = product.PhotoUri;
+
+            context.Products.Remove(product);
+
+            await context.SaveChangesAsync();
+
+            return result;
+        }
+
+        public async Task<ProductResponse> GetProductsWithPaginationAsync(Guid typeId, int page, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (page == 0)
+            {
+                return new();
+            }
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            int maxPageNumber = await context.Products
+                .AsNoTracking()
+                .Where(product => product.TypeId == typeId)
+                .CountAsync(token);
+
+            if (maxPageNumber == 0)
+            {
+                return new();
+            }
+
+            List<ProductDtoResponse> products = await context.Products
+                .AsNoTracking()
+                .Where(product => product.TypeId == typeId)
+                .Include(product => product.ProductType)
+                .Include(product => product.ProductUnderType)
+                .OrderBy(product => product.Price)
+                .Skip((page - 1) * _pageSizeProduct)
+                .Take(_pageSizeProduct)
+                .Select(product => new ProductDtoResponse()
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    PhotoUri = product.PhotoUri,
+                    TypeId = product.TypeId,
+                    Type = product.ProductType.TypeName,
+                    UnderTypeId = product.UnderTypeId,
+                    UnderType = product.ProductUnderType.UnderTypeName,
+                    Price = product.Price,
+                    Dimensions = product.Dimensions,
+                    Description = product.Description,
+                    Status = false
+                })
+                .ToListAsync(token);
+
+            return new()
+            {
+                Products = products,
+                PageCount = (int)Math.Ceiling((double)maxPageNumber / _pageSizeProduct),
+                TotalQuantity = maxPageNumber
+            };
         }
     }
 }

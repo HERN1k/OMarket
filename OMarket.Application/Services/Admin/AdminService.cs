@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
 
@@ -26,12 +27,15 @@ namespace OMarket.Application.Services.Admin
 
         private readonly IJwtService _jwtService;
 
+        private readonly IWebHostEnvironment _environment;
+
         public AdminService(
                 IPasswordService passwordService,
                 IAdminsRepository adminsRepository,
                 IDistributedCache distributedCache,
                 ICacheService cache,
-                IJwtService jwtService
+                IJwtService jwtService,
+                IWebHostEnvironment environment
             )
         {
             _passwordService = passwordService;
@@ -39,6 +43,7 @@ namespace OMarket.Application.Services.Admin
             _distributedCache = distributedCache;
             _cache = cache;
             _jwtService = jwtService;
+            _environment = environment;
         }
 
         public async Task RegisterAsync(RegisterRequest request, CancellationToken token)
@@ -440,6 +445,198 @@ namespace OMarket.Application.Services.Admin
             }
 
             return await _adminsRepository.GetCustomerByPhoneNumberAsync(phoneNumber, token);
+        }
+
+        public async Task<List<ProductTypesDto>> ProductTypesAsync(CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminProductTypes, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<List<ProductTypesDto>>(data) ?? new();
+            }
+
+            List<ProductTypesDto> result = await _adminsRepository.ProductTypesAsync(token);
+            data = JsonSerializer.Serialize<List<ProductTypesDto>>(result);
+
+            await _distributedCache.SetStringAsync(CacheKeys.AdminProductTypes, data, token);
+
+            return result;
+        }
+
+        public async Task AddNewProductAsync(IFormFile file, string metadata, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("Відсутній файл.");
+            }
+
+            if (string.IsNullOrEmpty(metadata))
+            {
+                throw new ArgumentException("Відсутні метадані.");
+            }
+
+            AddNewProductMetadata productMetadata = Newtonsoft.Json.
+                JsonConvert.DeserializeObject<AddNewProductMetadata>(metadata)
+                    ?? throw new ArgumentException($"Невдалось десеріалізовати метадані.");
+
+            string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            AddNewProductDto validRequest = productMetadata.VerificationData(extension, file.ContentType);
+
+            Guid productId = await _adminsRepository.CreateNewProductAsync(validRequest, token);
+
+            try
+            {
+                string wwwRootPath = _environment.WebRootPath;
+
+                string filePath = Path.Combine(wwwRootPath, "Static", $"{productId}{validRequest.PhotoExtension}");
+
+                string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
+
+                if (productId == Guid.Empty ||
+                    string.IsNullOrEmpty(wwwRootPath) ||
+                    string.IsNullOrEmpty(filePath) ||
+                    string.IsNullOrEmpty(filePath))
+                {
+                    throw new ApplicationException();
+                }
+
+                Directory.CreateDirectory(directoryName);
+
+                using FileStream stream = new(filePath, FileMode.Create);
+                await file.CopyToAsync(stream, token);
+
+                await _cache.ClearAndUpdateCacheAsync();
+            }
+            catch (Exception)
+            {
+                await _adminsRepository.RemoveProductByExceptionAsync(productId);
+                throw;
+            }
+        }
+
+        public async Task ChangeProductAsync(IFormFile file, string metadata, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("Відсутній файл.");
+            }
+
+            if (string.IsNullOrEmpty(metadata))
+            {
+                throw new ArgumentException("Відсутні метадані.");
+            }
+
+            ChangeProductMetadata productMetadata = Newtonsoft.Json.
+                JsonConvert.DeserializeObject<ChangeProductMetadata>(metadata)
+                    ?? throw new ArgumentException($"Невдалось десеріалізовати метадані.");
+
+            string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            ChangeProductDto validRequest = productMetadata.VerificationData(extension, file.ContentType);
+
+            Guid productId = await _adminsRepository.ChangeProductAsync(validRequest, token);
+
+            string wwwRootPath = _environment.WebRootPath;
+
+            string filePath = Path.Combine(wwwRootPath, "Static", $"{productId}{validRequest.PhotoExtension}");
+
+            string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
+
+            if (string.IsNullOrEmpty(wwwRootPath) ||
+                string.IsNullOrEmpty(filePath) ||
+                string.IsNullOrEmpty(filePath))
+            {
+                throw new ApplicationException();
+            }
+
+            Directory.CreateDirectory(directoryName);
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            using FileStream stream = new(filePath, FileMode.Create);
+            await file.CopyToAsync(stream, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task ChangeProductWithoutFileAsync(string metadata, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(metadata))
+            {
+                throw new ArgumentException("Відсутні метадані.");
+            }
+
+            ChangeProductMetadata productMetadata = Newtonsoft.Json.
+                JsonConvert.DeserializeObject<ChangeProductMetadata>(metadata)
+                    ?? throw new ArgumentException($"Невдалось десеріалізовати метадані.");
+
+            ChangeProductDto validRequest = productMetadata.VerificationData();
+
+            await _adminsRepository.ChangeProductAsync(validRequest, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task RemoveProductAsync(Guid productId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentNullException(nameof(productId), "Поле унікальний ідентифікатор продукту пусте.");
+            }
+
+            string photoName = await _adminsRepository.RemoveProductAsync(productId);
+
+            string wwwRootPath = _environment.WebRootPath;
+
+            string filePath = Path.Combine(wwwRootPath, "Static", $"{photoName}");
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task<ProductResponse> GetProductsAsync(Guid typeId, int page, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (page < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            string cacheKey = $"{CacheKeys.AdminProductsWithoutStoreId}{typeId}{page}";
+
+            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<ProductResponse>(data) ?? new();
+            }
+
+            ProductResponse result = await _adminsRepository.GetProductsWithPaginationAsync(typeId, page, token);
+            data = JsonSerializer.Serialize<ProductResponse>(result);
+
+            await _distributedCache.SetStringAsync(cacheKey, data, token);
+
+            return result;
         }
     }
 }
