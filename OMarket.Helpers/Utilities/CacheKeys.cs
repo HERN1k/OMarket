@@ -47,5 +47,13 @@
         public const string SearchProductsByNameId = "SearchProductsByNameId";
 
         public const string NoReviewsHaveBeenViewId = "NoReviewsHaveBeenViewId";
+
+        public const string AdminCities = "AdminCities";
+
+        public const string AdminStores = "AdminStores";
+
+        public const string AdminAdmins = "AdminAdmins";
+
+        public const string AdminReviews = "AdminReviews";
     }
 }

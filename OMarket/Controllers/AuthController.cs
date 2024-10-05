@@ -59,28 +59,5 @@ namespace OMarket.Controllers
 
             return Ok();
         }
-
-        [Authorize(Policy = "RequireAdminOrSuperAdminRole")]
-        [HttpPost("remove-admin")]
-        public async Task<IActionResult> RemoveAdmin([FromBody] RemoveAdminRequest request, CancellationToken token)
-        {
-            await _adminService.RemoveAdminAsync(request, HttpContext, token);
-
-            return Ok();
-        }
-
-        [Authorize(Policy = "RequireAdminOrSuperAdminRole")]
-        [HttpGet("test")]
-        public IActionResult Test()
-        {
-            var claims = HttpContext.User.Claims;
-
-            foreach (var claim in claims)
-            {
-                Console.WriteLine($"{claim.Type}: {claim.Value}");
-            }
-
-            return Ok(new { Text = "Nice!" });
-        }
     }
 }

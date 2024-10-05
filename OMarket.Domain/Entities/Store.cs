@@ -6,8 +6,6 @@ namespace OMarket.Domain.Entities
     {
         public Guid Id { get; init; } = IEntity.CreateUuidV7ToGuid();
 
-        public Guid AddressId { get; set; }
-
         public Guid CityId { get; set; }
 
         public Guid? AdminId { get; set; }

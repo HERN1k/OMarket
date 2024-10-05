@@ -133,31 +133,6 @@ namespace OMarket.Helpers.Utilities
             return request;
         }
 
-        public static RemoveAdminRequest VerificationData(this RemoveAdminRequest request)
-        {
-            if (string.IsNullOrEmpty(request.Login))
-            {
-                throw new ArgumentNullException(nameof(request.Login), "Поле логін пустe.");
-            }
-
-            if (string.IsNullOrEmpty(request.Password))
-            {
-                throw new ArgumentNullException(nameof(request.Password), "Поле пароль пустe.");
-            }
-
-            if (!StringHelper.ValidateLogin(request.Login, out string exceptionMessageLogin))
-            {
-                throw new ArgumentException(exceptionMessageLogin);
-            }
-
-            if (!StringHelper.ValidatePassword(request.Password, out string exceptionMessage))
-            {
-                throw new ArgumentException(exceptionMessage);
-            }
-
-            return request;
-        }
-
         public static AddNewStoreRequestDto VerificationData(this AddNewStoreRequest request)
         {
             if (string.IsNullOrEmpty(request.CityId))
@@ -224,7 +199,6 @@ namespace OMarket.Helpers.Utilities
                 formattedAddress = formattedAddress[..255];
             }
 
-
             decimal formattedLatitude = Math.Round(latitude, 6);
             decimal formattedLongitude = Math.Round(longitude, 6);
 
@@ -254,6 +228,236 @@ namespace OMarket.Helpers.Utilities
             }
 
             return new(cityId);
+        }
+
+        public static RemoveStoreRequestDto VerificationData(this RemoveStoreRequest request)
+        {
+            if (string.IsNullOrEmpty(request.StoreId))
+            {
+                throw new ArgumentNullException(nameof(request.StoreId), "Поле унікальний ідентифікатор магазину пустe.");
+            }
+
+            if (!Guid.TryParse(request.StoreId, out Guid storeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            return new(storeId);
+        }
+
+        public static AddNewAdminRequestDto VerificationData(this AddNewAdminRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Login))
+            {
+                throw new ArgumentNullException(nameof(request.Login), "Поле логін пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                throw new ArgumentNullException(nameof(request.Password), "Поле пароль пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.StoreId))
+            {
+                throw new ArgumentNullException(nameof(request.StoreId), "Поле унікальний ідентифікатор магазину пустe.");
+            }
+
+            if (!StringHelper.ValidateLogin(request.Login, out string exceptionMessageLogin))
+            {
+                throw new ArgumentException(exceptionMessageLogin);
+            }
+
+            if (!StringHelper.ValidatePassword(request.Password, out string exceptionMessage))
+            {
+                throw new ArgumentException(exceptionMessage);
+            }
+
+            if (!Guid.TryParse(request.StoreId, out Guid storeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            string validLogin = request.Login.Trim();
+            if (validLogin.Length > 32)
+            {
+                validLogin = validLogin[..31];
+            }
+            string validPassword = request.Password.Trim();
+
+            return new AddNewAdminRequestDto(
+                validLogin,
+                validPassword,
+                storeId);
+        }
+
+        public static RemoveAdminRequestDto VerificationData(this RemoveAdminRequest request)
+        {
+            if (string.IsNullOrEmpty(request.AdminId))
+            {
+                throw new ArgumentNullException(nameof(request.AdminId), "Поле унікальний ідентифікатор адміністратора пустe.");
+            }
+
+            if (!Guid.TryParse(request.AdminId, out Guid adminId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор адміністратора передано в невірному форматі.");
+            }
+
+            if (adminId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор адміністратора передано в невірному форматі.");
+            }
+
+            return new(adminId);
+        }
+
+        public static ChangeAdminPasswordRequestDto VerificationData(this ChangeAdminPasswordRequest request)
+        {
+            if (string.IsNullOrEmpty(request.AdminId))
+            {
+                throw new ArgumentNullException(nameof(request.AdminId), "Поле унікальний ідентифікатор адміністратора пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                throw new ArgumentNullException(nameof(request.Password), "Поле пароль пустe.");
+            }
+
+            if (!Guid.TryParse(request.AdminId, out Guid adminId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор адміністратора передано в невірному форматі.");
+            }
+
+            if (adminId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор адміністратора передано в невірному форматі.");
+            }
+
+            string validPassword = request.Password.Trim();
+
+            if (!StringHelper.ValidatePassword(validPassword, out string exceptionMessage))
+            {
+                throw new ArgumentException(exceptionMessage);
+            }
+
+            return new(adminId, validPassword);
+        }
+
+        public static ChangeCityNameRequestDto VerificationData(this ChangeCityNameRequest request)
+        {
+            if (string.IsNullOrEmpty(request.CityId))
+            {
+                throw new ArgumentNullException(nameof(request.CityId), "Поле унікальний ідентифікатор міста пустe.");
+            }
+
+            if (string.IsNullOrEmpty(request.CityName))
+            {
+                throw new ArgumentNullException(nameof(request.CityName), "Поле назва міста пустe.");
+            }
+
+            if (!Guid.TryParse(request.CityId, out Guid cityId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор міста передано в невірному форматі.");
+            }
+
+            if (cityId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор міста передано в невірному форматі.");
+            }
+
+            string validCityName = request.CityName.Trim();
+
+            return new(cityId, validCityName);
+        }
+
+        public static ChangeStoreInfoRequestDto VerificationData(this ChangeStoreInfoRequest request)
+        {
+            if (string.IsNullOrEmpty(request.StoreId))
+            {
+                throw new ArgumentNullException(nameof(request.StoreId), "Поле унікальний ідентифікатор магазину пустe.");
+            }
+
+            string? address = null;
+            string? phoneNumber = null;
+            decimal? longitude = null;
+            decimal? latitude = null;
+            long? tgChatId = null;
+
+            if (!string.IsNullOrEmpty(request.Address))
+            {
+                address = request.Address.Trim();
+                if (address.Length > 255)
+                {
+                    address = address[..255];
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                phoneNumber = Regex.Replace(
+                    input: request.PhoneNumber.Trim(),
+                    pattern: RegexPatterns.PhoneNumberFormattingPattern,
+                    replacement: string.Empty);
+
+                phoneNumber = '+' + phoneNumber;
+
+                if (phoneNumber.Length <= 32 &&
+                    !phoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
+                {
+                    throw new ArgumentException("Поле номер телефону в невірному форматі.");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.Longitude))
+            {
+                if (!decimal.TryParse(request.Longitude, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal longitudeTemp))
+                {
+                    throw new ArgumentException("Поле довгота передано в невірному форматі.");
+                }
+
+                longitude = Math.Round(longitudeTemp, 6);
+            }
+
+            if (!string.IsNullOrEmpty(request.Latitude))
+            {
+                if (!decimal.TryParse(request.Latitude, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal latitudeTemp))
+                {
+                    throw new ArgumentException("Поле широта передано в невірному форматі.");
+                }
+
+                latitude = Math.Round(latitudeTemp, 6);
+            }
+
+            if (!string.IsNullOrEmpty(request.TgChatId))
+            {
+                if (!long.TryParse(request.TgChatId, out long chatId))
+                {
+                    throw new ArgumentException("Поле TG чат ID передано в невірному форматі.");
+                }
+
+                tgChatId = chatId;
+            }
+
+            if (!Guid.TryParse(request.StoreId, out Guid storeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            return new(storeId, address, phoneNumber, longitude, latitude, tgChatId);
         }
     }
 }

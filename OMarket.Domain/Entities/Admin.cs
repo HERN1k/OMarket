@@ -8,9 +8,9 @@ namespace OMarket.Domain.Entities
 
         public Guid PermissionId { get; set; }
 
-        public Guid CredentialsId { get; set; }
-
         public long? TgAccountId { get; set; }
+
+        public Guid? StoreId { get; set; }
 
         public virtual Store? Store { get; set; }
 

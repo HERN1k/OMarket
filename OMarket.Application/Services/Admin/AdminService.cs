@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Text.Json;
+
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -17,6 +20,8 @@ namespace OMarket.Application.Services.Admin
 
         private readonly IAdminsRepository _adminsRepository;
 
+        private readonly IDistributedCache _distributedCache;
+
         private readonly ICacheService _cache;
 
         private readonly IJwtService _jwtService;
@@ -24,12 +29,14 @@ namespace OMarket.Application.Services.Admin
         public AdminService(
                 IPasswordService passwordService,
                 IAdminsRepository adminsRepository,
+                IDistributedCache distributedCache,
                 ICacheService cache,
                 IJwtService jwtService
             )
         {
             _passwordService = passwordService;
             _adminsRepository = adminsRepository;
+            _distributedCache = distributedCache;
             _cache = cache;
             _jwtService = jwtService;
         }
@@ -38,7 +45,7 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            RegisterRequestDto validRequest = request.VerificationData();
+            var validRequest = request.VerificationData();
 
             string hash = _passwordService.Generate(validRequest.Password);
 
@@ -49,7 +56,7 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            LoginRequest validRequest = request.VerificationData();
+            var validRequest = request.VerificationData();
 
             AdminDto admin = await _adminsRepository.GetAdminByLoginAsync(validRequest.Login, token);
 
@@ -142,7 +149,7 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            ChangePasswordRequest validRequest = request.VerificationData();
+            var validRequest = request.VerificationData();
 
             if (!httpContext.Request.Cookies.TryGetValue("JwtAccessToken", out var accessToken))
             {
@@ -166,23 +173,6 @@ namespace OMarket.Application.Services.Admin
             await _adminsRepository.RemoveRefreshTokenAsync(claims.Login, token);
 
             _jwtService.RemoveCookies(httpContext);
-        }
-
-        public async Task RemoveAdminAsync(RemoveAdminRequest request, HttpContext httpContext, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-
-            RemoveAdminRequest validRequest = request.VerificationData();
-
-            TokenClaims claims = httpContext.User.Claims.GetTokenClaims();
-
-            await _adminsRepository.RemoveAdminAsync(
-                superAdminLogin: claims.Login,
-                password: validRequest.Password,
-                removedLogin: validRequest.Login,
-                token: token);
-
-            await _adminsRepository.RemoveRefreshTokenAsync(validRequest.Login, token);
         }
 
         public async Task AddNewCityAsync(AddNewCityRequest request, CancellationToken token)
@@ -209,14 +199,27 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<List<CityDto>> GetCitiesAsync(CancellationToken token)
         {
-            return await _adminsRepository.GetCitiesAsync(token);
+            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminCities, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<List<CityDto>>(data) ?? new();
+            }
+
+            List<CityDto> result = await _adminsRepository.GetCitiesAsync(token);
+
+            data = JsonSerializer.Serialize<List<CityDto>>(result);
+
+            await _distributedCache.SetStringAsync(CacheKeys.AdminCities, data, token);
+
+            return result;
         }
 
         public async Task RemoveCityAsync(RemoveCityRequest request, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
 
-            RemoveCityRequestDto validRequest = request.VerificationData();
+            var validRequest = request.VerificationData();
 
             await _adminsRepository.RemoveCityByIdAsync(validRequest.CityId, token);
 
@@ -227,7 +230,7 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            AddNewStoreRequestDto validRequest = request.VerificationData();
+            var validRequest = request.VerificationData();
 
             Guid storeId = await _adminsRepository.AddNewStoreAsync(validRequest, token);
 
@@ -244,7 +247,199 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<List<StoreDtoResponse>> GetStoresAsync(CancellationToken token)
         {
-            return await _adminsRepository.GetStoresAsync(token);
+            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminStores, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<List<StoreDtoResponse>>(data) ?? new();
+            }
+
+            List<StoreDtoResponse> result = await _adminsRepository.GetStoresAsync(token);
+
+            data = JsonSerializer.Serialize<List<StoreDtoResponse>>(result);
+
+            await _distributedCache.SetStringAsync(CacheKeys.AdminStores, data, token);
+
+            return result;
+        }
+
+        public async Task RemoveStoreAsync(RemoveStoreRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            await _adminsRepository.RemoveStoreAsync(validRequest.StoreId);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task AddNewAdminAsync(AddNewAdminRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            string hash = _passwordService.Generate(validRequest.Password);
+
+            Guid adminId = await _adminsRepository.AddNewAdminAsync(new(
+                Login: validRequest.Login,
+                Password: hash,
+                StoreId: validRequest.StoreId), token);
+
+            try
+            {
+                await _cache.ClearAndUpdateCacheAsync();
+            }
+            catch (Exception)
+            {
+                await _adminsRepository.RemoveAdminAsync(adminId);
+                throw;
+            }
+        }
+
+        public async Task RemoveAdminAsync(RemoveAdminRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            await _adminsRepository.RemoveAdminAsync(validRequest.AdminId);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task<List<AdminDtoResponse>> AdminsAsync(CancellationToken token)
+        {
+            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminAdmins, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<List<AdminDtoResponse>>(data) ?? new();
+            }
+
+            List<AdminDtoResponse> result = await _adminsRepository.GetAdminsAsync(token);
+
+            data = JsonSerializer.Serialize<List<AdminDtoResponse>>(result);
+
+            await _distributedCache.SetStringAsync(CacheKeys.AdminAdmins, data, token);
+
+            return result;
+        }
+
+        public async Task ChangeAdminPasswordAsync(ChangeAdminPasswordRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            string hash = _passwordService.Generate(validRequest.Password);
+
+            await _adminsRepository.ChangeAdminPasswordAsync(validRequest.AdminId, hash, token);
+
+            await _adminsRepository.RemoveRefreshTokenByIdAsync(validRequest.AdminId, token);
+        }
+
+        public async Task ChangeCityNameAsync(ChangeCityNameRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            await _adminsRepository.ChangeCityNameAsync(validRequest, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task ChangeStoreInfoAsync(ChangeStoreInfoRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData();
+
+            await _adminsRepository.ChangeStoreInfoAsync(validRequest, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task<ReviewResponse> StoreReviewAsync(Guid storeId, int page, CancellationToken token)
+        {
+            string cacheKey = $"{CacheKeys.AdminReviews}{storeId}{page}";
+
+            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<ReviewResponse>(data) ?? new();
+            }
+
+            ReviewResponse result = await _adminsRepository.GetStoreReviewWithPagination(storeId, page, token);
+
+            data = JsonSerializer.Serialize<ReviewResponse>(result);
+
+            await _distributedCache.SetStringAsync(cacheKey, data, token);
+
+            return result;
+        }
+
+        public async Task RemoveStoreReviewAsync(Guid reviewId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await _adminsRepository.RemoveReviewAsync(reviewId);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task BlockReviewsAsync(long customerId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await _adminsRepository.BlockReviewsAsync(customerId, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task UnBlockReviewsAsync(long customerId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await _adminsRepository.UnBlockReviewsAsync(customerId, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task BlockOrdersAsync(long customerId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await _adminsRepository.BlockOrdersAsync(customerId, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task UnBlockOrdersAsync(long customerId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await _adminsRepository.UnBlockOrdersAsync(customerId, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
+        public async Task<CustomerDtoResponse?> GetCustomerByIdAsync(long customerId, CancellationToken token)
+        {
+            return await _adminsRepository.GetCustomerByIdAsync(customerId, token);
+        }
+
+        public async Task<CustomerDtoResponse?> GetCustomerByPhoneNumberAsync(string phoneNumber, CancellationToken token)
+        {
+            if (string.IsNullOrEmpty(phoneNumber))
+            {
+                return null;
+            }
+
+            return await _adminsRepository.GetCustomerByPhoneNumberAsync(phoneNumber, token);
         }
     }
 }

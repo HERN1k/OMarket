@@ -110,11 +110,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.StoreId);
 
-                entity.HasOne(e => e.Store)
-                    .WithOne(s => s.Address)
-                    .HasForeignKey<StoreAddress>(e => e.StoreId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
                 // Setting property 
 
                 entity.Property(e => e.Id)
@@ -186,6 +181,10 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
+                entity.Property(e => e.AdminId)
+                    .HasColumnType("uuid")
+                    .IsRequired();
+
                 entity.Property(e => e.Login)
                     .HasColumnType("varchar(32)")
                     .HasMinLength(5)
@@ -238,8 +237,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
 
                 entity.HasIndex(e => e.CityId);
 
-                entity.HasIndex(e => e.AddressId);
-
                 entity.HasOne(e => e.City)
                     .WithMany(e => e.Stores)
                     .HasForeignKey(e => e.CityId)
@@ -250,18 +247,9 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasForeignKey<StoreAddress>(e => e.StoreId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(e => e.Admin)
-                    .WithOne(e => e.Store)
-                    .HasForeignKey<Store>(e => e.AdminId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
                 // Setting property 
 
                 entity.Property(e => e.Id)
-                    .HasColumnType("uuid")
-                    .IsRequired();
-
-                entity.Property(e => e.AddressId)
                     .HasColumnType("uuid")
                     .IsRequired();
 
@@ -300,9 +288,14 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasOne(e => e.AdminsCredentials)
-                    .WithOne(a => a.Admin)
-                    .HasForeignKey<Admin>(e => e.CredentialsId)
+                    .WithOne(c => c.Admin)
+                    .HasForeignKey<AdminsCredentials>(e => e.AdminId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Store)
+                    .WithOne(e => e.Admin)
+                    .HasForeignKey<Store>(e => e.AdminId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 // Setting property 
 
@@ -310,11 +303,10 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                     .HasColumnType("uuid")
                     .IsRequired();
 
-                entity.Property(e => e.PermissionId)
-                    .HasColumnType("uuid")
-                    .IsRequired();
+                entity.Property(e => e.StoreId)
+                    .HasColumnType("uuid");
 
-                entity.Property(e => e.CredentialsId)
+                entity.Property(e => e.PermissionId)
                     .HasColumnType("uuid")
                     .IsRequired();
 

@@ -12,6 +12,8 @@ namespace OMarket.Domain.Entities
 
         public string Hash { get; set; } = string.Empty;
 
+        public Guid AdminId { get; set; }
+
         public virtual Admin Admin { get; set; }
     }
 }

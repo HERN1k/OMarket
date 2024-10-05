@@ -263,7 +263,6 @@ namespace OMarket.Infrastructure.Repositories
                     .Select(store => new StoreDto()
                     {
                         Id = store.Id,
-                        AddressId = store.AddressId,
                         CityId = store.CityId,
                         AdminId = store.AdminId,
                         PhoneNumber = store.PhoneNumber
@@ -285,7 +284,6 @@ namespace OMarket.Infrastructure.Repositories
                 .Select(store => new StoreDto()
                 {
                     Id = store.Id,
-                    AddressId = store.AddressId,
                     CityId = store.CityId,
                     AdminId = store.AdminId,
                     PhoneNumber = store.PhoneNumber

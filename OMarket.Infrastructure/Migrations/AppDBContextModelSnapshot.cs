@@ -28,19 +28,16 @@ namespace OMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CredentialsId")
+                    b.Property<Guid>("PermissionId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PermissionId")
+                    b.Property<Guid?>("StoreId")
                         .HasColumnType("uuid");
 
                     b.Property<long?>("TgAccountId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CredentialsId")
-                        .IsUnique();
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -80,6 +77,9 @@ namespace OMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid>("AdminId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Hash")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -93,6 +93,9 @@ namespace OMarket.Infrastructure.Migrations
                         .HasAnnotation("MinLength", 5);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AdminId")
+                        .IsUnique();
 
                     b.HasIndex("Id")
                         .IsUnique();
@@ -462,9 +465,6 @@ namespace OMarket.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("AddressId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid?>("AdminId")
                         .HasColumnType("uuid");
 
@@ -481,8 +481,6 @@ namespace OMarket.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AddressId");
 
                     b.HasIndex("AdminId")
                         .IsUnique();
@@ -529,21 +527,24 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Admin", b =>
                 {
-                    b.HasOne("OMarket.Domain.Entities.AdminsCredentials", "AdminsCredentials")
-                        .WithOne("Admin")
-                        .HasForeignKey("OMarket.Domain.Entities.Admin", "CredentialsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OMarket.Domain.Entities.AdminsPermission", "AdminsPermission")
                         .WithMany("Admins")
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("AdminsCredentials");
-
                     b.Navigation("AdminsPermission");
+                });
+
+            modelBuilder.Entity("OMarket.Domain.Entities.AdminsCredentials", b =>
+                {
+                    b.HasOne("OMarket.Domain.Entities.Admin", "Admin")
+                        .WithOne("AdminsCredentials")
+                        .HasForeignKey("OMarket.Domain.Entities.AdminsCredentials", "AdminId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Admin");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.Customer", b =>
@@ -709,12 +710,10 @@ namespace OMarket.Infrastructure.Migrations
 
             modelBuilder.Entity("OMarket.Domain.Entities.Admin", b =>
                 {
-                    b.Navigation("Store");
-                });
+                    b.Navigation("AdminsCredentials")
+                        .IsRequired();
 
-            modelBuilder.Entity("OMarket.Domain.Entities.AdminsCredentials", b =>
-                {
-                    b.Navigation("Admin");
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("OMarket.Domain.Entities.AdminsPermission", b =>

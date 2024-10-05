@@ -86,8 +86,6 @@ namespace OMarket.Application.Services.StaticCollections
         {
             try
             {
-                _logger.LogInformation("Updating static collections...");
-
                 var allProductsTypesDictionary = await MapAllProductsTypesAsync();
                 var storesSet = await _appRepository.GetAllStoresAsync();
                 var citiesWithStoreAddressesDictionary = await _appRepository
@@ -111,8 +109,6 @@ namespace OMarket.Application.Services.StaticCollections
                     OrderStatusesDictionary = orderStatusesDictionary;
                     OrderStatusesWithGuidDictionary = orderStatusesWithGuidDictionary;
                 }
-
-                _logger.LogInformation("Static collections have been successfully updated.");
             }
             catch (Exception ex)
             {

@@ -16,6 +16,115 @@ namespace OMarket.Domain.DTOs
             LanguageCode LanguageCode
         );
 
+    public class CustomerDtoResponse
+    {
+        public long Id { get; set; }
+        public string? Username { get; set; }
+        public string FirstName { get; set; } = string.Empty;
+        public string? LastName { get; set; }
+        public string? PhoneNumber { get; set; }
+        public bool IsBot { get; set; }
+        public string StoreAddress { get; set; } = string.Empty;
+        public DateTime? CreatedAt { get; set; }
+        public bool BlockedOrders { get; set; }
+        public bool BlockedReviews { get; set; }
+    }
+
+    public class ReviewResponse
+    {
+        public List<ReviewDto> Reviews { get; set; } = new();
+
+        public int PageCount { get; set; } = 0;
+
+        public int TotalQuantity { get; set; } = 0;
+    }
+
+    public record ChangeStoreInfoRequest(
+        string StoreId,
+        string? Address,
+        string? PhoneNumber,
+        string? Longitude,
+        string? Latitude,
+        string? TgChatId);
+
+    public record ChangeStoreInfoRequestDto(
+        Guid StoreId,
+        string? Address,
+        string? PhoneNumber,
+        decimal? Longitude,
+        decimal? Latitude,
+        long? TgChatId);
+
+    public record ChangeCityNameRequest(
+        string CityId,
+        string CityName);
+
+    public record ChangeCityNameRequestDto(
+        Guid CityId,
+        string CityName);
+
+    public record ChangeAdminPasswordRequest(
+        string AdminId,
+        string Password);
+
+    public record ChangeAdminPasswordRequestDto(
+        Guid AdminId,
+        string Password);
+
+    public class AdminDtoResponse : IEquatable<AdminDtoResponse>
+    {
+        public Guid Id { get; set; }
+
+        public string Login { get; set; } = string.Empty;
+
+        public string Permission { get; set; } = string.Empty;
+
+        public Guid? StoreId { get; set; }
+
+        public string StoreName { get; set; } = string.Empty;
+
+        public long? TgAccountId { get; set; }
+
+        public bool Equals(AdminDtoResponse? other)
+        {
+            if (other == null)
+                return false;
+
+            return Id == other.Id;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is AdminDtoResponse otherDto)
+            {
+                return Equals(otherDto);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+    }
+
+    public record RemoveAdminRequest(
+        string AdminId);
+
+    public record RemoveAdminRequestDto(
+        Guid AdminId);
+
+    public record AddNewAdminRequest(
+        string Login,
+        string Password,
+        string StoreId);
+
+    public record AddNewAdminRequestDto(
+        string Login,
+        string Password,
+        Guid StoreId);
+
     public record AddNewCityRequest(
         string CityName);
 
@@ -25,11 +134,15 @@ namespace OMarket.Domain.DTOs
     public record RemoveCityRequestDto(
         Guid CityId);
 
+    public record RemoveStoreRequest(
+        string StoreId);
+
+    public record RemoveStoreRequestDto(
+        Guid StoreId);
+
     public class StoreDtoResponse : IEquatable<StoreDtoResponse>
     {
         public Guid Id { get; set; }
-
-        public Guid AddressId { get; set; }
 
         public Guid CityId { get; set; }
 
@@ -106,10 +219,6 @@ namespace OMarket.Domain.DTOs
     public record ChangePasswordRequest(
         string Password,
         string NewPassword);
-
-    public record RemoveAdminRequest(
-        string Login,
-        string Password);
 
     public record TokenClaims(
         string Permission,
@@ -451,8 +560,6 @@ namespace OMarket.Domain.DTOs
     public class StoreDto : IEquatable<StoreDto>
     {
         public Guid Id { get; set; }
-
-        public Guid AddressId { get; set; }
 
         public Guid CityId { get; set; }
 

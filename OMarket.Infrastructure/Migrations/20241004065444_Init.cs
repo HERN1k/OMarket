@@ -13,19 +13,6 @@ namespace OMarket.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "AdminsCredentials",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Login = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
-                    Hash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AdminsCredentials", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AdminsPermissions",
                 columns: table => new
                 {
@@ -92,18 +79,12 @@ namespace OMarket.Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     PermissionId = table.Column<Guid>(type: "uuid", nullable: false),
-                    CredentialsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TgAccountId = table.Column<long>(type: "bigint", nullable: true)
+                    TgAccountId = table.Column<long>(type: "bigint", nullable: true),
+                    StoreId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Admins", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Admins_AdminsCredentials_CredentialsId",
-                        column: x => x.CredentialsId,
-                        principalTable: "AdminsCredentials",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Admins_AdminsPermissions_PermissionId",
                         column: x => x.PermissionId,
@@ -132,11 +113,30 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "AdminsCredentials",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Login = table.Column<string>(type: "varchar(32)", maxLength: 32, nullable: false),
+                    Hash = table.Column<string>(type: "varchar(64)", maxLength: 64, nullable: false),
+                    AdminId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AdminsCredentials", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AdminsCredentials_Admins_AdminId",
+                        column: x => x.AdminId,
+                        principalTable: "Admins",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Stores",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    AddressId = table.Column<Guid>(type: "uuid", nullable: false),
                     CityId = table.Column<Guid>(type: "uuid", nullable: false),
                     AdminId = table.Column<Guid>(type: "uuid", nullable: true),
                     TgChatId = table.Column<long>(type: "bigint", nullable: true),
@@ -360,12 +360,6 @@ namespace OMarket.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Admins_CredentialsId",
-                table: "Admins",
-                column: "CredentialsId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Admins_Id",
                 table: "Admins",
                 column: "Id",
@@ -375,6 +369,12 @@ namespace OMarket.Infrastructure.Migrations
                 name: "IX_Admins_PermissionId",
                 table: "Admins",
                 column: "PermissionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_AdminsCredentials_AdminId",
+                table: "AdminsCredentials",
+                column: "AdminId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AdminsCredentials_Id",
@@ -579,11 +579,6 @@ namespace OMarket.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Stores_AddressId",
-                table: "Stores",
-                column: "AddressId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Stores_AdminId",
                 table: "Stores",
                 column: "AdminId",
@@ -604,6 +599,9 @@ namespace OMarket.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AdminsCredentials");
+
             migrationBuilder.DropTable(
                 name: "AdminTokens");
 
@@ -645,9 +643,6 @@ namespace OMarket.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Cities");
-
-            migrationBuilder.DropTable(
-                name: "AdminsCredentials");
 
             migrationBuilder.DropTable(
                 name: "AdminsPermissions");

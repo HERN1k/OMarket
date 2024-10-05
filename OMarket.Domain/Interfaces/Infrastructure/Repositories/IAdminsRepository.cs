@@ -16,11 +16,11 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
 
         Task RemoveRefreshTokenByTokenValueAsync(string token, CancellationToken cancellationToken);
 
+        Task RemoveRefreshTokenByIdAsync(Guid adminId, CancellationToken token);
+
         Task<string> ValidateLoginAndGetRefreshTokenAsync(string login, CancellationToken token);
 
         Task ChangePasswordAsync(string login, string hash, CancellationToken token);
-
-        Task RemoveAdminAsync(string superAdminLogin, string password, string removedLogin, CancellationToken token);
 
         Task AddNewCityAsync(string name, CancellationToken token);
 
@@ -35,5 +35,33 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
         Task RemoveStoreAsync(Guid storeId);
 
         Task<List<StoreDtoResponse>> GetStoresAsync(CancellationToken token);
+
+        Task RemoveAdminAsync(Guid adminId);
+
+        Task<Guid> AddNewAdminAsync(AddNewAdminRequestDto request, CancellationToken token);
+
+        Task<List<AdminDtoResponse>> GetAdminsAsync(CancellationToken token);
+
+        Task ChangeAdminPasswordAsync(Guid adminId, string hash, CancellationToken token);
+
+        Task ChangeCityNameAsync(ChangeCityNameRequestDto request, CancellationToken token);
+
+        Task ChangeStoreInfoAsync(ChangeStoreInfoRequestDto request, CancellationToken token);
+
+        Task<ReviewResponse> GetStoreReviewWithPagination(Guid storeId, int page, CancellationToken token);
+
+        Task RemoveReviewAsync(Guid reviewId);
+
+        Task BlockReviewsAsync(long customerId, CancellationToken token);
+
+        Task UnBlockReviewsAsync(long customerId, CancellationToken token);
+
+        Task BlockOrdersAsync(long customerId, CancellationToken token);
+
+        Task UnBlockOrdersAsync(long customerId, CancellationToken token);
+
+        Task<CustomerDtoResponse?> GetCustomerByIdAsync(long customerId, CancellationToken token);
+
+        Task<CustomerDtoResponse?> GetCustomerByPhoneNumberAsync(string phoneNumber, CancellationToken token);
     }
 }
