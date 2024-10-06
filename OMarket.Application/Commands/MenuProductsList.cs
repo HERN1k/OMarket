@@ -121,7 +121,7 @@ namespace OMarket.Application.Commands
                 throw new ArgumentNullException("HTTPS_APPLICATION_URL", "The 'HTTPS_APPLICATION_URL' string environment variable is not set.");
             }
 
-            Uri uri = new(appUri + dto.Product.PhotoUri);
+            Uri uri = new(appUri + "/static/" + dto.Product.PhotoUri);
 
             await _response.RemoveLastMessage(token);
 

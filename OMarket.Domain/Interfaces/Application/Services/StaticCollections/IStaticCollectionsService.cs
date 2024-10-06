@@ -30,6 +30,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.StaticCollections
 
         FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; }
 
+        void Initialize();
+
         Task UpdateStaticCollectionsAsync();
     }
 }

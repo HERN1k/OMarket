@@ -21,7 +21,7 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.Store)
                     .WithMany(e => e.Customers)
                     .HasForeignKey(e => e.StoreId)
-                    .OnDelete(DeleteBehavior.NoAction);
+                    .OnDelete(DeleteBehavior.SetNull);
 
                 // Setting property 
 
@@ -309,9 +309,6 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.Property(e => e.PermissionId)
                     .HasColumnType("uuid")
                     .IsRequired();
-
-                entity.Property(e => e.TgAccountId)
-                    .HasColumnType("bigint");
             });
         }
 

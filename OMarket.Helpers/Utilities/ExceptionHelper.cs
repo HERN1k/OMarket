@@ -2,6 +2,8 @@
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
+using Microsoft.AspNetCore.Http;
+
 using OMarket.Domain.DTOs;
 using OMarket.Helpers.Extensions;
 
@@ -464,6 +466,79 @@ namespace OMarket.Helpers.Utilities
             return new(storeId, address, phoneNumber, longitude, latitude, tgChatId);
         }
 
+        public static ChangeStoreInfoRequestDto VerificationData(this ChangeStoreInfoBaseRequest request, HttpContext httpContext)
+        {
+            Guid storeId = GetStoreId(httpContext.User.Claims);
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в невірному форматі.");
+            }
+
+            string? address = null;
+            string? phoneNumber = null;
+            decimal? longitude = null;
+            decimal? latitude = null;
+            long? tgChatId = null;
+
+            if (!string.IsNullOrEmpty(request.Address))
+            {
+                address = request.Address.Trim();
+                if (address.Length > 255)
+                {
+                    address = address[..255];
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.PhoneNumber))
+            {
+                phoneNumber = Regex.Replace(
+                    input: request.PhoneNumber.Trim(),
+                    pattern: RegexPatterns.PhoneNumberFormattingPattern,
+                    replacement: string.Empty);
+
+                phoneNumber = '+' + phoneNumber;
+
+                if (phoneNumber.Length <= 32 &&
+                    !phoneNumber.RegexIsMatch(RegexPatterns.PhoneNumber))
+                {
+                    throw new ArgumentException("Поле номер телефону в невірному форматі.");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(request.Longitude))
+            {
+                if (!decimal.TryParse(request.Longitude, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal longitudeTemp))
+                {
+                    throw new ArgumentException("Поле довгота передано в невірному форматі.");
+                }
+
+                longitude = Math.Round(longitudeTemp, 6);
+            }
+
+            if (!string.IsNullOrEmpty(request.Latitude))
+            {
+                if (!decimal.TryParse(request.Latitude, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal latitudeTemp))
+                {
+                    throw new ArgumentException("Поле широта передано в невірному форматі.");
+                }
+
+                latitude = Math.Round(latitudeTemp, 6);
+            }
+
+            if (!string.IsNullOrEmpty(request.TgChatId))
+            {
+                if (!long.TryParse(request.TgChatId, out long chatId))
+                {
+                    throw new ArgumentException("Поле TG чат ID передано в невірному форматі.");
+                }
+
+                tgChatId = chatId;
+            }
+
+            return new(storeId, address, phoneNumber, longitude, latitude, tgChatId);
+        }
+
         public static AddNewProductDto VerificationData(this AddNewProductMetadata request, string extension, string contentType)
         {
             if (string.IsNullOrEmpty(extension))
@@ -753,6 +828,25 @@ namespace OMarket.Helpers.Utilities
                 Dimensions = dimensions,
                 Description = description
             };
+        }
+
+        public static Guid GetStoreId(this IEnumerable<Claim> claims)
+        {
+            string locality = claims
+                .SingleOrDefault(claim => claim.Type == ClaimTypes.Locality)?.Value
+                    ?? throw new ArgumentException("Токен не знайдено.");
+
+            if (!Guid.TryParse(locality, out Guid storeId))
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в неправильному форматі.");
+            }
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в неправильному форматі.");
+            }
+
+            return storeId;
         }
     }
 }

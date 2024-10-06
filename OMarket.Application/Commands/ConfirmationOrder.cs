@@ -191,6 +191,9 @@ namespace OMarket.Application.Commands
             }
             sb.AppendLine($"{_i18n.T("admins_command_quantity")} <b>{createdOrder.TotalQuantity}</b> {_i18n.T("admins_command_for_amount")} <b>{createdOrder.TotalPrice} грн.</b>");
 
+            sb.AppendLine();
+            sb.AppendLine($"<b>{_i18n.T("admins_command_dont_forget_to_add_package")}</b>");
+
             if (createdOrder.DeliveryMethod == DeliveryMethod.DELIVERY)
             {
                 sb.AppendLine();

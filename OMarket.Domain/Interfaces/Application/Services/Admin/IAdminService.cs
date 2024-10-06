@@ -40,6 +40,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.Admin
 
         Task ChangeStoreInfoAsync(ChangeStoreInfoRequest request, CancellationToken token);
 
+        Task ChangeStoreInfoBaseAsync(HttpContext httpContext, ChangeStoreInfoBaseRequest request, CancellationToken token);
+
         Task<ReviewResponse> StoreReviewAsync(Guid storeId, int page, CancellationToken token);
 
         Task RemoveStoreReviewAsync(Guid reviewId, CancellationToken token);
@@ -67,5 +69,9 @@ namespace OMarket.Domain.Interfaces.Application.Services.Admin
         Task RemoveProductAsync(Guid productId, CancellationToken token);
 
         Task<ProductResponse> GetProductsAsync(Guid typeId, int page, CancellationToken token);
+
+        Task<ProductResponse> GetProductsWithStoreAsync(HttpContext httpContext, Guid typeId, int page, CancellationToken token);
+
+        Task ChangeDataStoreProductStatusAsync(HttpContext httpContext, Guid productId, CancellationToken token);
     }
 }

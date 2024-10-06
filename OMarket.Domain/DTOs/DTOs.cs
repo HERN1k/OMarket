@@ -124,6 +124,13 @@ namespace OMarket.Domain.DTOs
         string? Latitude,
         string? TgChatId);
 
+    public record ChangeStoreInfoBaseRequest(
+        string? Address,
+        string? PhoneNumber,
+        string? Longitude,
+        string? Latitude,
+        string? TgChatId);
+
     public record ChangeStoreInfoRequestDto(
         Guid StoreId,
         string? Address,
@@ -159,8 +166,6 @@ namespace OMarket.Domain.DTOs
         public Guid? StoreId { get; set; }
 
         public string StoreName { get; set; } = string.Empty;
-
-        public long? TgAccountId { get; set; }
 
         public bool Equals(AdminDtoResponse? other)
         {
@@ -995,8 +1000,6 @@ namespace OMarket.Domain.DTOs
         public string Permission { get; set; } = string.Empty;
 
         public Guid? StoreId { get; set; }
-
-        public long? TgAccountId { get; set; }
 
         public bool Equals(AdminDto? other)
         {

@@ -93,6 +93,19 @@ namespace OMarket.Application.Commands
                 return;
             }
 
+            if (!DateTimeHelper.IsTimeAllowed())
+            {
+                string badTimeText = $"""
+                    {_i18n.T("order_command_your_order_title")}
+
+                    <b>{_i18n.T("order_command_unable_create_order")}</b>
+                    """;
+
+                await _response.EditLastMessage(badTimeText, token, _inlineMarkup.ToMainMenuBack());
+
+                return;
+            }
+
             List<CartItemDto> cart = await _cartService
                 .GatCustomerCartAsync(request.Customer.Id, token);
 
@@ -187,6 +200,11 @@ namespace OMarket.Application.Commands
             sb.Append(_i18n.T("order_command_store_phone_number"));
             sb.Append(" <i>");
             sb.Append(store.PhoneNumber);
+            sb.Append("</i>\n");
+            sb.AppendLine();
+
+            sb.Append(" <i>");
+            sb.Append(_i18n.T("order_command_cost_packag_will_be_added"));
             sb.Append("</i>\n");
             sb.AppendLine();
 

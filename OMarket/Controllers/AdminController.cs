@@ -7,7 +7,7 @@ using OMarket.Domain.Interfaces.Application.Services.Admin;
 namespace OMarket.Controllers
 {
     [ApiController]
-    [Route("admin")]
+    [Route("api/admin")]
     public class AdminController : ControllerBase
     {
         private readonly IAdminService _adminService;
@@ -121,6 +121,15 @@ namespace OMarket.Controllers
         public async Task<IActionResult> ChangeStoreInfo([FromBody] ChangeStoreInfoRequest request, CancellationToken token)
         {
             await _adminService.ChangeStoreInfoAsync(request, token);
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPost("change-store-info-base")]
+        public async Task<IActionResult> ChangeStoreInfoBase([FromBody] ChangeStoreInfoBaseRequest request, CancellationToken token)
+        {
+            await _adminService.ChangeStoreInfoBaseAsync(HttpContext, request, token);
 
             return Ok();
         }
@@ -247,6 +256,24 @@ namespace OMarket.Controllers
             ProductResponse result = await _adminService.GetProductsAsync(typeId, page, token);
 
             return Ok(new { Data = result });
+        }
+
+        [Authorize]
+        [HttpGet("get-products-with-store")]
+        public async Task<IActionResult> GetProductsWithStore([FromQuery] Guid typeId, [FromQuery] int page, CancellationToken token)
+        {
+            ProductResponse result = await _adminService.GetProductsWithStoreAsync(HttpContext, typeId, page, token);
+
+            return Ok(new { Data = result });
+        }
+
+        [Authorize]
+        [HttpGet("change-data-store-product-status")]
+        public async Task<IActionResult> ChangeDataStoreProductStatus([FromQuery] Guid productId, CancellationToken token)
+        {
+            await _adminService.ChangeDataStoreProductStatusAsync(HttpContext, productId, token);
+
+            return Ok();
         }
     }
 }

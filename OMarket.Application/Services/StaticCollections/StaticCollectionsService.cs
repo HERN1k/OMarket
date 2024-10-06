@@ -18,25 +18,25 @@ namespace OMarket.Application.Services.StaticCollections
     {
         public FrozenDictionary<TgCommands, Type> CommandsDictionary { get; init; }
 
-        public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; private set; }
+        public FrozenDictionary<string, ReadOnlyCollection<string>> AllProductsTypesDictionary { get; private set; } = null!;
 
-        public FrozenSet<StoreDto> StoresSet { get; private set; }
+        public FrozenSet<StoreDto> StoresSet { get; private set; } = null!;
 
-        public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; private set; }
+        public FrozenDictionary<string, StoreAddressWithCityDto> CitiesWithStoreAddressesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; private set; }
+        public FrozenDictionary<string, string> GuidToStringProductsTypesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<string, string> StringToGuidProductsTypesDictionary { get; private set; }
+        public FrozenDictionary<string, string> StringToGuidProductsTypesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; private set; }
+        public FrozenDictionary<string, string> GuidToStringUnderTypesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; private set; }
+        public FrozenDictionary<string, string> StringToGuidUnderTypesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<int, string> OrderStatusesDictionary { get; private set; }
+        public FrozenDictionary<int, string> OrderStatusesDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; private set; }
+        public FrozenDictionary<Guid, string> OrderStatusesWithGuidDictionary { get; private set; } = null!;
 
-        public FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; private set; }
+        public FrozenDictionary<Guid, ProductFullNameWithPrice> ProductGuidToFullNameWithPriceDictionary { get; private set; } = null!;
 
         private readonly IApplicationRepository _appRepository;
 
@@ -52,9 +52,12 @@ namespace OMarket.Application.Services.StaticCollections
             _appRepository = appRepository ?? throw new ArgumentNullException(nameof(appRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _logger.LogInformation("Starting initialization static collections...");
-
             CommandsDictionary = MapCommands();
+        }
+
+        public void Initialize()
+        {
+            _logger.LogInformation("Starting initialization static collections...");
 
             AllProductsTypesDictionary = MapAllProductsTypes();
 
@@ -124,8 +127,6 @@ namespace OMarket.Application.Services.StaticCollections
                 .SelectMany(a => a.GetTypes())
                 .Where(t => t.GetInterfaces().Contains(typeof(ITgCommand)))
                 .Where(t => t.GetCustomAttribute<TgCommandAttribute>() != null);
-
-            _logger.LogInformation("Found {Count} command types.", commandTypes.Count());
 
             Dictionary<TgCommands, Type> commandMap = new();
 

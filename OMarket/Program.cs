@@ -5,6 +5,8 @@ using AutoMapper;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
@@ -18,8 +20,10 @@ using OMarket.Application.Services.Bot;
 using OMarket.Application.Services.Cache;
 using OMarket.Application.Services.Cart;
 using OMarket.Application.Services.Distributor;
+using OMarket.Application.Services.HealthCheck;
 using OMarket.Application.Services.Jwt;
 using OMarket.Application.Services.KeyboardMarkup;
+using OMarket.Application.Services.Migration;
 using OMarket.Application.Services.Password;
 using OMarket.Application.Services.Processor;
 using OMarket.Application.Services.SendResponse;
@@ -45,7 +49,6 @@ using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Domain.Mapper;
 using OMarket.Domain.Settings;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
-using OMarket.Infrastructure.Extensions;
 using OMarket.Infrastructure.Repositories;
 
 using StackExchange.Redis;
@@ -63,9 +66,8 @@ namespace OMarket
             WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
             #region Base
-            builder.Logging
-                .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
-                .AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Warning);
+            builder.Logging.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Error)
+                .AddFilter("Microsoft.EntityFrameworkCore", LogLevel.Error);
 
             builder.Services.AddControllers()
                 .AddNewtonsoftJson();
@@ -76,9 +78,40 @@ namespace OMarket
 
             builder.Services.AddMemoryCache();
 
-            //builder.Services.AddDataProtection()
-            //    .PersistKeysToFileSystem(new DirectoryInfo(@"/home/app/.aspnet/DataProtection-Keys"))
-            //    .SetApplicationName("TourneyPulse");
+            builder.WebHost.UseKestrel(options =>
+            {
+                options.AddServerHeader = false;
+            });
+
+            var appUri = Environment.GetEnvironmentVariable("HTTPS_APPLICATION_URL");
+
+            if (string.IsNullOrEmpty(appUri))
+            {
+                throw new ArgumentNullException("HTTPS_APPLICATION_URL", "The 'HTTPS_APPLICATION_URL' string environment variable is not set.");
+            }
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigins", builder =>
+                builder.WithOrigins(appUri)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
+            });
+
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+            });
+
+            builder.Services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"/home/app/.aspnet/DataProtection-Keys"))
+                .SetApplicationName("OMarket");
+
+            builder.Services.Configure<FormOptions>(options =>
+            {
+                options.MultipartBodyLengthLimit = 10 * 1024 * 1024;
+            });
             #endregion
 
             #region Logger
@@ -208,7 +241,11 @@ namespace OMarket
             #endregion
 
             #region DI
+            builder.Services.AddHostedService<HealthCheckService>();
+            builder.Services.AddHostedService<MigrationService>();
+
             builder.Services.AddSingleton<IStaticCollectionsService, StaticCollectionsService>();
+            builder.Services.AddHostedService<StaticCollectionsInit>();
 
             builder.Services.AddSingleton<IBotService, BotService>();
             builder.Services.AddHostedService<BotHostedService>();
@@ -277,12 +314,6 @@ namespace OMarket
 #endif
             #endregion
 
-            #region Base
-            MigrationExtensions.ApplyMigrations(app);
-
-            _ = app.Services.GetRequiredService<IStaticCollectionsService>();
-            #endregion
-
             #region Middlewares
             app.UseCookiePolicy(new CookiePolicyOptions
             {
@@ -293,6 +324,10 @@ namespace OMarket
 
             app.UseHsts();
             app.UseHttpsRedirection();
+            app.UseXContentTypeOptions();
+            app.UseReferrerPolicy(opts => opts.NoReferrer());
+            app.UseXXssProtection(options => options.EnabledWithBlockMode());
+            app.UseXfo(options => options.Deny());
 
             app.UseMiddleware<CookieJwtMiddleware>();
             app.UseAuthentication();

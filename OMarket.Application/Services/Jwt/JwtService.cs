@@ -40,7 +40,8 @@ namespace OMarket.Application.Services.Jwt
             Claim[] claims = new[]
             {
                 new Claim(ClaimTypes.Role, admin.Permission),
-                new Claim(ClaimTypes.Name, admin.Login)
+                new Claim(ClaimTypes.Name, admin.Login),
+                new Claim(ClaimTypes.Locality, admin.StoreId.ToString() ?? Guid.Empty.ToString())
             };
 
             DateTime expiration = type == TokenType.Access

@@ -10,8 +10,9 @@
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
             "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm"
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
         },
         "dotnetRunMessages": true,
         "applicationUrl": "http://192.168.0.101:7558"
@@ -26,8 +27,9 @@
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
             "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm"
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
         },
         "dotnetRunMessages": true,
         "applicationUrl": "https://192.168.0.101:7557;http://192.168.0.101:7558"
@@ -42,8 +44,9 @@
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
             "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm"
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
         }
     },
     "Container (Dockerfile)": {
@@ -57,8 +60,9 @@
             "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
             "REDIS_CONFIGURATION": "localhost:6379",
             "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua/static/",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm"
+            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
         },
       "publishAllPorts": true,
       "useSSL": true

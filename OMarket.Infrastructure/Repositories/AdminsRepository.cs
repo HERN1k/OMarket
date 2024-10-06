@@ -85,31 +85,6 @@ namespace OMarket.Infrastructure.Repositories
             await context.SaveChangesAsync(token);
         }
 
-        public async Task<Guid?> VerifyAdminByIdAsync(long id, CancellationToken token)
-        {
-            try
-            {
-                token.ThrowIfCancellationRequested();
-
-                await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
-
-                return await context.Admins
-                    .AsNoTracking()
-                    .Where(admin => admin.TgAccountId == id)
-                    .Select(admin => admin.Id)
-                    .SingleOrDefaultAsync(token);
-            }
-            catch (OperationCanceledException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "{Message}", ex.Message);
-                throw;
-            }
-        }
-
         public async Task<AdminDto> GetAdminByLoginAsync(string login, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
@@ -131,8 +106,7 @@ namespace OMarket.Infrastructure.Repositories
                 Login = credentials.Login,
                 Hash = credentials.Hash,
                 Permission = credentials.Admin.AdminsPermission.Permission,
-                StoreId = credentials.Admin.Store?.Id,
-                TgAccountId = credentials.Admin.TgAccountId
+                StoreId = credentials.Admin.Store?.Id
             };
         }
 
@@ -635,8 +609,7 @@ namespace OMarket.Infrastructure.Repositories
                 Login = admin.AdminsCredentials.Login,
                 Permission = admin.AdminsPermission.Permission,
                 StoreId = admin.Store?.Id,
-                StoreName = $"{admin.Store?.City?.CityName} {admin.Store?.Address?.Address}",
-                TgAccountId = admin.TgAccountId
+                StoreName = $"{admin.Store?.City?.CityName} {admin.Store?.Address?.Address}"
             }).ToList();
         }
 
@@ -1092,6 +1065,122 @@ namespace OMarket.Infrastructure.Repositories
                 PageCount = (int)Math.Ceiling((double)maxPageNumber / _pageSizeProduct),
                 TotalQuantity = maxPageNumber
             };
+        }
+
+        public async Task<ProductResponse> GetProductsWithPaginationAndStoreIdAsync(Guid storeId, Guid typeId, int page, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (page == 0)
+            {
+                return new();
+            }
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            int maxPageNumber = await context.Products
+                .AsNoTracking()
+                .Where(product => product.TypeId == typeId)
+                .CountAsync(token);
+
+            if (maxPageNumber == 0)
+            {
+                return new();
+            }
+
+            List<ProductDtoResponse> products = await (
+                from productTemp in context.Products
+                    .AsNoTracking()
+                    .Include(product => product.ProductType)
+                    .Include(product => product.ProductUnderType)
+                join dataStoreProduct in context.DataStoreProducts.AsNoTracking()
+                on new { ProductId = productTemp.Id, StoreId = storeId } equals new { dataStoreProduct.ProductId, dataStoreProduct.StoreId }
+                into storeGroup
+                from storeProduct in storeGroup.DefaultIfEmpty()
+                where productTemp.TypeId == typeId
+                orderby productTemp.Price
+                select new ProductDtoResponse()
+                {
+                    Id = productTemp.Id,
+                    Name = productTemp.Name,
+                    PhotoUri = productTemp.PhotoUri,
+                    TypeId = productTemp.TypeId,
+                    Type = productTemp.ProductType.TypeName,
+                    UnderTypeId = productTemp.UnderTypeId,
+                    UnderType = productTemp.ProductUnderType.UnderTypeName,
+                    Price = productTemp.Price,
+                    Dimensions = productTemp.Dimensions,
+                    Description = productTemp.Description,
+                    Status = storeProduct != null && storeProduct.Status
+                })
+                .Skip((page - 1) * _pageSizeProduct)
+                .Take(_pageSizeProduct)
+                .ToListAsync(token);
+
+            return new()
+            {
+                Products = products,
+                PageCount = (int)Math.Ceiling((double)maxPageNumber / _pageSizeProduct),
+                TotalQuantity = maxPageNumber
+            };
+        }
+
+        public async Task ChangeDataStoreProductStatusAsync(Guid storeId, Guid productId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            if (storeId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор магазину передано в неправильному форматі.");
+            }
+
+            if (productId == Guid.Empty)
+            {
+                throw new ArgumentException("Унікальний ідентифікатор товару передано в неправильному форматі.");
+            }
+
+            DataStoreProduct? storeProduct = await context.DataStoreProducts
+                .Where(storeProduct =>
+                    storeProduct.StoreId == storeId &&
+                    storeProduct.ProductId == productId)
+                .SingleOrDefaultAsync(token);
+
+            if (storeProduct is not null)
+            {
+                bool status = !storeProduct.Status;
+
+                storeProduct.Status = status;
+
+                await context.SaveChangesAsync(token);
+
+                return;
+            }
+
+            Store store = await context.Stores
+                .Where(store => store.Id == storeId)
+                .SingleOrDefaultAsync(token) ?? throw new ArgumentException("Такий магазин незнайдено.");
+
+            Product product = await context.Products
+                .Where(product => product.Id == productId)
+                .SingleOrDefaultAsync(token) ?? throw new ArgumentException("Такий товар незнайдено.");
+
+            ProductUnderType productUnderType = await context.ProductUnderTypes
+                .Where(productUnderType => productUnderType.Id == product.UnderTypeId)
+                .SingleOrDefaultAsync(token) ?? throw new ApplicationException();
+
+            DataStoreProduct dataStoreProduct = new DataStoreProduct()
+            {
+                Product = product,
+                Store = store,
+                ProductUnderType = productUnderType,
+                Status = true
+            };
+
+            await context.DataStoreProducts.AddAsync(dataStoreProduct, token);
+
+            await context.SaveChangesAsync(token);
         }
     }
 }

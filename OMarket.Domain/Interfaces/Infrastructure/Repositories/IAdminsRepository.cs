@@ -6,8 +6,6 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
     {
         Task SaveNewAdminAsync(RegisterRequestDto request, string hash, CancellationToken token);
 
-        Task<Guid?> VerifyAdminByIdAsync(long id, CancellationToken token);
-
         Task<AdminDto> GetAdminByLoginAsync(string login, CancellationToken token);
 
         Task SaveOrUpdateRefreshTokenAsync(string token, Guid adminId, CancellationToken cancellationToken);
@@ -75,5 +73,9 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
         Task<string> RemoveProductAsync(Guid productId);
 
         Task<ProductResponse> GetProductsWithPaginationAsync(Guid typeId, int page, CancellationToken token);
+
+        Task<ProductResponse> GetProductsWithPaginationAndStoreIdAsync(Guid storeId, Guid typeId, int page, CancellationToken token);
+
+        Task ChangeDataStoreProductStatusAsync(Guid storeId, Guid productId, CancellationToken token);
     }
 }

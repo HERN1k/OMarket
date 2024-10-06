@@ -36,13 +36,20 @@ namespace OMarket.Application.Services.Bot
 
             _logger.LogInformation("Webhook is being installed...");
 
+            var webhookUrl = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+
+            if (string.IsNullOrEmpty(webhookUrl))
+            {
+                throw new ArgumentNullException("WEBHOOK_URL", "The WEBHOOK_URL string environment variable is not set.");
+            }
+
             await Client.SetWebhookAsync(
-                    url: _webhookSettings.Url,
+                    url: webhookUrl,
                     dropPendingUpdates: _webhookSettings.DropPendingUpdates,
                     cancellationToken: cancellationToken
                 );
 
-            _logger.LogInformation("Webhook url: {Url}", _webhookSettings.Url);
+            _logger.LogInformation("Webhook url: {Url}", webhookUrl);
             _logger.LogInformation("Drop pending updates: {DropPendingUpdates}", _webhookSettings.DropPendingUpdates);
             _logger.LogInformation("Webhook has been installed.");
 

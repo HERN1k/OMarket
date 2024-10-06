@@ -7,7 +7,7 @@ using OMarket.Domain.Interfaces.Application.Services.Admin;
 namespace OMarket.Controllers
 {
     [ApiController]
-    [Route("auth")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IAdminService _adminService;

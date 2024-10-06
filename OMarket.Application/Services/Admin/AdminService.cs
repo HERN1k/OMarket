@@ -367,6 +367,17 @@ namespace OMarket.Application.Services.Admin
             await _cache.ClearAndUpdateCacheAsync();
         }
 
+        public async Task ChangeStoreInfoBaseAsync(HttpContext httpContext, ChangeStoreInfoBaseRequest request, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            var validRequest = request.VerificationData(httpContext);
+
+            await _adminsRepository.ChangeStoreInfoAsync(validRequest, token);
+
+            await _cache.ClearAndUpdateCacheAsync();
+        }
+
         public async Task<ReviewResponse> StoreReviewAsync(Guid storeId, int page, CancellationToken token)
         {
             string cacheKey = $"{CacheKeys.AdminReviews}{storeId}{page}";
@@ -637,6 +648,46 @@ namespace OMarket.Application.Services.Admin
             await _distributedCache.SetStringAsync(cacheKey, data, token);
 
             return result;
+        }
+
+        public async Task<ProductResponse> GetProductsWithStoreAsync(HttpContext httpContext, Guid typeId, int page, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (page < 0)
+            {
+                throw new ArgumentException();
+            }
+
+            Guid storeId = httpContext.User.Claims.GetStoreId();
+
+            string cacheKey = $"{CacheKeys.AdminProductsWithStoreId}{storeId}{typeId}{page}";
+
+            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                return JsonSerializer.Deserialize<ProductResponse>(data) ?? new();
+            }
+
+            ProductResponse result = await _adminsRepository.GetProductsWithPaginationAndStoreIdAsync(storeId, typeId, page, token);
+            data = JsonSerializer.Serialize<ProductResponse>(result);
+
+            await _distributedCache.SetStringAsync(cacheKey, data, token);
+
+            return result;
+        }
+
+        public async Task ChangeDataStoreProductStatusAsync(HttpContext httpContext, Guid productId, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            Guid storeId = httpContext.User.Claims.GetStoreId();
+
+            await _adminsRepository.ChangeDataStoreProductStatusAsync(storeId, productId, token);
+
+            _cache.ClearMemoryCache();
+            await _cache.ClearRedisCacheAsync();
         }
     }
 }

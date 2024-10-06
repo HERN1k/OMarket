@@ -59,5 +59,7 @@
         public const string AdminProductTypes = "AdminProductTypes";
 
         public const string AdminProductsWithoutStoreId = "AdminProductsWithoutStoreId";
+
+        public const string AdminProductsWithStoreId = "AdminProductsWithStoreId";
     }
 }
