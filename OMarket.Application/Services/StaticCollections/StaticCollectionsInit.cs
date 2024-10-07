@@ -7,6 +7,7 @@ namespace OMarket.Application.Services.StaticCollections
     public class StaticCollectionsInit : IHostedService
     {
         private readonly IStaticCollectionsService _staticCollections;
+
         private readonly IHostApplicationLifetime _appLifetime;
 
         public StaticCollectionsInit(IStaticCollectionsService staticCollections, IHostApplicationLifetime appLifetime)

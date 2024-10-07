@@ -1,7 +1,100 @@
 services:
   omarket:
     image: ${DOCKER_REGISTRY-}omarket
-    container_name: OMarket
     build:
       context: .
       dockerfile: OMarket/Dockerfile
+    container_name: OMarket
+    stop_grace_period: 1m
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=7558
+      - TELEGRAM_BOT_TOKEN=7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4
+      - POSTGRESQL=Host=postgres;Port=5432;Database=OMarket;Username=postgres;Password=2356
+      - REDIS_CONFIGURATION=redis:6379
+      - REDIS_INSTANCE_NAME=omarket
+      - HTTPS_APPLICATION_URL=https://dreamworkout.pp.ua
+      - JWT_KEY=mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm
+      - WEBHOOK_URL=https://dreamworkout.pp.ua/api/bot
+    ports:
+      - "7558:7558"
+    volumes:
+      - appStorageDataProtectionkKeys:/app/.aspnet/DataProtection-Keys
+      - appLogs:/app/logs
+      - appStatic:/app/wwwroot/Static
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - omarket-network
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+        reservations:
+          memory: 256M
+      update_config:
+        parallelism: 1
+        delay: 10s
+  
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2356
+      POSTGRES_DB: OMarket
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgData:/var/lib/postgresql/data
+    networks:
+      - omarket-network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+  
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisData:/data
+    networks:
+      - omarket-network
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  appStorageDataProtectionkKeys:
+  appLogs:
+  appStatic:
+  pgData:
+  redisData:
+  
+networks:
+  omarket-network:
+    driver: bridge

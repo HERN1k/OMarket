@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Text;
 
-using AutoMapper;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -78,6 +78,8 @@ namespace OMarket
 
             builder.Services.AddMemoryCache();
 
+            builder.Services.AddHealthChecks();
+
             builder.WebHost.UseKestrel(options =>
             {
                 options.AddServerHeader = false;
@@ -105,8 +107,13 @@ namespace OMarket
             });
 
             builder.Services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(@"/home/app/.aspnet/DataProtection-Keys"))
-                .SetApplicationName("OMarket");
+                .PersistKeysToFileSystem(new DirectoryInfo(@"/app/.aspnet/DataProtection-Keys"))
+                .SetApplicationName("OMarket")
+                .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration()
+                {
+                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256,
+                });
 
             builder.Services.Configure<FormOptions>(options =>
             {
@@ -322,8 +329,10 @@ namespace OMarket
                 Secure = CookieSecurePolicy.Always
             });
 
-            app.UseHsts();
-            app.UseHttpsRedirection();
+            app.UseRouting();
+
+            //app.UseHsts();
+            //app.UseHttpsRedirection();
             app.UseXContentTypeOptions();
             app.UseReferrerPolicy(opts => opts.NoReferrer());
             app.UseXXssProtection(options => options.EnabledWithBlockMode());
@@ -336,6 +345,7 @@ namespace OMarket
             app.UseStaticFiles();
 
             app.MapControllers();
+            app.MapHealthChecks("/health");
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             #endregion

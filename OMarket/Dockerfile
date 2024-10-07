@@ -2,11 +2,27 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS base
+
+RUN apt-get update && apt-get install -y curl
+
+RUN if ! getent group appgroup > /dev/null 2>&1; then \
+    addgroup --system appgroup; \
+    fi
+
+RUN if ! id -u app > /dev/null 2>&1; then \
+    adduser --system --ingroup appgroup --uid 1000 app; \
+    fi
+
+RUN mkdir -p /app/.aspnet/DataProtection-Keys /app/logs /app/wwwroot/Static && \
+    chown -R app:appgroup /app/.aspnet /app/logs /app/wwwroot && \
+    chmod -R 775 /app/.aspnet /app/logs /app/wwwroot
+
 USER app
 WORKDIR /app
-EXPOSE 8080
-EXPOSE 8081
+EXPOSE 7558
 
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_USE_POLLING_FILE_WATCHER=1
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
@@ -26,5 +42,6 @@ RUN dotnet publish "./OMarket.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "OMarket.dll"]

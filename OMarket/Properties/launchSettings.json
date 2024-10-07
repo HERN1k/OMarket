@@ -3,69 +3,46 @@
     "http": {
         "commandName": "Project",
         "launchBrowser": false,
-        "launchUrl": "swagger",
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development",
-            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
-            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
-            "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
-            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
-        },
+        //"environmentVariables": {
+        //    "ASPNETCORE_ENVIRONMENT": "Development",
+        //    "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+        //    "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+        //    "REDIS_CONFIGURATION": "localhost:6379",
+        //    "REDIS_INSTANCE_NAME": "omarket",
+        //    "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+        //    "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+        //    "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
+        //},
+        "externalUrlConfiguration": true,
         "dotnetRunMessages": true,
-        "applicationUrl": "http://192.168.0.101:7558"
+        "applicationUrl": "http://localhost:7558"
     },
     "https": {
         "commandName": "Project",
         "launchBrowser": false,
-        "launchUrl": "swagger",
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development",
-            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
-            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
-            "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
-            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
-        },
+        //"environmentVariables": {
+        //    "ASPNETCORE_ENVIRONMENT": "Development",
+        //    "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
+        //    "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
+        //    "REDIS_CONFIGURATION": "localhost:6379",
+        //    "REDIS_INSTANCE_NAME": "omarket",
+        //    "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
+        //    "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
+        //    "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
+        //},
         "dotnetRunMessages": true,
-        "applicationUrl": "https://192.168.0.101:7557;http://192.168.0.101:7558"
+        "applicationUrl": "https://localhost:7557;http://localhost:7558"
     },
     "IIS Express": {
       "commandName": "IISExpress",
-      "launchBrowser": true,
-      "launchUrl": "swagger",
-        "environmentVariables": {
-            "ASPNETCORE_ENVIRONMENT": "Development",
-            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
-            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
-            "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
-            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
-        }
+      "launchBrowser": false
     },
     "Container (Dockerfile)": {
-      "commandName": "Docker",
-      "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
-        "environmentVariables": {
-            "ASPNETCORE_HTTPS_PORTS": "7558",
-            "ASPNETCORE_HTTP_PORTS": "7557",
-            "TELEGRAM_BOT_TOKEN": "7362390414:AAE-T5FRhD44anoWd73bp4aUpoHB9yA54l4",
-            "POSTGRESQL": "Host=localhost;Port=5432;Database=OMarket;Username=postgres;Password=2356",
-            "REDIS_CONFIGURATION": "localhost:6379",
-            "REDIS_INSTANCE_NAME": "omarket",
-            "HTTPS_APPLICATION_URL": "https://dreamworkout.pp.ua",
-            "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
-            "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
-        },
-      "publishAllPorts": true,
-      "useSSL": true
+        "commandName": "Docker",
+        "launchBrowser": false,
+        "publishAllPorts": true,
+        "externalUrlConfiguration": true,
+        "useSSL": false
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json",

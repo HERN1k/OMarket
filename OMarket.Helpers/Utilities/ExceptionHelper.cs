@@ -26,6 +26,17 @@ namespace OMarket.Helpers.Utilities
             return new(permission, login);
         }
 
+        public static TokenClaims GetTokenClaimsForLogout(this IEnumerable<Claim> claims)
+        {
+            string permission = claims.SingleOrDefault(claim => claim.Type == ClaimTypes.Role)
+                ?.Value ?? throw new UnauthorizedAccessException("Токен не знайдено.");
+
+            string login = claims.SingleOrDefault(claim => claim.Type == ClaimTypes.Name)
+                ?.Value ?? throw new UnauthorizedAccessException("Токен не знайдено.");
+
+            return new(permission, login);
+        }
+
         public static RegisterRequestDto VerificationData(this RegisterRequest request)
         {
             if (string.IsNullOrEmpty(request.Login))

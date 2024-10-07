@@ -186,6 +186,37 @@ namespace OMarket.Infrastructure.Repositories
             await context.SaveChangesAsync(token);
         }
 
+        public async Task RemoveRefreshTokenForLogoutAsync(string login, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            if (string.IsNullOrEmpty(login))
+            {
+                throw new UnauthorizedAccessException("Поле логін пусте.");
+            }
+
+            await using AppDBContext context = await _contextFactory.CreateDbContextAsync(token);
+
+            Guid adminId = await context.AdminsCredentials
+                .Where(credentials => credentials.Login == login)
+                .Include(credentials => credentials.Admin)
+                .Select(credentials => credentials.Admin.Id)
+                .SingleOrDefaultAsync(token);
+
+            if (adminId == Guid.Empty)
+            {
+                throw new UnauthorizedAccessException("Унікальній ідентифікатор адміністратора не знайдено.");
+            }
+
+            AdminToken adminToken = await context.AdminTokens
+                .Where(adminToken => adminToken.AdminId == adminId)
+                .SingleOrDefaultAsync(token) ?? throw new UnauthorizedAccessException("Токен не знайдено.");
+
+            context.Remove(adminToken);
+
+            await context.SaveChangesAsync(token);
+        }
+
         public async Task RemoveRefreshTokenByTokenValueAsync(string token, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();

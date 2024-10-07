@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -29,13 +30,16 @@ namespace OMarket.Application.Services.Admin
 
         private readonly IWebHostEnvironment _environment;
 
+        private readonly ILogger<AdminService> _loger;
+
         public AdminService(
                 IPasswordService passwordService,
                 IAdminsRepository adminsRepository,
                 IDistributedCache distributedCache,
                 ICacheService cache,
                 IJwtService jwtService,
-                IWebHostEnvironment environment
+                IWebHostEnvironment environment,
+                ILogger<AdminService> loger
             )
         {
             _passwordService = passwordService;
@@ -44,6 +48,7 @@ namespace OMarket.Application.Services.Admin
             _cache = cache;
             _jwtService = jwtService;
             _environment = environment;
+            _loger = loger;
         }
 
         public async Task RegisterAsync(RegisterRequest request, CancellationToken token)
@@ -85,9 +90,9 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            TokenClaims claims = httpContext.User.Claims.GetTokenClaims();
+            TokenClaims claims = httpContext.User.Claims.GetTokenClaimsForLogout();
 
-            await _adminsRepository.RemoveRefreshTokenAsync(claims.Login, token);
+            await _adminsRepository.RemoveRefreshTokenForLogoutAsync(claims.Login, token);
 
             _jwtService.RemoveCookies(httpContext);
         }
@@ -504,10 +509,11 @@ namespace OMarket.Application.Services.Admin
             try
             {
                 string wwwRootPath = _environment.WebRootPath;
-
+                _loger.LogInformation("wwwRootPath: {wwwRootPath}", wwwRootPath);
                 string filePath = Path.Combine(wwwRootPath, "Static", $"{productId}{validRequest.PhotoExtension}");
-
+                _loger.LogInformation("filePath: {filePath}", filePath);
                 string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
+                _loger.LogInformation("directoryName: {directoryName}", directoryName);
 
                 if (productId == Guid.Empty ||
                     string.IsNullOrEmpty(wwwRootPath) ||
@@ -524,8 +530,9 @@ namespace OMarket.Application.Services.Admin
 
                 await _cache.ClearAndUpdateCacheAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _loger.LogError(ex, "Exception!: {Message} \n\t{StackTrace}", [ex.Message, ex.StackTrace]);
                 await _adminsRepository.RemoveProductByExceptionAsync(productId);
                 throw;
             }

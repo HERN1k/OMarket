@@ -12,6 +12,8 @@ namespace OMarket.Domain.Interfaces.Infrastructure.Repositories
 
         Task RemoveRefreshTokenAsync(string login, CancellationToken token);
 
+        Task RemoveRefreshTokenForLogoutAsync(string login, CancellationToken token);
+
         Task RemoveRefreshTokenByTokenValueAsync(string token, CancellationToken cancellationToken);
 
         Task RemoveRefreshTokenByIdAsync(Guid adminId, CancellationToken token);
