@@ -5,9 +5,9 @@ if ! [ -x "$(command -v docker-compose)" ]; then
   exit 1
 fi
 
-domains=(docr.smmhub.ru www.docr.smmhub.ru)
+domains=(dreamworkout.pp.ua www.dreamworkout.pp.ua)
 rsa_key_size=4096
-data_path="./prod/proxy/certbot"
+data_path="/home/prod/proxy/certbot"
 email="h1rnykvlad@gmail.com"
 staging=1
 

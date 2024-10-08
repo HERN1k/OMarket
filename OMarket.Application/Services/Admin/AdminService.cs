@@ -509,11 +509,10 @@ namespace OMarket.Application.Services.Admin
             try
             {
                 string wwwRootPath = _environment.WebRootPath;
-                _loger.LogInformation("wwwRootPath: {wwwRootPath}", wwwRootPath);
-                string filePath = Path.Combine(wwwRootPath, "Static", $"{productId}{validRequest.PhotoExtension}");
-                _loger.LogInformation("filePath: {filePath}", filePath);
+
+                string filePath = Path.Combine(wwwRootPath, "static", $"{productId}{validRequest.PhotoExtension}");
+
                 string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
-                _loger.LogInformation("directoryName: {directoryName}", directoryName);
 
                 if (productId == Guid.Empty ||
                     string.IsNullOrEmpty(wwwRootPath) ||
@@ -530,9 +529,8 @@ namespace OMarket.Application.Services.Admin
 
                 await _cache.ClearAndUpdateCacheAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                _loger.LogError(ex, "Exception!: {Message} \n\t{StackTrace}", [ex.Message, ex.StackTrace]);
                 await _adminsRepository.RemoveProductByExceptionAsync(productId);
                 throw;
             }

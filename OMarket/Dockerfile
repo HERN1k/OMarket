@@ -3,16 +3,6 @@
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS base
 
-#RUN if ! getent group appgroup > /dev/null 2>&1; then \
-    #addgroup --system appgroup; \
-    #fi
-#
-#RUN if ! id -u app > /dev/null 2>&1; then \
-    #adduser --system --ingroup appgroup --uid 1000 app; \
-    #fi
-
-#RUN mkdir -p /app/.aspnet/DataProtection-Keys /app/logs
-
 USER app
 WORKDIR /app
 EXPOSE 7558
