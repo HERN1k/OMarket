@@ -6,11 +6,11 @@ services:
     container_name: nginx
     user: root
     volumes:
-    - ./proxy/nginx:/etc/nginx/conf.d
-    - ./appstorage/static:/app/wwwroot/static
-    - ./proxy/certbot/conf:/etc/letsencrypt
-    - ./proxy/certbot/lib:/var/lib/letsencrypt
-    - ./proxy/certbot/www:/var/www/certbot
+    - ./prod/proxy/nginx:/etc/nginx/conf.d
+    - ./prod/appstorage/static:/app/wwwroot/static
+    - ./prod/proxy/certbot/conf:/etc/letsencrypt
+    - ./prod/proxy/certbot/lib:/var/lib/letsencrypt
+    - ./prod/proxy/certbot/www:/var/www/certbot
     ports:
     - "80:80"
     - "443:443"
@@ -24,9 +24,9 @@ services:
     restart: unless-stopped
     user: root
     volumes:
-      - ./proxy/certbot/conf:/etc/letsencrypt
-      - ./proxy/certbot/lib:/var/lib/letsencrypt
-      - ./proxy/certbot/www:/var/www/certbot
+      - ./prod/proxy/certbot/conf:/etc/letsencrypt
+      - ./prod/proxy/certbot/lib:/var/lib/letsencrypt
+      - ./prod/proxy/certbot/www:/var/www/certbot
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
     networks:
       - omarket-network
@@ -52,9 +52,9 @@ services:
       - "7558:7558"
     user: root
     volumes:
-      - ./appstorage/dataprotectionkkeys:/app/.aspnet/DataProtection-Keys
-      - ./appstorage/logs:/app/logs
-      - ./appstorage/static:/app/wwwroot/static
+      - ./prod/appstorage/dataprotectionkkeys:/app/.aspnet/DataProtection-Keys
+      - ./prod/appstorage/logs:/app/logs
+      - ./prod/appstorage/static:/app/wwwroot/static
     depends_on:
       - postgres
       - redis
@@ -87,7 +87,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./dbs/postgres:/var/lib/postgresql/data
+      - ./prod/dbs/postgres:/var/lib/postgresql/data
     networks:
       - omarket-network
     restart: always
@@ -108,7 +108,7 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - ./dbs/redis:/data
+      - ./prod/dbs/redis:/data
     networks:
       - omarket-network
     restart: always
