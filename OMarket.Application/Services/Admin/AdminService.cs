@@ -510,7 +510,7 @@ namespace OMarket.Application.Services.Admin
             {
                 string wwwRootPath = _environment.WebRootPath;
 
-                string filePath = Path.Combine(wwwRootPath, "static", $"{productId}{validRequest.PhotoExtension}");
+                string filePath = Path.Combine(wwwRootPath, "static", "files", $"{productId}{validRequest.PhotoExtension}");
 
                 string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
 
