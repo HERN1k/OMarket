@@ -30,6 +30,13 @@
         //    "JWT_KEY": "mlDa9d3AULiuGySbYrMUqWqQPGJyuZDm",
         //    "WEBHOOK_URL": "https://dreamworkout.pp.ua/api/bot"
         //},
+
+        // #RUN mkdir -p /app/.aspnet/DataProtection-Keys /app/logs /app/wwwroot/Static/Front /etc/nginx/conf.d /var/lib/letsencrypt /var/log/letsencrypt /etc/letsencrypt/live/dreamworkout.pp.ua/ /etc/certbot/config /etc/certbot/work /etc/certbot/logs && \
+        // #chown -R app:appgroup /app/.aspnet /app/logs /app/wwwroot /etc/nginx/conf.d /var/lib/letsencrypt /etc/letsencrypt/live/dreamworkout.pp.ua/ /etc/certbot/config /etc/certbot/work /etc/certbot/logs && \
+        // #chmod -R 775 /app/.aspnet /app/logs /app/wwwroot /etc/nginx && \
+        // #chmod -R 777 /etc/certbot/config /etc/certbot/work /etc/certbot/logs /etc/letsencrypt /var/log/letsencrypt/ /etc/letsencrypt/live /etc/letsencrypt/live/dreamworkout.pp.ua /var/lib/letsencrypt /var/www
+
+        // certbot --nginx -d dreamworkout.pp.ua --non-interactive --agree-tos --email hern1kvlad@gmail.com --debug
         "dotnetRunMessages": true,
         "applicationUrl": "https://localhost:7557;http://localhost:7558"
     },

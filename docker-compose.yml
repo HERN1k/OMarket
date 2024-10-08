@@ -1,4 +1,36 @@
+version: '3.7'
+
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    user: root
+    volumes:
+    - ./proxy/nginx:/etc/nginx/conf.d
+    - ./appstorage/static:/app/wwwroot/static
+    - ./proxy/certbot/conf:/etc/letsencrypt
+    - ./proxy/certbot/lib:/var/lib/letsencrypt
+    - ./proxy/certbot/www:/var/www/certbot
+    ports:
+    - "80:80"
+    - "443:443"
+    restart: unless-stopped
+    command: "/bin/sh -c 'while :; do sleap 6h & wait &&{!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    networks:
+    - omarket-network
+
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./proxy/certbot/conf:/etc/letsencrypt
+      - ./proxy/certbot/lib:/var/lib/letsencrypt
+      - ./proxy/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - omarket-network
+
   omarket:
     image: ${DOCKER_REGISTRY-}omarket
     build:
@@ -18,10 +50,11 @@ services:
       - WEBHOOK_URL=https://dreamworkout.pp.ua/api/bot
     ports:
       - "7558:7558"
+    user: root
     volumes:
-      - appStorageDataProtectionkKeys:/app/.aspnet/DataProtection-Keys
-      - appLogs:/app/logs
-      - appStatic:/app/wwwroot/Static
+      - ./appstorage/dataprotectionkkeys:/app/.aspnet/DataProtection-Keys
+      - ./appstorage/logs:/app/logs
+      - ./appstorage/static:/app/wwwroot/static
     depends_on:
       - postgres
       - redis
@@ -46,6 +79,7 @@ services:
   
   postgres:
     image: postgres:17
+    user: root
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 2356
@@ -53,7 +87,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgData:/var/lib/postgresql/data
+      - ./dbs/postgres:/var/lib/postgresql/data
     networks:
       - omarket-network
     restart: always
@@ -70,10 +104,11 @@ services:
   
   redis:
     image: redis:latest
+    user: root
     ports:
       - "6379:6379"
     volumes:
-      - redisData:/data
+      - ./dbs/redis:/data
     networks:
       - omarket-network
     restart: always
@@ -87,13 +122,6 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
-
-volumes:
-  appStorageDataProtectionkKeys:
-  appLogs:
-  appStatic:
-  pgData:
-  redisData:
   
 networks:
   omarket-network:
