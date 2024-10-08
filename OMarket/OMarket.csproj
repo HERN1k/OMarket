@@ -60,7 +60,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Front\" />
     <Folder Include="wwwroot\Static\" />
   </ItemGroup>
 

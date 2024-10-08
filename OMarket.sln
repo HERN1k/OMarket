@@ -31,6 +31,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "logs", "logs", "{5BAC4674-C095-4EE2-8F78-1A7AAA05C57F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "static", "static", "{5687A31B-99EC-405B-8472-23FD23073EAE}"
+	ProjectSection(SolutionItems) = preProject
+		prod\appstorage\static\front\index.html = prod\appstorage\static\front\index.html
+		prod\appstorage\static\front\main.svg = prod\appstorage\static\front\main.svg
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dbs", "dbs", "{A97392C6-E4AC-4191-B1B0-471047677E95}"
 EndProject
@@ -54,6 +58,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nginx", "nginx", "{FF3A7443-881D-497E-AE11-68B72E275E8A}"
 	ProjectSection(SolutionItems) = preProject
 		prod\proxy\nginx\default.conf = prod\proxy\nginx\default.conf
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{50D6CC98-E2DA-4CE4-AD4F-B66EA7C7E902}"
+	ProjectSection(SolutionItems) = preProject
+		prod\appstorage\static\front\assets\index-Dl5XBTuc.css = prod\appstorage\static\front\assets\index-Dl5XBTuc.css
+		prod\appstorage\static\front\assets\index-DVDiSP0k.js = prod\appstorage\static\front\assets\index-DVDiSP0k.js
 	EndProjectSection
 EndProject
 Global
@@ -108,6 +118,7 @@ Global
 		{EE6F23EE-C09D-433F-B657-D3DDFC5788DF} = {12EE27BB-2FB5-4C50-BBCC-6A990B713311}
 		{22049017-ACD0-49CC-B676-78B3AF6844E5} = {12EE27BB-2FB5-4C50-BBCC-6A990B713311}
 		{FF3A7443-881D-497E-AE11-68B72E275E8A} = {7BDFF261-96ED-44D1-95E3-0149CE065EC7}
+		{50D6CC98-E2DA-4CE4-AD4F-B66EA7C7E902} = {5687A31B-99EC-405B-8472-23FD23073EAE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {024AC8BC-AE1C-4BE9-9585-84D64D03BD67}
