@@ -3,7 +3,6 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -30,16 +29,13 @@ namespace OMarket.Application.Services.Admin
 
         private readonly IWebHostEnvironment _environment;
 
-        private readonly ILogger<AdminService> _loger;
-
         public AdminService(
                 IPasswordService passwordService,
                 IAdminsRepository adminsRepository,
                 IDistributedCache distributedCache,
                 ICacheService cache,
                 IJwtService jwtService,
-                IWebHostEnvironment environment,
-                ILogger<AdminService> loger
+                IWebHostEnvironment environment
             )
         {
             _passwordService = passwordService;
@@ -48,7 +44,6 @@ namespace OMarket.Application.Services.Admin
             _cache = cache;
             _jwtService = jwtService;
             _environment = environment;
-            _loger = loger;
         }
 
         public async Task RegisterAsync(RegisterRequest request, CancellationToken token)
@@ -562,7 +557,7 @@ namespace OMarket.Application.Services.Admin
 
             string wwwRootPath = _environment.WebRootPath;
 
-            string filePath = Path.Combine(wwwRootPath, "Static", $"{productId}{validRequest.PhotoExtension}");
+            string filePath = Path.Combine(wwwRootPath, "static", "files", $"{productId}{validRequest.PhotoExtension}");
 
             string directoryName = Path.GetDirectoryName(filePath) ?? string.Empty;
 
@@ -619,7 +614,7 @@ namespace OMarket.Application.Services.Admin
 
             string wwwRootPath = _environment.WebRootPath;
 
-            string filePath = Path.Combine(wwwRootPath, "Static", $"{photoName}");
+            string filePath = Path.Combine(wwwRootPath, "static", "files", $"{photoName}");
 
             if (File.Exists(filePath))
             {

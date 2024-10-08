@@ -112,7 +112,7 @@ namespace OMarket.Application.Commands
             }
             else
             {
-                Uri uri = new(appUri + product.PhotoUri);
+                Uri uri = new(appUri + "/static/" + product.PhotoUri);
 
                 await _response.RemoveLastMessage(token);
 
