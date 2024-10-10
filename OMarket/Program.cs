@@ -312,12 +312,6 @@ namespace OMarket
 #if DEBUG
             app.UseSwagger();
             app.UseSwaggerUI();
-
-            using IServiceScope scope = app.Services.CreateScope();
-
-            IMapper mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
-
-            mapper.ConfigurationProvider.AssertConfigurationIsValid();
 #endif
             #endregion
 

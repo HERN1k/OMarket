@@ -14,14 +14,20 @@ services:
     ports:
     - "80:80"
     - "443:443"
-    restart: unless-stopped
+    restart: always
     command: "/bin/sh -c 'while :; do sleep 6h & wait &&{!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
+    healthcheck:
+      test: ["CMD", "service", "nginx", "status"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
     - omarket-network
 
   certbot:
     image: certbot/certbot
-    restart: unless-stopped
+    restart: always
     user: root
     volumes:
       - /home/prod/proxy/certbot/conf:/etc/letsencrypt
@@ -61,12 +67,17 @@ services:
     networks:
       - omarket-network
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "5"
-
   postgres:
     image: postgres:17
     user: root
@@ -83,15 +94,15 @@ services:
     restart: always
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 30s
+      interval: 1m
       timeout: 10s
-      retries: 5
+      retries: 3
+      start_period: 10s
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "5"
-
   redis:
     image: redis:latest
     user: root
@@ -99,14 +110,17 @@ services:
       - "6379:6379"
     volumes:
       - /home/prod/dbs/redis:/data
+      - /home/prod/dbs/redis/config/redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       - omarket-network
     restart: always
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
+      interval: 1m
       timeout: 10s
       retries: 3
+      start_period: 10s
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     logging:
       driver: "json-file"
       options:

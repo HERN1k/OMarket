@@ -525,7 +525,7 @@ namespace OMarket.Infrastructure.Data.BuildEntities
                 entity.HasOne(e => e.Product)
                     .WithMany(e => e.OrderItems)
                     .HasForeignKey(e => e.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 // Setting property 
 
