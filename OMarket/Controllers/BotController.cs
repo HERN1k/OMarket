@@ -24,7 +24,7 @@ namespace OMarket.Controllers
 
         private readonly ITelegramBotClient _client;
 
-        private readonly string _telegramBotToken;
+        private readonly string _secretToken;
 
         public BotController(
                 IUpdateManager updateManager,
@@ -38,14 +38,14 @@ namespace OMarket.Controllers
             _i18n = i18n;
             _client = bot.Client;
 
-            var telegramBotToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
+            string? jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
 
-            if (string.IsNullOrEmpty(telegramBotToken))
+            if (string.IsNullOrEmpty(jwtKey))
             {
-                throw new ArgumentNullException("TELEGRAM_BOT_TOKEN", "The connection string environment variable is not set.");
+                throw new ArgumentNullException("JWT_KEY", "The JWT key string environment variable is not set.");
             }
 
-            _telegramBotToken = telegramBotToken;
+            _secretToken = jwtKey;
         }
 
         [HttpGet]
@@ -57,7 +57,14 @@ namespace OMarket.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Update update, CancellationToken token)
         {
-            if (Request.Headers["X-Telegram-Bot-Api-Secret-Token"] != _telegramBotToken)
+            if (!Request.Headers.TryGetValue("X-Telegram-Bot-Api-Secret-Token", out var secretTokenValue))
+            {
+                return Unauthorized();
+            }
+
+            string secretToken = secretTokenValue.ToString();
+
+            if (string.IsNullOrEmpty(secretToken) || !secretToken.Equals(_secretToken, StringComparison.Ordinal))
             {
                 return Unauthorized();
             }

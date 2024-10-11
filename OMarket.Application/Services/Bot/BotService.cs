@@ -43,9 +43,17 @@ namespace OMarket.Application.Services.Bot
                 throw new ArgumentNullException("WEBHOOK_URL", "The WEBHOOK_URL string environment variable is not set.");
             }
 
+            string? jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
+
+            if (string.IsNullOrEmpty(jwtKey))
+            {
+                throw new ArgumentNullException("JWT_KEY", "The JWT key string environment variable is not set.");
+            }
+
             await Client.SetWebhookAsync(
                     url: webhookUrl,
                     dropPendingUpdates: _webhookSettings.DropPendingUpdates,
+                    secretToken: jwtKey,
                     cancellationToken: cancellationToken
                 );
 
