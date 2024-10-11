@@ -70,9 +70,12 @@
 
     // Product View
     "product_view_cart_button": "🛒 Кошик",
-    "product_view_button_disable": "•",
-    "product_view_previous_button": "←",
-    "product_view_next_button": "→",
+    //"product_view_button_disable": "•",
+    //"product_view_previous_button": "←",
+    //"product_view_next_button": "→",
+    "product_view_button_disable": "⁃",
+    "product_view_previous_button": "🢀",
+    "product_view_next_button": "🢂",
     "product_view_quantity_selection_button": "➕ Додати",
     "product_view_accept_button": "✔️ Додати до кошику",
     "product_view_plus_button": "➕",

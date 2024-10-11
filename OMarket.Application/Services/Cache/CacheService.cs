@@ -41,7 +41,7 @@ namespace OMarket.Application.Services.Cache
             CacheKeys.CustomerOrdersId
         };
 
-        private readonly TimeSpan _expiry = TimeSpan.FromMinutes(30.0D);
+        private readonly TimeSpan _expiry = TimeSpan.FromMinutes(60.0D);
 
         public CacheService(
                 IConnectionMultiplexer redis,

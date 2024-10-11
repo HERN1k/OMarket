@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{647D9372-E40C-4C9E-B2CB-6D5AD40BD3C7}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		sysctl.conf = sysctl.conf
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OMarket.Application", "OMarket.Application\OMarket.Application.csproj", "{FC1AC0D7-4B4B-4521-95A3-8146F80DA2AD}"
