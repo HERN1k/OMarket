@@ -1,11 +1,10 @@
 ﻿using System.Text;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
@@ -30,7 +29,7 @@ namespace OMarket.Application.Commands
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICartService _cartService;
         private readonly IStaticCollectionsService _staticCollections;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public CreateOrder(
                 ISendResponseService response,
@@ -40,7 +39,7 @@ namespace OMarket.Application.Commands
                 IInlineMarkupService inlineMarkup,
                 ICartService cartService,
                 IStaticCollectionsService staticCollections,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _response = response;
@@ -50,7 +49,7 @@ namespace OMarket.Application.Commands
             _inlineMarkup = inlineMarkup;
             _cartService = cartService;
             _staticCollections = staticCollections;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -84,7 +83,7 @@ namespace OMarket.Application.Commands
                     <b>{_i18n.T("order_command_cannot_create_order_blocked")}</b>
                     """;
 
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 await _cartService.RemoveCartAsync(request.Customer.Id, token);
 
@@ -131,7 +130,7 @@ namespace OMarket.Application.Commands
                 throw new TelegramException("exception_main_please_try_again");
             }
 
-            await _distributedCache.RemoveAsync(cacheKey, token);
+            await _cache.RemoveCacheAsync(cacheKey);
 
             await _response.EditLastMessage(text, token, _inlineMarkup.CreateOrder());
         }

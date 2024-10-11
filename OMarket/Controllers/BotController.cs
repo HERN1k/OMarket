@@ -24,6 +24,8 @@ namespace OMarket.Controllers
 
         private readonly ITelegramBotClient _client;
 
+        private readonly string _telegramBotToken;
+
         public BotController(
                 IUpdateManager updateManager,
                 IDistributorService distributor,
@@ -35,6 +37,15 @@ namespace OMarket.Controllers
             _distributor = distributor;
             _i18n = i18n;
             _client = bot.Client;
+
+            var telegramBotToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
+
+            if (string.IsNullOrEmpty(telegramBotToken))
+            {
+                throw new ArgumentNullException("TELEGRAM_BOT_TOKEN", "The connection string environment variable is not set.");
+            }
+
+            _telegramBotToken = telegramBotToken;
         }
 
         [HttpGet]
@@ -46,6 +57,11 @@ namespace OMarket.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(Update update, CancellationToken token)
         {
+            if (Request.Headers["X-Telegram-Bot-Api-Secret-Token"] != _telegramBotToken)
+            {
+                return Unauthorized();
+            }
+
             try
             {
                 _updateManager.Update = update;

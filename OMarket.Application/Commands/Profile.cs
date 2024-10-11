@@ -1,12 +1,11 @@
 ﻿using System.Globalization;
 using System.Text;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -28,7 +27,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IDataProcessorService _dataProcessor;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
         private readonly IStaticCollectionsService _staticCollections;
 
         public Profile(
@@ -37,7 +36,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IDataProcessorService dataProcessor,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IStaticCollectionsService staticCollections
             )
         {
@@ -46,7 +45,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _dataProcessor = dataProcessor;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _staticCollections = staticCollections;
         }
 
@@ -71,7 +70,7 @@ namespace OMarket.Application.Commands
                 await _response.SendCallbackAnswer(token);
             }
 
-            await _distributedCache.RemoveAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}", token);
+            await _cache.RemoveCacheAsync($"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}");
 
             if (request.Customer.StoreId == null || request.Customer.StoreId == Guid.Empty)
             {

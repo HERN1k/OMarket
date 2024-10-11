@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
@@ -29,7 +28,7 @@ namespace OMarket.Application.Commands
         private readonly IMapper _mapper;
         private readonly IReplyMarkupService _replyMarkup;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public Start(
                 ISendResponseService response,
@@ -39,7 +38,7 @@ namespace OMarket.Application.Commands
                 IMapper mapper,
                 IReplyMarkupService replyMarkup,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _response = response;
@@ -49,7 +48,7 @@ namespace OMarket.Application.Commands
             _mapper = mapper;
             _replyMarkup = replyMarkup;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -98,7 +97,7 @@ namespace OMarket.Application.Commands
 
                 Message message = await _response.SendMessageAnswer(greeting, token, _replyMarkup.SendPhoneNumber());
 
-                await _distributedCache.SetStringAsync($"{CacheKeys.CustomerFirstMessageId}{customer.Id}", message.MessageId.ToString(), token);
+                await _cache.SetStringCacheAsync($"{CacheKeys.CustomerFirstMessageId}{customer.Id}", message.MessageId.ToString());
             }
             else
             {

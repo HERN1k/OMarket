@@ -1,14 +1,12 @@
-﻿using System.Text.Json;
-
-using AutoMapper;
+﻿using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Entities;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
@@ -23,14 +21,14 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly ILogger<CustomersRepository> _logger;
 
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
         private readonly IMapper _mapper;
 
         public CustomersRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
                 ILogger<CustomersRepository> logger,
-                IDistributedCache cache,
+                ICacheService cache,
                 IMapper mapper
             )
         {
@@ -44,9 +42,11 @@ namespace OMarket.Infrastructure.Repositories
         {
             CustomerDto? customer;
 
-            string? customerString = await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}", token);
+            string cacheKey = $"{CacheKeys.CustomerDtoId}{id}";
 
-            if (string.IsNullOrEmpty(customerString))
+            customer = await _cache.GetCacheAsync<CustomerDto>(cacheKey);
+
+            if (customer is null)
             {
                 token.ThrowIfCancellationRequested();
 
@@ -73,14 +73,7 @@ namespace OMarket.Infrastructure.Repositories
                         BlockedReviews = customerEntity.BlockedReviews,
                     };
 
-                    customerString = JsonSerializer.Serialize<CustomerDto>(customer);
-
-                    if (string.IsNullOrEmpty(customerString))
-                    {
-                        throw new TelegramException();
-                    }
-
-                    await _cache.SetStringAsync($"{CacheKeys.CustomerDtoId}{id}", customerString, token);
+                    await _cache.SetCacheAsync(cacheKey, customer);
                 }
                 catch (OperationCanceledException)
                 {
@@ -96,12 +89,6 @@ namespace OMarket.Infrastructure.Repositories
                     throw;
                 }
             }
-            else
-            {
-                token.ThrowIfCancellationRequested();
-
-                customer = JsonSerializer.Deserialize<CustomerDto>(customerString);
-            }
 
             if (customer is null)
             {
@@ -115,9 +102,11 @@ namespace OMarket.Infrastructure.Repositories
         {
             CustomerDto? customer;
 
-            string? customerString = await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}");
+            string cacheKey = $"{CacheKeys.CustomerDtoId}{id}";
 
-            if (string.IsNullOrEmpty(customerString))
+            customer = await _cache.GetCacheAsync<CustomerDto>(cacheKey);
+
+            if (customer is null)
             {
                 try
                 {
@@ -142,14 +131,7 @@ namespace OMarket.Infrastructure.Repositories
                         BlockedReviews = customerEntity.BlockedReviews,
                     };
 
-                    customerString = JsonSerializer.Serialize<CustomerDto>(customer);
-
-                    if (string.IsNullOrEmpty(customerString))
-                    {
-                        throw new TelegramException();
-                    }
-
-                    await _cache.SetStringAsync($"{CacheKeys.CustomerDtoId}{id}", customerString);
+                    await _cache.SetCacheAsync(cacheKey, customer);
                 }
                 catch (OperationCanceledException)
                 {
@@ -165,10 +147,6 @@ namespace OMarket.Infrastructure.Repositories
                     throw;
                 }
             }
-            else
-            {
-                customer = JsonSerializer.Deserialize<CustomerDto>(customerString);
-            }
 
             if (customer is null)
             {
@@ -180,7 +158,9 @@ namespace OMarket.Infrastructure.Repositories
 
         public async Task<bool> AnyCustomerByIdAsync(long id, CancellationToken token)
         {
-            if (string.IsNullOrEmpty(await _cache.GetStringAsync($"{CacheKeys.CustomerDtoId}{id}", token)))
+            CustomerDto? customer = await _cache.GetCacheAsync<CustomerDto>($"{CacheKeys.CustomerDtoId}{id}");
+
+            if (customer is null)
             {
                 token.ThrowIfCancellationRequested();
 
@@ -236,14 +216,7 @@ namespace OMarket.Infrastructure.Repositories
                     BlockedReviews = customer.BlockedReviews,
                 };
 
-                string? customerString = JsonSerializer.Serialize<CustomerDto>(customerDto);
-
-                if (string.IsNullOrEmpty(customerString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerString, token);
+                await _cache.SetCacheAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerDto);
 
                 return customerDto;
             }
@@ -301,14 +274,7 @@ namespace OMarket.Infrastructure.Repositories
                     CreatedAt = customer.CreatedAt
                 };
 
-                string? customerString = JsonSerializer.Serialize<CustomerDto>(customerDto);
-
-                if (string.IsNullOrEmpty(customerString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerString, token);
+                await _cache.SetCacheAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerDto);
             }
             catch (OperationCanceledException)
             {
@@ -350,7 +316,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 await context.SaveChangesAsync(token);
 
-                string? customerString = JsonSerializer.Serialize<CustomerDto>(new CustomerDto()
+                CustomerDto customerDto = new()
                 {
                     Id = customer.Id,
                     Username = customer.Username,
@@ -360,14 +326,9 @@ namespace OMarket.Infrastructure.Repositories
                     IsBot = customer.IsBot,
                     StoreId = storeId,
                     CreatedAt = customer.CreatedAt
-                });
+                };
 
-                if (string.IsNullOrEmpty(customerString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerString, token);
+                await _cache.SetCacheAsync($"{CacheKeys.CustomerDtoId}{customer.Id}", customerDto);
             }
             catch (OperationCanceledException)
             {
@@ -402,7 +363,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 await context.SaveChangesAsync();
 
-                await _cache.RemoveAsync($"{CacheKeys.CustomerDtoId}{id}");
+                await _cache.RemoveCacheAsync($"{CacheKeys.CustomerDtoId}{id}");
             }
             catch (Exception ex)
             {

@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -24,7 +23,7 @@ namespace OMarket.Application.Commands
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public StartSearch(
                 IUpdateManager updateManager,
@@ -32,7 +31,7 @@ namespace OMarket.Application.Commands
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _updateManager = updateManager;
@@ -40,7 +39,7 @@ namespace OMarket.Application.Commands
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -72,9 +71,9 @@ namespace OMarket.Application.Commands
             int messageId = _updateManager.CallbackQuery.Message?.MessageId
                 ?? throw new TelegramException();
 
-            await _distributedCache.SetStringAsync(
+            await _cache.SetStringCacheAsync(
                 $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}",
-                $"/65536_{request.Query}={messageId}", token);
+                $"/65536_{request.Query}={messageId}");
 
             string text = $"""
                 {_i18n.T("main_menu_command_product_search_by_name")}

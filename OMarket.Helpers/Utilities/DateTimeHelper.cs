@@ -6,7 +6,9 @@ namespace OMarket.Helpers.Utilities
     {
         public static TimeOfDay TimeOfDayNow()
         {
-            int hour = DateTime.Now.Hour;
+            TimeZoneInfo ukraineTimeZone = TimeZoneInfo.FindSystemTimeZoneById("FLE Standard Time");
+            DateTime currentUkraineTime = TimeZoneInfo.ConvertTime(DateTime.UtcNow, ukraineTimeZone);
+            int hour = currentUkraineTime.Hour;
 
             return hour switch
             {

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Caching.Memory;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Application.Services.TgUpdate;
@@ -22,7 +23,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
 
         private readonly II18nService _i18n;
 
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         private readonly IMemoryCache _memoryCache;
 
@@ -37,7 +38,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
 
         public InlineMarkupService(
                 II18nService i18n,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IMemoryCache memoryCache,
                 IUpdateManager updateManager,
                 IStaticCollectionsService staticCollections,
@@ -45,7 +46,7 @@ namespace OMarket.Application.Services.KeyboardMarkup
             )
         {
             _i18n = i18n;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _memoryCache = memoryCache;
             _updateManager = updateManager;
             _staticCollections = staticCollections;
@@ -99,7 +100,9 @@ namespace OMarket.Application.Services.KeyboardMarkup
 
             List<InlineKeyboardButton[]> buttons = new();
 
-            if (string.IsNullOrEmpty(await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{customer.Id}", token)))
+            List<CartItemDto>? cart = await _cache.GetCacheAsync<List<CartItemDto>>($"{CacheKeys.CustomerCartId}{customer.Id}");
+
+            if (cart is null)
             {
                 buttons.Add([
                     InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_make_order_button", code), "/64")]);

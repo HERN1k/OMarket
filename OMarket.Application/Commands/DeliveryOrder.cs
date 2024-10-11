@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
@@ -27,7 +26,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICartService _cartService;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public DeliveryOrder(
                 ISendResponseService response,
@@ -36,7 +35,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 ICartService cartService,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _response = response;
@@ -45,7 +44,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _cartService = cartService;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -79,7 +78,7 @@ namespace OMarket.Application.Commands
                     <b>{_i18n.T("order_command_cannot_create_order_blocked")}</b>
                     """;
 
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 await _cartService.RemoveCartAsync(request.Customer.Id, token);
 
@@ -90,7 +89,7 @@ namespace OMarket.Application.Commands
 
             if (string.IsNullOrEmpty(request.Query))
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
@@ -105,7 +104,7 @@ namespace OMarket.Application.Commands
 
             Message message = await _response.EditLastMessage(text, token, _inlineMarkup.ToMainMenuBack());
 
-            await _distributedCache.SetStringAsync(cacheKey, $"/1000000100_{message.MessageId}={request.Query}", token);
+            await _cache.SetStringCacheAsync(cacheKey, $"/1000000100_{message.MessageId}={request.Query}");
         }
     }
 }

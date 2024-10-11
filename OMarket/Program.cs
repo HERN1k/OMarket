@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 using NLog.Web;
@@ -227,12 +225,6 @@ namespace OMarket
                 options.Configuration = configurationString;
                 options.InstanceName = instanceName;
             });
-
-            builder.Services.AddSingleton<IConfigureOptions<DistributedCacheEntryOptions>>(provider =>
-                new ConfigureOptions<DistributedCacheEntryOptions>(options =>
-                {
-                    options.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30);
-                }));
             #endregion
 
             #region Telegram Bot
@@ -257,7 +249,6 @@ namespace OMarket
             builder.Services.AddSingleton<IBotService, BotService>();
             builder.Services.AddHostedService<BotHostedService>();
 
-            builder.Services.AddScoped<ICityRepository, CityRepository>();
             builder.Services.AddScoped<ICustomersRepository, CustomersRepository>();
             builder.Services.AddScoped<IProductsRepository, ProductsRepository>();
             builder.Services.AddScoped<IReviewRepository, ReviewRepository>();

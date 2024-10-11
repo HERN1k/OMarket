@@ -1,9 +1,6 @@
-﻿using System.Text.Json;
-
-using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.DTOs;
+﻿using OMarket.Domain.DTOs;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
@@ -12,16 +9,16 @@ namespace OMarket.Application.Services.Cart
 {
     public class CartService : ICartService
     {
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         private readonly IProductsRepository _productsRepository;
 
         public CartService(
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IProductsRepository productsRepository
             )
         {
-            _distributedCache = distributedCache;
+            _cache = cache;
             _productsRepository = productsRepository;
         }
 
@@ -34,13 +31,15 @@ namespace OMarket.Application.Services.Cart
                 throw new TelegramException();
             }
 
-            List<CartItemDto> cart;
+            List<CartItemDto>? cart;
 
-            string? cartString = await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{customerId}", token);
+            string cacheKey = $"{CacheKeys.CustomerCartId}{customerId}";
+
+            cart = await _cache.GetCacheAsync<List<CartItemDto>>(cacheKey);
 
             ProductDto product = await _productsRepository.GetProductByIdAsync(productId, token);
 
-            if (string.IsNullOrEmpty(cartString))
+            if (cart is null)
             {
                 cart = new()
                 {
@@ -52,16 +51,12 @@ namespace OMarket.Application.Services.Cart
                     }
                 };
 
-                cartString = JsonSerializer.Serialize<List<CartItemDto>>(cart);
-
-                await _distributedCache.SetStringAsync($"{CacheKeys.CustomerCartId}{customerId}", cartString, token);
+                await _cache.SetCacheAsync(cacheKey, cart);
 
                 return product.UnderTypeId;
             }
             else
             {
-                cart = JsonSerializer.Deserialize<List<CartItemDto>>(cartString) ?? throw new TelegramException();
-
                 CartItemDto? item = cart.SingleOrDefault(e => e.Id == product.Id);
 
                 if (item is not null)
@@ -78,9 +73,7 @@ namespace OMarket.Application.Services.Cart
                     });
                 }
 
-                cartString = JsonSerializer.Serialize<List<CartItemDto>>(cart);
-
-                await _distributedCache.SetStringAsync($"{CacheKeys.CustomerCartId}{customerId}", cartString, token);
+                await _cache.SetCacheAsync(cacheKey, cart);
 
                 return product.UnderTypeId;
             }
@@ -90,14 +83,14 @@ namespace OMarket.Application.Services.Cart
         {
             token.ThrowIfCancellationRequested();
 
-            string? cartString = await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{id}", token);
+            List<CartItemDto>? cart = await _cache.GetCacheAsync<List<CartItemDto>>($"{CacheKeys.CustomerCartId}{id}");
 
-            if (string.IsNullOrEmpty(cartString))
+            if (cart is null)
             {
                 return new();
             }
 
-            return JsonSerializer.Deserialize<List<CartItemDto>>(cartString) ?? new();
+            return cart;
         }
 
         public async Task<List<CartItemDto>> SetQuantityProductAsync(long customerId, Guid productId, int quantity, CancellationToken token)
@@ -111,16 +104,16 @@ namespace OMarket.Application.Services.Cart
 
             List<CartItemDto>? cart;
 
-            string? cartString = await _distributedCache.GetStringAsync($"{CacheKeys.CustomerCartId}{customerId}", token);
+            string cacheKey = $"{CacheKeys.CustomerCartId}{customerId}";
 
-            if (string.IsNullOrEmpty(cartString))
+            cart = await _cache.GetCacheAsync<List<CartItemDto>>(cacheKey);
+
+            if (cart is null)
             {
                 return new();
             }
 
-            cart = JsonSerializer.Deserialize<List<CartItemDto>>(cartString);
-
-            if (cart is null || cart.Count <= 0)
+            if (cart.Count <= 0)
             {
                 return new();
             }
@@ -139,19 +132,19 @@ namespace OMarket.Application.Services.Cart
 
             if (cart.Count <= 0)
             {
-                await _distributedCache.RemoveAsync($"{CacheKeys.CustomerCartId}{customerId}", token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 return new();
             }
 
-            cartString = JsonSerializer.Serialize<List<CartItemDto>>(cart);
-
-            await _distributedCache.SetStringAsync($"{CacheKeys.CustomerCartId}{customerId}", cartString, token);
+            await _cache.SetCacheAsync(cacheKey, cart);
 
             return cart;
         }
 
-        public async Task RemoveCartAsync(long customerId, CancellationToken token) =>
-            await _distributedCache.RemoveAsync($"{CacheKeys.CustomerCartId}{customerId}", token);
+        public async Task RemoveCartAsync(long customerId, CancellationToken token)
+        {
+            await _cache.RemoveCacheAsync($"{CacheKeys.CustomerCartId}{customerId}");
+        }
     }
 }

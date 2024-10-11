@@ -1,12 +1,10 @@
-﻿using System.Text.Json;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Entities;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
 using OMarket.Infrastructure.Data.Contexts.ApplicationContext;
@@ -19,14 +17,14 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly ILogger<ReviewRepository> _logger;
 
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
         private readonly int _pageSize = 1;
 
         public ReviewRepository(
                 IDbContextFactory<AppDBContext> contextFactory,
                 ILogger<ReviewRepository> logger,
-                IDistributedCache cache
+                ICacheService cache
             )
         {
             _contextFactory = contextFactory;
@@ -72,7 +70,7 @@ namespace OMarket.Infrastructure.Repositories
 
                 for (int page = 1; page <= maxPages; page++)
                 {
-                    await _cache.RemoveAsync($"{CacheKeys.ReviewId}{storeId}-{_pageSize}-{page}", token);
+                    await _cache.RemoveCacheAsync($"{CacheKeys.ReviewId}{storeId}-{_pageSize}-{page}");
                 }
             }
             catch (OperationCanceledException)
@@ -98,16 +96,10 @@ namespace OMarket.Infrastructure.Repositories
             ReviewWithDbInfoDto? review;
             string cacheKey = $"{CacheKeys.ReviewId}{storeId}-{_pageSize}-{pageNumber}";
 
-            string? reviewString = await _cache.GetStringAsync(cacheKey, token);
+            review = await _cache.GetCacheAsync<ReviewWithDbInfoDto>(cacheKey);
 
-            if (!string.IsNullOrEmpty(reviewString))
-            {
-                token.ThrowIfCancellationRequested();
-
-                review = JsonSerializer.Deserialize<ReviewWithDbInfoDto>(reviewString);
-
-                return review ?? throw new TelegramException();
-            }
+            if (review is not null)
+                return review;
 
             try
             {
@@ -150,14 +142,7 @@ namespace OMarket.Infrastructure.Repositories
                     return null;
                 }
 
-                reviewString = JsonSerializer.Serialize<ReviewWithDbInfoDto>(review);
-
-                if (string.IsNullOrEmpty(reviewString))
-                {
-                    return null;
-                }
-
-                await _cache.SetStringAsync(cacheKey, reviewString, token);
+                await _cache.SetCacheAsync(cacheKey, review);
 
                 return review;
             }

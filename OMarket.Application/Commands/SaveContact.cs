@@ -2,11 +2,10 @@
 
 using AutoMapper;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -32,7 +31,7 @@ namespace OMarket.Application.Commands
         private readonly IDataProcessorService _dataProcessor;
         private readonly IReplyMarkupService _replyMarkup;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public SaveContact(
                 IUpdateManager updateManager,
@@ -43,7 +42,7 @@ namespace OMarket.Application.Commands
                 IDataProcessorService dataProcessor,
                 IReplyMarkupService replyMarkup,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _updateManager = updateManager;
@@ -54,7 +53,7 @@ namespace OMarket.Application.Commands
             _dataProcessor = dataProcessor;
             _replyMarkup = replyMarkup;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -95,8 +94,8 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                string? lastMessageIdString = await _distributedCache
-                    .GetStringAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}", token);
+                string lastMessageIdString = await _cache
+                    .GetStringCacheAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}");
 
                 if (string.IsNullOrEmpty(lastMessageIdString))
                 {
@@ -110,7 +109,7 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                await _distributedCache.RemoveAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}", token);
+                await _cache.RemoveCacheAsync($"{CacheKeys.CustomerFirstMessageId}{request.Customer.Id}");
 
                 await _customersRepository.SaveContactsAsync(
                     id: request.Customer.Id,

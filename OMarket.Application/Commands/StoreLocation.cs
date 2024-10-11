@@ -61,7 +61,7 @@ namespace OMarket.Application.Commands
             InlineKeyboardMarkup buttons = _inlineMarkup.SelectStoreAddressWithLocation();
 
             string text = $"""
-                {_i18n.T("main_menu_command_contacts_button")}
+                {_i18n.T("main_menu_command_find_store_button")}
 
                 {_i18n.T("store_location_command_select_address_to_display_geolocation")}
                 """;

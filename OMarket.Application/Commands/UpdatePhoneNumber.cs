@@ -2,12 +2,11 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -33,7 +32,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICustomersRepository _customersRepository;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
         private readonly IStaticCollectionsService _staticCollections;
 
         public UpdatePhoneNumber(
@@ -43,7 +42,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 ICustomersRepository customersRepository,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IStaticCollectionsService staticCollections
             )
         {
@@ -53,7 +52,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _customersRepository = customersRepository;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _staticCollections = staticCollections;
         }
 
@@ -75,7 +74,7 @@ namespace OMarket.Application.Commands
 
             string cacheKey = $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}";
 
-            string? messageIdString = await _distributedCache.GetStringAsync(cacheKey, token);
+            string messageIdString = await _cache.GetStringCacheAsync(cacheKey);
 
             if (string.IsNullOrEmpty(messageIdString))
             {
@@ -87,9 +86,9 @@ namespace OMarket.Application.Commands
                 int messageId = _updateManager.CallbackQuery.Message?.MessageId
                     ?? throw new TelegramException();
 
-                await _distributedCache.SetStringAsync(
+                await _cache.SetStringCacheAsync(
                     $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}",
-                    $"/33554432_{messageId}", token);
+                    $"/33554432_{messageId}");
 
                 string text = $"""
                     {_i18n.T("main_menu_command_profile_button")}
@@ -112,21 +111,21 @@ namespace OMarket.Application.Commands
 
                 if (queryLines.Length != 2)
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
 
                 if (queryLines[0] != "/33554432")
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
 
                 if (!int.TryParse(queryLines[1], out int messageId))
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
@@ -166,7 +165,7 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 request = await _dataProcessor.MapRequestData(token);
 
@@ -174,14 +173,14 @@ namespace OMarket.Application.Commands
                     key: request.Customer.StoreId.ToString()!,
                     value: out var store))
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
 
                 if (!request.Customer.CreatedAt.HasValue)
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
@@ -255,7 +254,7 @@ namespace OMarket.Application.Commands
                     token: token,
                     buttons: _inlineMarkup.ToMainMenuBack());
 
-                await _distributedCache.SetStringAsync(cacheKey, $"/33554432_{message.MessageId}", token);
+                await _cache.SetStringCacheAsync(cacheKey, $"/33554432_{message.MessageId}");
             }
         }
     }

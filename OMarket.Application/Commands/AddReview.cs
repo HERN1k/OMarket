@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-
-using OMarket.Domain.Attributes.TgCommand;
+﻿using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -28,7 +27,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly IReviewRepository _reviewsRepository;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         public AddReview(
                 IUpdateManager updateManager,
@@ -37,7 +36,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 IReviewRepository reviewsRepository,
-                IDistributedCache distributedCache
+                ICacheService cache
             )
         {
             _updateManager = updateManager;
@@ -46,7 +45,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _reviewsRepository = reviewsRepository;
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
         public async Task InvokeAsync(CancellationToken token)
@@ -80,7 +79,7 @@ namespace OMarket.Application.Commands
 
             string cacheKey = $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}";
 
-            string? messageIdString = await _distributedCache.GetStringAsync(cacheKey, token);
+            string messageIdString = await _cache.GetStringCacheAsync(cacheKey);
 
             if (string.IsNullOrEmpty(messageIdString))
             {
@@ -91,14 +90,14 @@ namespace OMarket.Application.Commands
 
             if (tempLines.Length != 2)
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException();
             }
 
             if (tempLines[0] != "/67108864")
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException();
             }
@@ -115,9 +114,9 @@ namespace OMarket.Application.Commands
                 int messageId = _updateManager.CallbackQuery.Message?.MessageId
                     ?? throw new TelegramException();
 
-                await _distributedCache.SetStringAsync(
+                await _cache.SetStringCacheAsync(
                     cacheKey,
-                    $"/67108864_{messageId}={request.Query}", token);
+                    $"/67108864_{messageId}={request.Query}");
 
                 string text = $"""
                     {_i18n.T("main_menu_command_leave_review_button")}
@@ -135,14 +134,14 @@ namespace OMarket.Application.Commands
             {
                 if (queryLines.Length != 2)
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
 
                 if (!int.TryParse(queryLines[0], out int messageId))
                 {
-                    await _distributedCache.RemoveAsync(cacheKey, token);
+                    await _cache.RemoveCacheAsync(cacheKey);
 
                     throw new TelegramException();
                 }
@@ -197,7 +196,7 @@ namespace OMarket.Application.Commands
                     return;
                 }
 
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 string text = $"""
                     {_i18n.T("add_review_command_thank_you_review_saved")}
@@ -232,7 +231,7 @@ namespace OMarket.Application.Commands
                     token: token,
                     buttons: _inlineMarkup.ToMainMenuBack());
 
-                await _distributedCache.SetStringAsync(cacheKey, $"/67108864_{message.MessageId}={storeId}", token);
+                await _cache.SetStringCacheAsync(cacheKey, $"/67108864_{message.MessageId}={storeId}");
             }
         }
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Entities;
@@ -12,19 +11,13 @@ namespace OMarket.Infrastructure.Repositories
     {
         private readonly IDbContextFactory<AppDBContext> _contextFactory;
 
-        private readonly ILogger<AdminsRepository> _logger;
-
         private readonly int _pageSizeReview = 5;
 
         private readonly int _pageSizeProduct = 12;
 
-        public AdminsRepository(
-                IDbContextFactory<AppDBContext> contextFactory,
-                ILogger<AdminsRepository> logger
-            )
+        public AdminsRepository(IDbContextFactory<AppDBContext> contextFactory)
         {
             _contextFactory = contextFactory;
-            _logger = logger;
         }
 
         public async Task SaveNewAdminAsync(RegisterRequestDto request, string hash, CancellationToken token)

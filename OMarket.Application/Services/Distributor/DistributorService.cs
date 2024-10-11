@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.Distributor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
@@ -26,7 +26,7 @@ namespace OMarket.Application.Services.Distributor
 
         private readonly IStaticCollectionsService _staticCollections;
 
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
 
         private readonly ILogger<DistributorService> _logger;
 
@@ -35,7 +35,7 @@ namespace OMarket.Application.Services.Distributor
                 ISendResponseService response,
                 IServiceProvider serviceProvider,
                 IStaticCollectionsService staticCollections,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 ILogger<DistributorService> logger
             )
         {
@@ -43,7 +43,7 @@ namespace OMarket.Application.Services.Distributor
             _response = response;
             _serviceProvider = serviceProvider;
             _staticCollections = staticCollections;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _logger = logger;
         }
 
@@ -91,8 +91,8 @@ namespace OMarket.Application.Services.Distributor
                     throw new TelegramException();
                 }
 
-                string? customerFreeInputString = await _distributedCache
-                    .GetStringAsync($"{CacheKeys.CustomerFreeInputId}{_updateManager.Update.Message.From.Id}", token);
+                string customerFreeInputString = await _cache
+                    .GetStringCacheAsync($"{CacheKeys.CustomerFreeInputId}{_updateManager.Update.Message.From.Id}");
 
                 if (string.IsNullOrEmpty(customerFreeInputString))
                 {

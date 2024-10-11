@@ -1,8 +1,5 @@
-﻿using System.Text.Json;
-
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Distributed;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
@@ -21,8 +18,6 @@ namespace OMarket.Application.Services.Admin
 
         private readonly IAdminsRepository _adminsRepository;
 
-        private readonly IDistributedCache _distributedCache;
-
         private readonly ICacheService _cache;
 
         private readonly IJwtService _jwtService;
@@ -32,7 +27,6 @@ namespace OMarket.Application.Services.Admin
         public AdminService(
                 IPasswordService passwordService,
                 IAdminsRepository adminsRepository,
-                IDistributedCache distributedCache,
                 ICacheService cache,
                 IJwtService jwtService,
                 IWebHostEnvironment environment
@@ -40,7 +34,6 @@ namespace OMarket.Application.Services.Admin
         {
             _passwordService = passwordService;
             _adminsRepository = adminsRepository;
-            _distributedCache = distributedCache;
             _cache = cache;
             _jwtService = jwtService;
             _environment = environment;
@@ -204,18 +197,16 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<List<CityDto>> GetCitiesAsync(CancellationToken token)
         {
-            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminCities, token);
+            List<CityDto>? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<List<CityDto>>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<List<CityDto>>(CacheKeys.AdminCities);
 
-            List<CityDto> result = await _adminsRepository.GetCitiesAsync(token);
+            if (result is not null)
+                return result;
 
-            data = JsonSerializer.Serialize<List<CityDto>>(result);
+            result = await _adminsRepository.GetCitiesAsync(token);
 
-            await _distributedCache.SetStringAsync(CacheKeys.AdminCities, data, token);
+            await _cache.SetCacheAsync(CacheKeys.AdminCities, result);
 
             return result;
         }
@@ -252,18 +243,16 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<List<StoreDtoResponse>> GetStoresAsync(CancellationToken token)
         {
-            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminStores, token);
+            List<StoreDtoResponse>? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<List<StoreDtoResponse>>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<List<StoreDtoResponse>>(CacheKeys.AdminStores);
 
-            List<StoreDtoResponse> result = await _adminsRepository.GetStoresAsync(token);
+            if (result is not null)
+                return result;
 
-            data = JsonSerializer.Serialize<List<StoreDtoResponse>>(result);
+            result = await _adminsRepository.GetStoresAsync(token);
 
-            await _distributedCache.SetStringAsync(CacheKeys.AdminStores, data, token);
+            await _cache.SetCacheAsync(CacheKeys.AdminStores, result);
 
             return result;
         }
@@ -316,18 +305,16 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<List<AdminDtoResponse>> AdminsAsync(CancellationToken token)
         {
-            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminAdmins, token);
+            List<AdminDtoResponse>? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<List<AdminDtoResponse>>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<List<AdminDtoResponse>>(CacheKeys.AdminStores);
 
-            List<AdminDtoResponse> result = await _adminsRepository.GetAdminsAsync(token);
+            if (result is not null)
+                return result;
 
-            data = JsonSerializer.Serialize<List<AdminDtoResponse>>(result);
+            result = await _adminsRepository.GetAdminsAsync(token);
 
-            await _distributedCache.SetStringAsync(CacheKeys.AdminAdmins, data, token);
+            await _cache.SetCacheAsync(CacheKeys.AdminAdmins, result);
 
             return result;
         }
@@ -380,20 +367,17 @@ namespace OMarket.Application.Services.Admin
 
         public async Task<ReviewResponse> StoreReviewAsync(Guid storeId, int page, CancellationToken token)
         {
+            ReviewResponse? result;
             string cacheKey = $"{CacheKeys.AdminReviews}{storeId}{page}";
 
-            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+            result = await _cache.GetCacheAsync<ReviewResponse>(cacheKey);
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<ReviewResponse>(data) ?? new();
-            }
+            if (result is not null)
+                return result;
 
-            ReviewResponse result = await _adminsRepository.GetStoreReviewWithPagination(storeId, page, token);
+            result = await _adminsRepository.GetStoreReviewWithPagination(storeId, page, token);
 
-            data = JsonSerializer.Serialize<ReviewResponse>(result);
-
-            await _distributedCache.SetStringAsync(cacheKey, data, token);
+            await _cache.SetCacheAsync(cacheKey, result);
 
             return result;
         }
@@ -462,17 +446,16 @@ namespace OMarket.Application.Services.Admin
         {
             token.ThrowIfCancellationRequested();
 
-            string? data = await _distributedCache.GetStringAsync(CacheKeys.AdminProductTypes, token);
+            List<ProductTypesDto>? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<List<ProductTypesDto>>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<List<ProductTypesDto>>(CacheKeys.AdminProductTypes);
 
-            List<ProductTypesDto> result = await _adminsRepository.ProductTypesAsync(token);
-            data = JsonSerializer.Serialize<List<ProductTypesDto>>(result);
+            if (result is not null)
+                return result;
 
-            await _distributedCache.SetStringAsync(CacheKeys.AdminProductTypes, data, token);
+            result = await _adminsRepository.ProductTypesAsync(token);
+
+            await _cache.SetCacheAsync(CacheKeys.AdminProductTypes, result);
 
             return result;
         }
@@ -635,17 +618,16 @@ namespace OMarket.Application.Services.Admin
 
             string cacheKey = $"{CacheKeys.AdminProductsWithoutStoreId}{typeId}{page}";
 
-            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+            ProductResponse? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<ProductResponse>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<ProductResponse>(cacheKey);
 
-            ProductResponse result = await _adminsRepository.GetProductsWithPaginationAsync(typeId, page, token);
-            data = JsonSerializer.Serialize<ProductResponse>(result);
+            if (result is not null)
+                return result;
 
-            await _distributedCache.SetStringAsync(cacheKey, data, token);
+            result = await _adminsRepository.GetProductsWithPaginationAsync(typeId, page, token);
+
+            await _cache.SetCacheAsync(cacheKey, result);
 
             return result;
         }
@@ -663,17 +645,16 @@ namespace OMarket.Application.Services.Admin
 
             string cacheKey = $"{CacheKeys.AdminProductsWithStoreId}{storeId}{typeId}{page}";
 
-            string? data = await _distributedCache.GetStringAsync(cacheKey, token);
+            ProductResponse? result;
 
-            if (!string.IsNullOrEmpty(data))
-            {
-                return JsonSerializer.Deserialize<ProductResponse>(data) ?? new();
-            }
+            result = await _cache.GetCacheAsync<ProductResponse>(cacheKey);
 
-            ProductResponse result = await _adminsRepository.GetProductsWithPaginationAndStoreIdAsync(storeId, typeId, page, token);
-            data = JsonSerializer.Serialize<ProductResponse>(result);
+            if (result is not null)
+                return result;
 
-            await _distributedCache.SetStringAsync(cacheKey, data, token);
+            result = await _adminsRepository.GetProductsWithPaginationAndStoreIdAsync(storeId, typeId, page, token);
+
+            await _cache.SetCacheAsync(cacheKey, result);
 
             return result;
         }

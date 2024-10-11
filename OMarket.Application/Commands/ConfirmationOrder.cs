@@ -1,12 +1,11 @@
 ﻿using System.Globalization;
 using System.Text;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.Cart;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
@@ -32,7 +31,7 @@ namespace OMarket.Application.Commands
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
         private readonly ICartService _cartService;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
         private readonly IProductsRepository _productsRepository;
         private readonly IStoreRepository _storeRepository;
         private readonly IOrdersRepository _ordersRepository;
@@ -45,7 +44,7 @@ namespace OMarket.Application.Commands
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
                 ICartService cartService,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IProductsRepository productsRepository,
                 IStoreRepository storeRepository,
                 IOrdersRepository ordersRepository,
@@ -58,7 +57,7 @@ namespace OMarket.Application.Commands
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
             _cartService = cartService;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _productsRepository = productsRepository;
             _storeRepository = storeRepository;
             _ordersRepository = ordersRepository;
@@ -91,7 +90,7 @@ namespace OMarket.Application.Commands
                     <b>{_i18n.T("order_command_cannot_create_order_blocked")}</b>
                     """;
 
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 await _cartService.RemoveCartAsync(request.Customer.Id, token);
 
@@ -225,12 +224,12 @@ namespace OMarket.Application.Commands
 
             if (string.IsNullOrEmpty(cacheKey))
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
 
-            string? messageIdString = await _distributedCache.GetStringAsync(cacheKey, token);
+            string messageIdString = await _cache.GetStringCacheAsync(cacheKey);
 
             if (string.IsNullOrEmpty(messageIdString))
             {
@@ -241,14 +240,14 @@ namespace OMarket.Application.Commands
 
             if (tempLines.Length != 2)
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
 
             if (tempLines[0] != "/1000000100")
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
@@ -257,14 +256,14 @@ namespace OMarket.Application.Commands
 
             if (queryLines.Length != 2)
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
 
             if (!int.TryParse(queryLines[0], out int messageId))
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException("exception_main_please_try_again");
             }
@@ -420,7 +419,7 @@ namespace OMarket.Application.Commands
 
             try
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
                 await _cartService.RemoveCartAsync(customerId, token);
 
                 await _response.RemoveMessageById(messageId, token);

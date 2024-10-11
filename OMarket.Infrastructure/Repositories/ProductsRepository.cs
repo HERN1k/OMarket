@@ -1,11 +1,9 @@
-﻿using System.Text.Json;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.StaticCollections;
 using OMarket.Domain.Interfaces.Infrastructure.Repositories;
 using OMarket.Helpers.Utilities;
@@ -21,7 +19,7 @@ namespace OMarket.Infrastructure.Repositories
 
         private readonly ILogger<ProductsRepository> _logger;
 
-        private readonly IDistributedCache _cache;
+        private readonly ICacheService _cache;
 
         private readonly int _pageSize = 1;
 
@@ -29,7 +27,7 @@ namespace OMarket.Infrastructure.Repositories
                 IDbContextFactory<AppDBContext> contextFactory,
                 IStaticCollectionsService staticCollections,
                 ILogger<ProductsRepository> logger,
-                IDistributedCache cache
+                ICacheService cache
             )
         {
             _contextFactory = contextFactory;
@@ -44,16 +42,12 @@ namespace OMarket.Infrastructure.Repositories
 
             ProductDto? product;
 
-            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductItemFromDbId}{id}", token);
+            string cacheKey = $"{CacheKeys.ProductItemFromDbId}{id}";
 
-            if (!string.IsNullOrEmpty(productsString))
-            {
-                token.ThrowIfCancellationRequested();
+            product = await _cache.GetCacheAsync<ProductDto>(cacheKey);
 
-                product = JsonSerializer.Deserialize<ProductDto>(productsString);
-
-                return product ?? throw new TelegramException();
-            }
+            if (product is not null)
+                return product;
 
             try
             {
@@ -77,14 +71,7 @@ namespace OMarket.Infrastructure.Repositories
                     .SingleOrDefaultAsync(token)
                         ?? throw new TelegramException();
 
-                productsString = JsonSerializer.Serialize<ProductDto>(product);
-
-                if (string.IsNullOrEmpty(productsString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync($"{CacheKeys.ProductItemFromDbId}{id}", productsString, token);
+                await _cache.SetCacheAsync(cacheKey, product);
 
                 return product;
             }
@@ -114,16 +101,12 @@ namespace OMarket.Infrastructure.Repositories
 
             ProductWithDbInfoDto? product;
 
-            string? productsString = await _cache.GetStringAsync($"{CacheKeys.ProductId}{storeId}-{underType}-{_pageSize}-{pageNumber}", token);
+            string cacheKey = $"{CacheKeys.ProductId}{storeId}-{underType}-{_pageSize}-{pageNumber}";
 
-            if (!string.IsNullOrEmpty(productsString))
-            {
-                token.ThrowIfCancellationRequested();
+            product = await _cache.GetCacheAsync<ProductWithDbInfoDto>(cacheKey);
 
-                product = JsonSerializer.Deserialize<ProductWithDbInfoDto>(productsString);
-
-                return product ?? throw new TelegramException();
-            }
+            if (product is not null)
+                return product;
 
             if (!Guid.TryParse(underType, out Guid underTypeGuid) || !_staticCollections.GuidToStringUnderTypesDictionary.ContainsKey(underType))
             {
@@ -187,14 +170,7 @@ namespace OMarket.Infrastructure.Repositories
                     return null;
                 }
 
-                productsString = JsonSerializer.Serialize<ProductWithDbInfoDto>(product);
-
-                if (string.IsNullOrEmpty(productsString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync($"{CacheKeys.ProductId}{storeId}-{underType}-{_pageSize}-{pageNumber}", productsString, token);
+                await _cache.SetCacheAsync(cacheKey, product);
 
                 return product;
             }
@@ -228,16 +204,10 @@ namespace OMarket.Infrastructure.Repositories
             List<ProductDto>? products;
             string cacheKey = $"{CacheKeys.SearchProductsByNameId}{productTypeId}{storeId}{name}";
 
-            string? productsString = await _cache.GetStringAsync(cacheKey, token);
+            products = await _cache.GetCacheAsync<List<ProductDto>>(cacheKey);
 
-            if (!string.IsNullOrEmpty(productsString))
-            {
-                token.ThrowIfCancellationRequested();
-
-                products = JsonSerializer.Deserialize<List<ProductDto>>(productsString);
-
-                return products ?? throw new TelegramException();
-            }
+            if (products is not null)
+                return products;
 
             try
             {
@@ -272,14 +242,7 @@ namespace OMarket.Infrastructure.Repositories
                     .Take(5)
                     .ToListAsync(token);
 
-                productsString = JsonSerializer.Serialize<List<ProductDto>>(products);
-
-                if (string.IsNullOrEmpty(productsString))
-                {
-                    throw new TelegramException();
-                }
-
-                await _cache.SetStringAsync(cacheKey, productsString, token);
+                await _cache.SetCacheAsync(cacheKey, products);
 
                 return products;
             }

@@ -1,11 +1,10 @@
 ﻿using System.Text;
 
-using Microsoft.Extensions.Caching.Distributed;
-
 using OMarket.Domain.Attributes.TgCommand;
 using OMarket.Domain.DTOs;
 using OMarket.Domain.Enums;
 using OMarket.Domain.Exceptions.Telegram;
+using OMarket.Domain.Interfaces.Application.Services.Cache;
 using OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup;
 using OMarket.Domain.Interfaces.Application.Services.Processor;
 using OMarket.Domain.Interfaces.Application.Services.SendResponse;
@@ -29,7 +28,7 @@ namespace OMarket.Application.Commands
         private readonly IDataProcessorService _dataProcessor;
         private readonly II18nService _i18n;
         private readonly IInlineMarkupService _inlineMarkup;
-        private readonly IDistributedCache _distributedCache;
+        private readonly ICacheService _cache;
         private readonly IProductsRepository _productsRepository;
 
         public EndSearch(
@@ -38,7 +37,7 @@ namespace OMarket.Application.Commands
                 IDataProcessorService dataProcessor,
                 II18nService i18n,
                 IInlineMarkupService inlineMarkup,
-                IDistributedCache distributedCache,
+                ICacheService cache,
                 IProductsRepository productsRepository
             )
         {
@@ -47,7 +46,7 @@ namespace OMarket.Application.Commands
             _dataProcessor = dataProcessor;
             _i18n = i18n;
             _inlineMarkup = inlineMarkup;
-            _distributedCache = distributedCache;
+            _cache = cache;
             _productsRepository = productsRepository;
         }
 
@@ -74,7 +73,7 @@ namespace OMarket.Application.Commands
 
             string cacheKey = $"{CacheKeys.CustomerFreeInputId}{request.Customer.Id}";
 
-            string? typeString = await _distributedCache.GetStringAsync(cacheKey, token);
+            string typeString = await _cache.GetStringCacheAsync(cacheKey);
 
             if (string.IsNullOrEmpty(typeString))
             {
@@ -90,7 +89,7 @@ namespace OMarket.Application.Commands
 
             if (tempLines[0] != "/65536")
             {
-                await _distributedCache.RemoveAsync(cacheKey, token);
+                await _cache.RemoveCacheAsync(cacheKey);
 
                 throw new TelegramException();
             }
@@ -137,13 +136,13 @@ namespace OMarket.Application.Commands
                 {
                     Message message = await _response.SendMessageAnswer(text, token, _inlineMarkup.ToMainMenuBack());
 
-                    await _distributedCache.SetStringAsync(cacheKey, $"/65536_{queryLines[0]}={message.MessageId}", token);
+                    await _cache.SetStringCacheAsync(cacheKey, $"/65536_{queryLines[0]}={message.MessageId}");
                 }
 
                 return;
             }
 
-            await _distributedCache.RemoveAsync(cacheKey, token);
+            await _cache.RemoveCacheAsync(cacheKey);
 
             int index = 0;
             StringBuilder sb = new();
