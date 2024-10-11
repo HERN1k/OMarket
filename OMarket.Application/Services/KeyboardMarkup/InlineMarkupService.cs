@@ -304,8 +304,6 @@ namespace OMarket.Application.Services.KeyboardMarkup
                                 $"/512_{dto.Product.UnderTypeId}_{dto.PageNumber + 1}")]);
                 }
 
-                buttons.Add([InlineKeyboardButton.WithCallbackData(_i18n.T("main_menu_command_cart_button", code), "/4096")]);
-
                 buttons.Add([
                     InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_back", code), $"/128_{dto.TypeId}_back_del"),
                     InlineKeyboardButton.WithCallbackData(_i18n.T("menu_item_to_main_menu", code), "/mainmenu_back_del")]);
