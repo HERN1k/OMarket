@@ -38,7 +38,8 @@
         REMOVEMESSAGE = 1_000_000_300,
         CHANGEORDERSTATUS = 1_000_000_400,
         CONSULTATION = 1_000_000_500,
-        CUSTOMERORDERS = 1_000_000_600
+        CUSTOMERORDERS = 1_000_000_600,
+        SHOWPHONEBUTTON = 1_000_000_700
     }
 
     public static class TgCommandExtensions

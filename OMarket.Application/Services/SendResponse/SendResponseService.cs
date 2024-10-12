@@ -240,6 +240,46 @@ namespace OMarket.Application.Services.SendResponse
                 cancellationToken: token);
         }
 
+        public async Task<Message> EditMessageMarkupById(int messageId, InlineKeyboardMarkup buttons, CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+
+            long chatId;
+            if (_updateManager.Update.Type == UpdateType.Message)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.Message.Chat.Id;
+            }
+            else if (_updateManager.Update.Type == UpdateType.CallbackQuery)
+            {
+                token.ThrowIfCancellationRequested();
+
+                if (_updateManager.Update.CallbackQuery is null ||
+                    _updateManager.Update.CallbackQuery.Message is null)
+                {
+                    throw new TelegramException();
+                }
+
+                chatId = _updateManager.Update.CallbackQuery.Message.Chat.Id;
+            }
+            else
+            {
+                throw new TelegramException();
+            }
+
+            return await _client.EditMessageReplyMarkupAsync(
+                chatId: chatId,
+                messageId: messageId,
+                replyMarkup: buttons,
+                cancellationToken: token);
+        }
+
         public async Task<Message> SendPhotoWithTextAndButtons(string text, Uri photoUri, IReplyMarkup buttons, CancellationToken token, ParseMode? parseMode = ParseMode.Html)
         {
             token.ThrowIfCancellationRequested();

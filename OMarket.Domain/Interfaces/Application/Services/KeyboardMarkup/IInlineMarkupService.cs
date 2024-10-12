@@ -13,6 +13,8 @@ namespace OMarket.Domain.Interfaces.Application.Services.KeyboardMarkup
 
         InlineKeyboardMarkup ToMainMenuBackDel(LanguageCode? code = null);
 
+        InlineKeyboardMarkup ShowPhoneButton(LanguageCode? code = null);
+
         InlineKeyboardMarkup SelectStoreAddress(string command, LanguageCode? code = null);
 
         Task<InlineKeyboardMarkup> MainMenu(CancellationToken token, LanguageCode? code = null);

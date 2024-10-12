@@ -61,6 +61,10 @@ namespace OMarket.Application.Services.KeyboardMarkup
             new(InlineKeyboardButton.WithCallbackData(
                 _i18n.T("menu_item_to_main_menu", code), "/mainmenu_back_del"));
 
+        public InlineKeyboardMarkup ShowPhoneButton(LanguageCode? code = null) =>
+            new(InlineKeyboardButton.WithCallbackData(
+                _i18n.T("start_command_show_phone_button", code), "/1000000700"));
+
         public InlineKeyboardMarkup SelectStoreAddress(string command, LanguageCode? code = null)
         {
             if (string.IsNullOrEmpty(command) || string.IsNullOrWhiteSpace(command))
