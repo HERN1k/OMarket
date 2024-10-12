@@ -22,9 +22,9 @@ namespace OMarket.Application.Services.KeyboardMarkup
             ReplyKeyboardMarkup markup = new(
                 new[] { new KeyboardButton(_i18n.T("start_command_send_phone_number_button", code)) { RequestContact = true } })
             {
+                IsPersistent = true,
                 ResizeKeyboard = true,
-                OneTimeKeyboard = false,
-                IsPersistent = true
+                OneTimeKeyboard = false
             };
 
             return markup;

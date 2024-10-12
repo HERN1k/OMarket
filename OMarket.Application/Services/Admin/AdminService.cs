@@ -307,7 +307,7 @@ namespace OMarket.Application.Services.Admin
         {
             List<AdminDtoResponse>? result;
 
-            result = await _cache.GetCacheAsync<List<AdminDtoResponse>>(CacheKeys.AdminStores);
+            result = await _cache.GetCacheAsync<List<AdminDtoResponse>>(CacheKeys.AdminAdmins);
 
             if (result is not null)
                 return result;
