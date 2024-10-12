@@ -99,8 +99,6 @@ namespace OMarket.Application.Commands
 
                 Message message = await _response.SendMessageAnswer(greeting, token, _replyMarkup.SendPhoneNumber());
 
-                await _response.EditMessageMarkupById(message.MessageId, _inlineMarkup.ShowPhoneButton(), token);
-
                 await _cache.SetStringCacheAsync($"{CacheKeys.CustomerFirstMessageId}{customer.Id}", message.MessageId.ToString());
             }
             else
