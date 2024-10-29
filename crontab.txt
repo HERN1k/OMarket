@@ -1,0 +1,2 @@
+@reboot sleep 300 && /home/prod/backup_and_sync.sh
+0 3 * * * /home/prod/backup_and_sync.sh

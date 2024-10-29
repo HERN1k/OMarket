@@ -78,6 +78,7 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+
   postgres:
     image: postgres:17
     user: root
@@ -103,6 +104,22 @@ services:
       options:
         max-size: "10m"
         max-file: "5"
+
+  db_backup:
+    image: postgres:17
+    depends_on:
+      - postgres
+    user: root
+    volumes:
+      - /home/prod/backup/sql:/backup
+      - /home/prod/dbs/postgres:/var/lib/postgresql/data
+    entrypoint: ["/bin/sh", "-c", "sleep 10 && PGPASSWORD=2356 pg_dump -h postgres -U postgres -d OMarket -f /backup/db_backup_$$(date +%Y-%m-%d).sql"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2356
+    networks:
+      - omarket-network
+
   redis:
     image: redis:latest
     user: root

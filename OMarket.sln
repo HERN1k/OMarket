@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{647D9372-E40C-4C9E-B2CB-6D5AD40BD3C7}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		backup_and_sync.sh = backup_and_sync.sh
+		crontab.txt = crontab.txt
 		sysctl.conf = sysctl.conf
 	EndProjectSection
 EndProject
